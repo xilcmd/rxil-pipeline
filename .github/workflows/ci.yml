@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  # .cargo/config.toml pins the target dir to an ext4 path on the dev box
+  # (drvfs is slow). Runners have no such path; the env var overrides it.
+  CARGO_TARGET_DIR: target
+
+jobs:
+  # The one job that blocks a merge. Lint, unit tests, and the Python-vs-Rust
+  # parity suite, all on Linux.
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@nextest
+
+      - name: Format
+        run: cargo fmt --all --check
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+      - name: Unit tests
+        run: cargo nextest run --workspace
+      - name: Build binary for parity
+        run: cargo build --workspace
+
+      # Parity needs the frozen Python package to delegate to and compare
+      # against. It comes from PyPI, not a checkout, so the pin is explicit.
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Install Python xil-pipeline 0.3.2
+        run: |
+          python -m venv /tmp/xil-py
+          /tmp/xil-py/bin/pip install --quiet "xil-pipeline==0.3.2" numpy
+          /tmp/xil-py/bin/xil --version
+      - name: Parity suite
+        env:
+          XIL_PY_BIN: /tmp/xil-py/bin/xil
+          XIL_RS_BIN: ${{ github.workspace }}/target/debug/xil
+          XIL_PARITY_SCRATCH: /tmp/parity-scratch
+        run: /tmp/xil-py/bin/python tools/parity/parity.py check --suite
+
+  # Informational only. A failure here must never cancel `check`, hence
+  # fail-fast: false (see the Python repo's test.yml for the war story).
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@nextest
+      - run: cargo build --workspace
+      - run: cargo nextest run --workspace
