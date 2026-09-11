@@ -1,0 +1,30 @@
+# Parity checks. A command may flip to native in crates/xil-cli/src/commands.rs
+# only when every entry that exercises it passes.
+#
+# Each entry runs `xil <args>` in a fresh copy of fixtures/workspace under
+# Python (XIL_FORCE_PY=all) and under Rust, then diffs everything.
+#
+#   name          unique label
+#   args          argv after `xil`
+#   mask_keys     JSON keys whose values are volatile (timestamps, hosts)
+#   stdout_masks  regexes replaced with <MASK> in stdout before comparison
+
+[[check]]
+name = "help"
+args = ["--help"]
+
+[[check]]
+name = "use-list"
+args = ["use"]
+
+[[check]]
+name = "parse-sample"
+args = ["parse", "scripts/sample_S01E01.md", "--episode", "S01E01", "--quiet"]
+
+[[check]]
+name = "parse-drama"
+args = ["parse", "scripts/Drama Short Sample.md", "--quiet"]
+
+[[check]]
+name = "scan-sample"
+args = ["scan", "scripts/sample_S01E01.md"]

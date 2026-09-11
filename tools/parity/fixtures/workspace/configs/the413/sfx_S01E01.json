@@ -1,0 +1,32 @@
+{
+  "show": "THE 413",
+  "season": 1,
+  "episode": 1,
+  "defaults": {
+    "prompt_influence": 0.3
+  },
+  "effects": {
+    "AMBIENCE: RADIO STATION": {
+      "prompt": "AMBIENCE: RADIO STATION",
+      "duration_seconds": 30.0,
+      "loop": true
+    },
+    "BEAT": {
+      "type": "silence",
+      "duration_seconds": 1.0
+    },
+    "AMBIENCE: DINER": {
+      "prompt": "AMBIENCE: DINER",
+      "duration_seconds": 30.0,
+      "loop": true
+    },
+    "SFX: DOOR OPENS": {
+      "prompt": "SFX: DOOR OPENS",
+      "duration_seconds": 5.0
+    },
+    "MUSIC: THEME": {
+      "prompt": "MUSIC: THEME",
+      "duration_seconds": 15.0
+    }
+  }
+}

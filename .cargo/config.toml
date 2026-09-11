@@ -1,0 +1,5 @@
+# The source tree lives on /mnt/c (drvfs, Windows-backed 9p). Object files
+# there make every build crawl, so the target dir is pinned to ext4.
+# Override per shell with CARGO_TARGET_DIR if you build somewhere else.
+[build]
+target-dir = "/home/drj/.cargo-target/rxil"

@@ -1,0 +1,16 @@
+[package]
+name = "xil-cli"
+description = "The `xil` command: native stages plus delegation to the Python pipeline"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "xil"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true

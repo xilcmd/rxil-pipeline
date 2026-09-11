@@ -1,0 +1,11 @@
+[package]
+name = "xil-audio"
+description = "PCM buffer math matching pydub/audioop, ffmpeg bridge, ID3/WAV tagging"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]

@@ -1,0 +1,36 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/xil-core",
+    "crates/xil-audio",
+    "crates/xil-api",
+    "crates/xil-workers",
+    "crates/xil-cli",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+authors = ["John Brissette <xilcmd@gmail.com>"]
+repository = "https://github.com/xilcmd/rxil-pipeline"
+rust-version = "1.80"
+
+# Pinned once here; crates reference them with `workspace = true`.
+# Phase 0 only needs a handful. Later phases add to this list, never to a
+# crate's own [dependencies] with a version.
+[workspace.dependencies]
+anyhow = "1"
+thiserror = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+clap = { version = "4", features = ["derive", "env"] }
+regex = "1"
+chrono = "0.4"
+hostname = "0.4"
+tempfile = "3"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true

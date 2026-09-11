@@ -1,0 +1,13 @@
+{
+  "python_git_sha": "4972c355786352ddae2f7559fc05db443bbc2843",
+  "python_version": "0.3.2",
+  "files": [
+    "configs/the413/cast_S01E01.json",
+    "configs/the413/sfx_S01E01.json",
+    "project.json",
+    "scripts/Drama Short Sample.md",
+    "scripts/Sample_Audiobook.md",
+    "scripts/Tech_Deep_Dive_S01E04.md",
+    "scripts/sample_S01E01.md"
+  ]
+}

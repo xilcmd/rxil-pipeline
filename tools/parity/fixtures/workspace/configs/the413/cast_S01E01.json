@@ -1,0 +1,30 @@
+{
+  "show": "THE 413",
+  "season": 1,
+  "episode": 1,
+  "title": "Test",
+  "season_title": "The Search",
+  "cast": {
+    "adam": {
+      "full_name": "Adam",
+      "voice_id": "6wrQFQPrvgNyJY74SxwG",
+      "pan": 0.0,
+      "filter": false,
+      "role": "TBD"
+    },
+    "dez": {
+      "full_name": "Dez",
+      "voice_id": "f4VxK14EIAcydYdp9gvH",
+      "pan": 0.0,
+      "filter": false,
+      "role": "TBD"
+    },
+    "mr_patterson": {
+      "full_name": "Mr. Patterson",
+      "voice_id": "uMrbBfXe0enj86j44nnY",
+      "pan": 0.0,
+      "filter": false,
+      "role": "Male, 70s, gravelly, seen it all truck driver."
+    }
+  }
+}

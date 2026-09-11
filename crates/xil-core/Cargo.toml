@@ -1,0 +1,11 @@
+[package]
+name = "xil-core"
+description = "Workspace paths, config models, edit journal, logging for the xil pipeline"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]

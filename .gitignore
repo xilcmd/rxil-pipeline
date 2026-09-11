@@ -1,0 +1,5 @@
+/target
+tools/parity/scratch/
+tools/parity/fixtures/**/*.mp3
+*.swp
+.DS_Store
