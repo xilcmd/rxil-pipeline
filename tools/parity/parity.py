@@ -71,6 +71,8 @@ MASKS = [
     # inside a decode failure.
     (re.compile(r"@ 0x[0-9a-f]+\]"), "@ 0x<PTR>]"),
     (re.compile(r"ver=\S+"), "ver=<VER>"),
+    # sfx-impact's HTML page stamps the minute and zone it was written.
+    (re.compile(r"generated \d{4}-\d{2}-\d{2} \d{2}:\d{2} \S+"), "generated <STAMP>"),
 ]
 
 
@@ -425,7 +427,7 @@ def cmd_record(_: argparse.Namespace) -> int:
         ("audio/loud_sine.mp3", "sine=frequency=440:duration=2:sample_rate=44100", ["-ac", "2"]),
         ("audio/quiet_sine.mp3", "sine=frequency=220:duration=1:sample_rate=22050", ["-ac", "1", "-af", "volume=0.05"]),
         ("audio/silence.mp3", "anullsrc=r=8000:cl=mono:d=1", []),
-        ("audio/nested/noise.mp3", "anoisesrc=d=1:c=pink:r=16000:a=0.3", ["-ac", "1"]),
+        ("audio/nested/noise.mp3", "anoisesrc=d=1:c=pink:r=16000:a=0.3:seed=7", ["-ac", "1"]),
         ("audio/Mixed Case.MP3", "sine=frequency=880:duration=1:sample_rate=32000", ["-ac", "1"]),
     ]
     for rel, filt, extra in tones:
@@ -463,6 +465,78 @@ def cmd_record(_: argparse.Namespace) -> int:
     (sfx / "Door Slam.mp3").write_bytes(b"ID3\x03\x00door")
     (sfx / "sub" / "rain.MP3").write_bytes(b"ID3\x03\x00rain")
     (sfx / "notes.txt").write_text("not audio\n")
+
+    # A tagged, decodable SFX library for sfx-lib, sfx-impact and sfx-match.
+    # Titles go in TIT2 and prompts in USLT through mutagen, exactly as
+    # tag_mp3 writes them. Copies of one asset share a title and duration so
+    # sfx-match's dedupe has something to collapse.
+    library = [
+        # (path, seconds, title, prompt)
+        ("SFX/impactshow/bed_8s.mp3", 8, "MUSIC: LONG BED", "a long calm music bed"),
+        ("SFX/impactshow/sting.mp3", 1, "SFX: STING", ""),
+        ("SFX/matchshow/sfx_door-creaks-open.mp3", 1, "SFX: DOOR CREAKS OPEN", "an old wooden door creaking"),
+        ("SFX/sfx_door-creaks-open.mp3", 1, "SFX: DOOR CREAKS OPEN", "an old wooden door creaking"),
+        ("SFX/matchshow/AMBRain-heavy_rain_on_window.mp3", 2, "AMBIENCE: HEAVY RAIN ON A WINDOW", "heavy rain against glass"),
+        ("SFX/sfx_phone-buzz.mp3", 1, "SFX: PHONE BUZZ", ""),
+        ("SFX/sfx_phone-buzz-twice.mp3", 2, "SFX: PHONE BUZZ TWICE", ""),
+        ("SFX/matchshow/MUSFolk-theme.mp3", 3, "", ""),
+    ]
+    for rel, secs, title, prompt in library:
+        out = ws / rel
+        out.parent.mkdir(parents=True, exist_ok=True)
+        r = _run(["ffmpeg", "-v", "quiet", "-y", "-f", "lavfi", "-i",
+                  f"sine=frequency=330:duration={secs}:sample_rate=44100", "-ac", "1", str(out)])
+        if r.returncode != 0:
+            print(f"ffmpeg failed for {rel}:\n{r.stderr}", file=sys.stderr)
+        if title or prompt:
+            r = _run([str(py), "-c",
+                      "import sys; from mutagen.id3 import ID3, TIT2, TPE1, USLT; t = ID3(sys.argv[1]); "
+                      "t.delall('TIT2'); t.delall('TPE1'); "
+                      "sys.argv[2] and t.add(TIT2(encoding=3, text=sys.argv[2])); "
+                      "t.add(TPE1(encoding=3, text='xil')); "
+                      "sys.argv[3] and t.add(USLT(encoding=3, lang='eng', desc='', text=sys.argv[3])); t.save()",
+                      str(out), title, prompt])
+            if r.returncode != 0:
+                print(f"tagging failed for {rel}:\n{r.stderr}", file=sys.stderr)
+
+    def _sfx_config(slug, tag, effects):
+        d = ws / "configs" / slug
+        d.mkdir(parents=True, exist_ok=True)
+        (d / f"sfx_{tag}.json").write_text(
+            json.dumps({"show": slug, "defaults": {}, "effects": effects}, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8")
+
+    # Every tier and every precedence rule sfx-impact knows.
+    _sfx_config("impactshow", "S01E01", {
+        "MUSIC: LONG BED": {"source": "SFX/impactshow/bed_8s.mp3", "duration_seconds": 5.0},
+        "SFX: SHORT CLIP": {"source": "SFX/impactshow/bed_8s.mp3", "duration_seconds": 7.0},
+        "SFX: STING": {"source": "SFX/impactshow/sting.mp3", "duration_seconds": 5.0},
+        "AMBIENCE: LOOPED": {"source": "SFX/impactshow/bed_8s.mp3", "duration_seconds": 5.0, "loop": True},
+        "SFX: HALF": {"source": "SFX/impactshow/bed_8s.mp3", "play_duration": 50},
+        "SFX: FULL": {"source": "SFX/impactshow/sting.mp3", "duration_seconds": 0},
+        "SFX: FAKE": {"source": "SFX/beat.mp3", "duration_seconds": 5.0},
+        "SFX: GONE": {"source": "SFX/impactshow/nope.mp3", "duration_seconds": 5.0},
+        "BEAT": {"type": "silence", "duration_seconds": 1.0},
+        "SFX: NOT A DICT": "oops",
+    })
+    # sfx-match: an EXACT slug hit, a STRONG match, a REVIEW tie, a NONE, a
+    # placeholder source, and a source that resolves (so it is skipped).
+    _sfx_config("matchshow", "S01E01", {
+        "SFX: DOOR CREAKS OPEN": {"source": "SFX/matchshow/old-door.mp3"},
+        "AMBIENCE: RAIN ON WINDOW": {"source": "SFX/matchshow/rain.mp3", "loop": True},
+        "SFX: PHONE BUZZ LOUD": {"source": "SFX/matchshow/buzz.mp3"},
+        "SFX: GLASS SHATTERS": {"source": "NEW STEM NEEDED: sfx_glass-shatters.mp3"},
+        "MUSIC: FOLK THEME": {"source": "SFX/matchshow/folk.mp3"},
+        "SFX: STING": {"source": "SFX/impactshow/sting.mp3"},
+        "BEAT": {"type": "silence", "duration_seconds": 1.0},
+    })
+    _sfx_config("matchshow", "S01E02", {
+        "SFX: PHONE BUZZ": {"source": "SFX/phone.mp3"},
+    })
+    # sfx-lib --export-kit copies the scriptwriter doc from ./docs when the
+    # package copy is absent, which it is for both implementations.
+    (ws / "docs").mkdir(exist_ok=True)
+    (ws / "docs" / "claude-scriptwriter-reference.md").write_text("# Scriptwriter reference (fixture)\n", encoding="utf-8")
     manifest = {
         "python_git_sha": _git_sha(CODEROOT),
         "python_version": _run([str(PY_XIL), "--version"]).stdout.strip(),

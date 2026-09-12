@@ -11,6 +11,7 @@ pub mod fsutil;
 pub mod journal;
 pub mod log;
 pub mod pycsv;
+pub mod pyfmt;
 pub mod pyjson;
 pub mod script;
 pub mod sfxlib;
