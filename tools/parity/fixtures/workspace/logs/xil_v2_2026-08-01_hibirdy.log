@@ -1,0 +1,15 @@
+2026-08-01T10:00:00-0400|RUN|hibirdy|produce|BEGIN argv="xil produce --episode S01E01" pid=1 ver=0.3.2 cwd=/x
+2026-08-01T10:00:01-0400|INFO|hibirdy|produce|  > [002] host via Chatterbox Turbo (58 chars)...
+2026-08-01T10:00:05-0400|INFO|hibirdy|produce|   Saved: stems/mypodcast/S01E01/002_cold-open_host.mp3
+2026-08-01T10:00:05-0400|INFO|hibirdy|produce|   SHA256: 1111aaaa
+2026-08-01T10:00:06-0400|INFO|hibirdy|produce|  > [003] host with eleven_v3 (60 chars)...
+2026-08-01T10:00:09-0400|INFO|hibirdy|produce|   Saved: stems/mypodcast/S01E01/003_cold-open_host.mp3
+2026-08-01T10:00:09-0400|INFO|hibirdy|produce|   SHA256: 2222bbbb
+2026-08-01T10:00:10-0400|INFO|hibirdy|produce|  | speaker | lines |
+2026-08-01T10:00:11-0400|RUN|hibirdy|produce|END elapsed=9.0s
+2026-08-01T11:00:00-0400|RUN|hibirdy|produce|BEGIN argv="xil produce --episode S01E02" pid=2 ver=0.3.2 cwd=/x
+2026-08-01T11:00:01-0400|INFO|hibirdy|produce|  > [011] caller via gTTS (90 chars)...
+2026-08-01T11:00:02-0400|INFO|hibirdy|produce|   Saved: stems/mypodcast/S01E02/011_act1_caller.mp3
+2026-08-01T11:00:02-0400|INFO|hibirdy|produce|   SHA256: 3333cccc
+2026-08-01T11:00:03-0400|INFO|hibirdy|produce|  > [004] maya via chatterbox (50 chars)...
+2026-08-01T11:00:04-0400|INFO|hibirdy|produce|   Saved: stems/nightowls/S01E02/004_cold-open_maya.mp3

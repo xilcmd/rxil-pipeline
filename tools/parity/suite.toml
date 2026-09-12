@@ -18,6 +18,190 @@ name = "use-list"
 args = ["use"]
 
 [[check]]
+name = "use-set-by-slug"
+args = ["use", "the413"]
+
+[[check]]
+name = "use-set-by-unquoted-name"
+args = ["use", "Night", "Owls"]
+
+[[check]]
+name = "use-no-match"
+args = ["use", "nosuchshow"]
+
+[[check]]
+name = "mp3-hash-dir"
+args = ["mp3-hash", "SFX"]
+
+[[check]]
+name = "mp3-hash-json"
+args = ["mp3-hash", "SFX", "--json"]
+
+[[check]]
+name = "mp3-hash-file-absolute-output"
+args = ["mp3-hash", "SFX/beat.mp3", "--absolute", "--output", "hashes.txt"]
+
+[[check]]
+name = "mp3-hash-missing"
+args = ["mp3-hash", "nope"]
+
+[[check]]
+name = "episode-summary-file"
+args = ["episode-summary"]
+
+[[check]]
+name = "episode-summary-stdout-filtered"
+args = ["episode-summary", "--stdout", "--show", "my podcast"]
+
+[[check]]
+name = "episode-summary-filter-no-match"
+args = ["episode-summary", "--show", "nosuchshow"]
+
+[[check]]
+name = "parsed-csv-stdout"
+args = ["parsed-csv"]
+
+[[check]]
+name = "parsed-csv-json"
+args = ["parsed-csv", "--json"]
+
+[[check]]
+name = "parsed-csv-file"
+args = ["parsed-csv", "parsed/mypodcast", "--output", "debug.csv"]
+
+[[check]]
+name = "parsed-csv-single-file"
+args = ["parsed-csv", "parsed/techdeepdive/parsed_S01E04.json"]
+
+[[check]]
+name = "parsed-csv-missing-dir"
+args = ["parsed-csv", "parsed/nosuchshow"]
+
+[[check]]
+name = "sfx-csv-default-path-finds-nothing"
+args = ["sfx-csv"]
+
+[[check]]
+name = "sfx-csv-stdout"
+args = ["sfx-csv", "configs/the413"]
+
+[[check]]
+name = "sfx-csv-json"
+args = ["sfx-csv", "configs/the413/sfx_S01E01.json", "--json"]
+
+[[check]]
+name = "sfx-csv-file"
+args = ["sfx-csv", "configs/the413", "--output", "sfx.csv"]
+
+[[check]]
+name = "stem-log-file"
+args = ["stem-log"]
+
+[[check]]
+name = "stem-log-stdout"
+args = ["stem-log", "--show"]
+
+[[check]]
+name = "stem-log-filters"
+args = ["stem-log", "--episode", "s01e01", "--since", "2026-07-15", "--output", "-"]
+
+[[check]]
+name = "stem-log-slug"
+args = ["stem-log", "--slug", "NightOwls", "--show"]
+
+[[check]]
+name = "stem-log-audit"
+args = ["stem-log", "--audit", "parsed/mypodcast/parsed_S01E01.json"]
+
+[[check]]
+name = "stem-log-audit-threshold"
+args = ["stem-log", "--audit", "parsed/mypodcast/parsed_S01E01.json", "--audit-threshold", "1"]
+
+[[check]]
+name = "stem-log-missing-dir"
+args = ["stem-log", "--logs-dir", "nope"]
+
+[[check]]
+name = "remove-show-dry-run"
+args = ["remove-show", "mypodcast", "--dry-run"]
+
+[[check]]
+name = "remove-show-by-name-yes"
+args = ["remove-show", "THE 413", "--yes"]
+
+[[check]]
+name = "remove-show-unknown"
+args = ["remove-show", "nosuchshow", "--dry-run"]
+
+[[check]]
+name = "remove-episode-dry-run"
+args = ["remove-episode", "S01E01", "--show", "the413", "--dry-run"]
+
+[[check]]
+name = "remove-episode-yes"
+args = ["remove-episode", "S01E01", "--show", "THE 413", "--yes"]
+
+[[check]]
+name = "remove-episode-nothing"
+args = ["remove-episode", "S09E09", "--yes"]
+
+[[check]]
+name = "migrate-dry-run"
+args = ["migrate-workspace", "--workspace", "legacy", "--dry-run"]
+
+[[check]]
+name = "migrate-execute"
+args = ["migrate-workspace", "--workspace", "legacy"]
+
+[[check]]
+name = "migrate-nothing"
+args = ["migrate-workspace", "--dry-run"]
+
+[[check]]
+name = "init-default"
+args = ["init", "--show", "Fresh Show"]
+
+[[check]]
+name = "init-audiobook-in-dir"
+args = ["init", "newbook", "--show", "The Book", "--type", "audiobook", "--season", "2", "--season-title", "Arc Two"]
+
+[[check]]
+name = "init-no-flat-drama"
+args = ["init", "legacyws", "--no-flat", "--type", "drama"]
+
+[[check]]
+name = "init-existing-show"
+args = ["init", "--show", "THE 413", "--type", "special"]
+
+[[check]]
+name = "status-episode"
+args = ["status", "--episode", "S01E01", "--show", "mypodcast", "--gdoc-dir", "gdocs"]
+
+[[check]]
+name = "status-positional-verbose"
+args = ["status", "S01E01", "-s", "My Podcast", "--gdoc-dir", "gdocs", "-v"]
+
+[[check]]
+name = "status-json"
+args = ["status", "-e", "S01E01", "--show", "mypodcast", "--gdoc-dir", "gdocs", "--json"]
+
+[[check]]
+name = "status-all-missing-gdoc-dir"
+args = ["status", "--all", "--show", "mypodcast", "--gdoc-dir", "nope"]
+
+[[check]]
+name = "status-all-json-is-an-error"
+args = ["status", "--all", "--json", "--show", "mypodcast", "--gdoc-dir", "gdocs"]
+
+[[check]]
+name = "status-no-tag-is-an-error"
+args = ["status", "--show", "mypodcast", "--gdoc-dir", "gdocs"]
+
+[[check]]
+name = "status-nothing-built"
+args = ["status", "S07E07", "--show", "nightowls", "--gdoc-dir", "gdocs"]
+
+[[check]]
 name = "parse-sample"
 args = ["parse", "scripts/sample_S01E01.md", "--episode", "S01E01", "--quiet"]
 

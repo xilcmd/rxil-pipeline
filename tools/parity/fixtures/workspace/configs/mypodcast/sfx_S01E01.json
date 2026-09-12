@@ -1,0 +1,25 @@
+{
+  "show": "My Podcast",
+  "season": 1,
+  "episode": 1,
+  "defaults": {
+    "prompt_influence": 0.3
+  },
+  "effects": {
+    "SFX: REJECTED THING": {
+      "prompt": "a rejected sound",
+      "duration_seconds": 2.0
+    },
+    "SFX: GOOD THING": {
+      "prompt": "a good sound",
+      "duration_seconds": 2.0
+    },
+    "BEAT": {
+      "type": "silence",
+      "duration_seconds": 1.0
+    },
+    "INTRO MUSIC": {
+      "source": "SFX/beat.mp3"
+    }
+  }
+}

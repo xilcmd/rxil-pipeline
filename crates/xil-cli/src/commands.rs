@@ -37,13 +37,23 @@ macro_rules! cmd {
         cmd!($name, $module, $desc, $group, "")
     };
     ($name:literal, $module:literal, $desc:literal, $group:ident, $hint:literal) => {
+        cmd!(@build None, $name, $module, $desc, $group, $hint)
+    };
+    // `native $path` marks a command whose Rust implementation has reached parity.
+    (native $run:path, $name:literal, $module:literal, $desc:literal, $group:ident) => {
+        cmd!(@build Some($run), $name, $module, $desc, $group, "")
+    };
+    (native $run:path, $name:literal, $module:literal, $desc:literal, $group:ident, $hint:literal) => {
+        cmd!(@build Some($run), $name, $module, $desc, $group, $hint)
+    };
+    (@build $native:expr, $name:literal, $module:literal, $desc:literal, $group:ident, $hint:literal) => {
         CommandSpec {
             name: $name,
             py_module: $module,
             description: $desc,
             group: Group::$group,
             hint: $hint,
-            native: None,
+            native: $native,
         }
     };
 }
@@ -51,8 +61,8 @@ macro_rules! cmd {
 /// Insertion order defines display order within each group.
 #[rustfmt::skip] // one command per line reads as a table; keep it that way
 pub const COMMANDS: &[CommandSpec] = &[
-    cmd!("init", "xil_pipeline.xil_init", "workspace scaffolding", Pipeline),
-    cmd!("use", "xil_pipeline.xil_use", "set / show the active show context", Utility, "(multi-show workspaces)"),
+    cmd!(native crate::cmd::init::run, "init", "xil_pipeline.xil_init", "workspace scaffolding", Pipeline),
+    cmd!(native crate::cmd::use_cmd::run, "use", "xil_pipeline.xil_use", "set / show the active show context", Utility, "(multi-show workspaces)"),
     cmd!("scan", "xil_pipeline.XILP000_script_scanner", "pre-flight script scanner", Pipeline),
     cmd!("parse", "xil_pipeline.XILP001_script_parser", "script parser", Pipeline),
     cmd!("cues", "xil_pipeline.XILP006_cues_ingester", "cues sheet ingestion", Pipeline),
@@ -72,23 +82,23 @@ pub const COMMANDS: &[CommandSpec] = &[
     cmd!("sample", "xil_pipeline.XILU004_sample_voices_T2S", "voice sample generation", Utility, "(after voices/cast config)"),
     cmd!("sfx-lib", "xil_pipeline.XILU005_discover_SFX", "SFX library discovery", Utility, "(any time)"),
     cmd!("splice", "xil_pipeline.XILU006_splice_parsed", "parsed JSON splice utility", Utility, "(advanced)"),
-    cmd!("mp3-hash", "xil_pipeline.XILU007_mp3_hash", "recursive MP3 SHA-256 hash log", Utility, "(integrity / audit)"),
-    cmd!("stem-log", "xil_pipeline.XILU008_stem_log_report", "parse daily logs → chronological stem generation CSV", Utility, "(integrity / audit)"),
+    cmd!(native crate::cmd::mp3_hash::run, "mp3-hash", "xil_pipeline.XILU007_mp3_hash", "recursive MP3 SHA-256 hash log", Utility, "(integrity / audit)"),
+    cmd!(native crate::cmd::stem_log::run, "stem-log", "xil_pipeline.XILU008_stem_log_report", "parse daily logs → chronological stem generation CSV", Utility, "(integrity / audit)"),
     cmd!("gui", "xil_pipeline.xil_gui", "web dashboard (requires [gui] extra)", Utility, "(pip install xil-pipeline[gui])"),
-    cmd!("migrate-workspace", "xil_pipeline.XILU009_migrate_workspace", "migrate pre-0.1.8 workspace to normalized layout", Utility, "(run once per workspace)"),
+    cmd!(native crate::cmd::migrate_workspace::run, "migrate-workspace", "xil_pipeline.XILU009_migrate_workspace", "migrate pre-0.1.8 workspace to normalized layout", Utility, "(run once per workspace)"),
     cmd!("db-profile", "xil_pipeline.XILU010_db_profile", "profile MP3 loudness: peak, average, and minimum dBFS", Utility, "(audio level analysis)"),
-    cmd!("sfx-csv", "xil_pipeline.XILU011_sfx_csv", "flatten sfx_<tag>.json configs to CSV — one row per effect", Utility, "(debug / audit)"),
-    cmd!("parsed-csv", "xil_pipeline.XILU012_parsed_csv", "export parsed_<tag>.json entries to CSV — one row per entry", Utility, "(debug / audit)"),
+    cmd!(native crate::cmd::sfx_csv::run, "sfx-csv", "xil_pipeline.XILU011_sfx_csv", "flatten sfx_<tag>.json configs to CSV — one row per effect", Utility, "(debug / audit)"),
+    cmd!(native crate::cmd::parsed_csv::run, "parsed-csv", "xil_pipeline.XILU012_parsed_csv", "export parsed_<tag>.json entries to CSV — one row per entry", Utility, "(debug / audit)"),
     cmd!("sfx-hydrate", "xil_pipeline.XILU013_sfx_hydrate", "write pipe-hint source fields from parsed JSON into the SFX config", Utility, "(after parse, before produce)"),
     cmd!("sfx-restore", "xil_pipeline.XILU020_sfx_restore", "reapply journaled timeline sound edits onto the SFX config", Utility, "(recover timeline sound edits)"),
     cmd!("sfx-impact", "xil_pipeline.XILU021_sfx_impact", "report which source-backed cues duration_seconds is clipping short", Utility, "(before changing clip durations)"),
     cmd!("sfx-match", "xil_pipeline.XILU022_sfx_match", "find existing library assets for cues whose source file is missing", Utility, "(when produce reports missing SFX sources)"),
-    cmd!("episode-summary", "xil_pipeline.XILU014_episode_summary", "write one-row-per-episode summary CSV (lines, words, TTS chars)", Utility, "(any time)"),
+    cmd!(native crate::cmd::episode_summary::run, "episode-summary", "xil_pipeline.XILU014_episode_summary", "write one-row-per-episode summary CSV (lines, words, TTS chars)", Utility, "(any time)"),
     cmd!("stem-verify", "xil_pipeline.XILU015_stem_verify", "scan stems folder → JSON report with file attributes and optional Whisper transcripts", Utility, "(after produce / import)"),
     cmd!("stem-compare", "xil_pipeline.XILU016_stem_compare", "cross-reference a stem-verify transcript report against the parsed script", Utility, "(after stem-verify)"),
-    cmd!("remove-show", "xil_pipeline.XILU017_remove_show", "remove all workspace files for a show (--dry-run safe)", Utility, "(workspace management)"),
-    cmd!("remove-episode", "xil_pipeline.XILU018_remove_episode", "remove workspace files for one episode, preserving the source script (--dry-run safe)", Utility, "(workspace management)"),
-    cmd!("status", "xil_pipeline.XILU019_episode_status", "make-style staleness check of an episode's pipeline artifacts (report only)", Utility, "(workspace management)"),
+    cmd!(native crate::cmd::remove_show::run, "remove-show", "xil_pipeline.XILU017_remove_show", "remove all workspace files for a show (--dry-run safe)", Utility, "(workspace management)"),
+    cmd!(native crate::cmd::remove_episode::run, "remove-episode", "xil_pipeline.XILU018_remove_episode", "remove workspace files for one episode, preserving the source script (--dry-run safe)", Utility, "(workspace management)"),
+    cmd!(native crate::cmd::status::run, "status", "xil_pipeline.XILU019_episode_status", "make-style staleness check of an episode's pipeline artifacts (report only)", Utility, "(workspace management)"),
 ];
 
 pub fn find(name: &str) -> Option<&'static CommandSpec> {

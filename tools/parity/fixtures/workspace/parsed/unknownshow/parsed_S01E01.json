@@ -1,0 +1,178 @@
+{
+  "show": "Unknown Show",
+  "season": 1,
+  "episode": 1,
+  "title": "",
+  "season_title": "Sample Season",
+  "source_file": "Sample_Audiobook.md",
+  "entries": [
+    {
+      "seq": 1,
+      "type": "section_header",
+      "section": "preamble",
+      "scene": null,
+      "speaker": null,
+      "direction": null,
+      "text": "PREAMBLE",
+      "direction_type": null,
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 2,
+      "type": "direction",
+      "section": "preamble",
+      "scene": null,
+      "speaker": null,
+      "direction": null,
+      "text": "INTRO MUSIC",
+      "direction_type": "MUSIC",
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 3,
+      "type": "section_header",
+      "section": "chapter1",
+      "scene": null,
+      "speaker": null,
+      "direction": null,
+      "text": "CHAPTER ONE",
+      "direction_type": null,
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 4,
+      "type": "scene_header",
+      "section": "chapter1",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "SCENE 1: REMOTE RESEARCH STATION — INTERIOR",
+      "direction_type": null,
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 5,
+      "type": "direction",
+      "section": "chapter1",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "AMBIENCE: Wind against insulated walls, low electrical hum of equipment racks",
+      "direction_type": "AMBIENCE",
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 6,
+      "type": "direction",
+      "section": "chapter1",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "BEAT",
+      "direction_type": "BEAT",
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 7,
+      "type": "direction",
+      "section": "chapter1",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "SFX: A desk chair rolling across concrete floor",
+      "direction_type": "SFX",
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 8,
+      "type": "direction",
+      "section": "chapter1",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "SFX: Static crackle from a receiver, then — beneath it — a faint rhythmic pulse",
+      "direction_type": "SFX",
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 9,
+      "type": "direction",
+      "section": "chapter1",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "BEAT — 3 SECONDS",
+      "direction_type": "BEAT",
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 10,
+      "type": "direction",
+      "section": "chapter1",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "SFX: Pen scratching across paper as she begins writing",
+      "direction_type": "SFX",
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 11,
+      "type": "direction",
+      "section": "chapter1",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "BEAT",
+      "direction_type": "BEAT",
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 12,
+      "type": "section_header",
+      "section": "postamble",
+      "scene": null,
+      "speaker": null,
+      "direction": null,
+      "text": "POSTAMBLE",
+      "direction_type": null,
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 13,
+      "type": "direction",
+      "section": "postamble",
+      "scene": null,
+      "speaker": null,
+      "direction": null,
+      "text": "OUTRO MUSIC",
+      "direction_type": "MUSIC",
+      "sfx_source": null,
+      "sfx_overrides": null
+    }
+  ],
+  "stats": {
+    "total_entries": 13,
+    "dialogue_lines": 0,
+    "direction_lines": 9,
+    "characters_for_tts": 0,
+    "speakers": [],
+    "sections": [
+      "chapter1",
+      "postamble",
+      "preamble"
+    ]
+  }
+}
