@@ -1,0 +1,22 @@
+{
+  "show": "Hint Show",
+  "season": 3,
+  "episode": 1,
+  "defaults": {
+    "prompt_influence": 0.3
+  },
+  "effects": {
+    "SFX: KEPT SOURCE": {
+      "source": "SFX/already-here.mp3",
+      "duration_seconds": 5.0
+    },
+    "SFX: FILLED SOURCE": {
+      "prompt": "SFX: FILLED SOURCE",
+      "duration_seconds": 5.0
+    },
+    "MUSIC: VOLUME ONLY": {
+      "prompt": "MUSIC: VOLUME ONLY",
+      "duration_seconds": 15.0
+    }
+  }
+}

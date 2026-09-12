@@ -12,6 +12,7 @@ pub mod episode_summary;
 pub mod init;
 pub mod migrate_workspace;
 pub mod mp3_hash;
+pub mod parse;
 pub mod parsed_csv;
 pub mod removal;
 pub mod remove_episode;

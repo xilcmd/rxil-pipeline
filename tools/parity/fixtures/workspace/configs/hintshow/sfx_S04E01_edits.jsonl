@@ -1,0 +1,6 @@
+{"ts": "2026-01-01T00:00:00+00:00", "key": "SFX: KEPT SOURCE", "fields": {"source": "SFX/from-journal.mp3"}}
+{"ts": "2026-01-01T00:00:01+00:00", "key": "MUSIC: VOLUME ONLY", "fields": {"volume_percentage": 77, "ramp_in_seconds": null}}
+{"ts": "2026-01-01T00:00:02+00:00", "key": "SFX: RENAMED AWAY", "fields": {"play_duration": 12}}
+{"ts": "2026-01-01T00:00:03+00:00", "scope": "defaults", "fields": {"music_volume_percentage": 44}}
+
+{not json}

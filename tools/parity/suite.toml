@@ -209,6 +209,59 @@ args = ["parse", "scripts/sample_S01E01.md", "--episode", "S01E01", "--quiet"]
 name = "parse-drama"
 args = ["parse", "scripts/Drama Short Sample.md", "--quiet"]
 
+# The torture script: CAST block, every BEAT shape, span and stop markers,
+# good and bad pipe hints, multi-line dialogue, a subtitled act header.
+[[check]]
+name = "parse-torture-configs"
+args = ["parse", "scripts/torture_S02E05.md", "--episode", "S02E05", "--quiet"]
+
+[[check]]
+name = "parse-torture-full-output"
+args = ["parse", "scripts/torture_S02E05.md"]
+
+[[check]]
+name = "parse-torture-preview-and-stats"
+args = ["parse", "scripts/torture_S02E05.md", "--preview", "2", "--stats"]
+
+[[check]]
+name = "parse-torture-stats-quiet"
+args = ["parse", "scripts/torture_S02E05.md", "--quiet", "--stats"]
+
+[[check]]
+name = "parse-torture-debug-csv"
+args = ["parse", "scripts/torture_S02E05.md", "--episode", "S02E05", "--debug", "--quiet"]
+
+[[check]]
+name = "parse-torture-tag-mode"
+args = ["parse", "scripts/torture_S02E05.md", "--tag", "V01C03", "--quiet"]
+
+[[check]]
+name = "parse-torture-show-override"
+args = ["parse", "scripts/torture_S02E05.md", "--episode", "S02E05", "--show", "Night Owls", "--quiet"]
+
+[[check]]
+name = "parse-episode-mismatch-is-an-error"
+args = ["parse", "scripts/torture_S02E05.md", "--episode", "S09E09", "--quiet"]
+
+[[check]]
+name = "parse-output-override"
+args = ["parse", "scripts/torture_S02E05.md", "--episode", "S02E05", "--output", "custom.json", "--quiet"]
+
+# An existing sfx config takes the backfill path, not the skeleton path.
+[[check]]
+name = "parse-backfill-existing-sfx"
+args = ["parse", "scripts/backfill_S03E01.md", "--episode", "S03E01", "--quiet"]
+
+# A journal beside a missing config: the skeleton is written, then replayed
+# over, including the override-warning and an orphan key.
+[[check]]
+name = "parse-skeleton-replays-journal"
+args = ["parse", "scripts/journal_S04E01.md", "--episode", "S04E01", "--quiet"]
+
+[[check]]
+name = "parse-missing-script-fails"
+args = ["parse", "scripts/nosuch.md", "--quiet"]
+
 [[check]]
 name = "scan-sample"
 args = ["scan", "scripts/sample_S01E01.md"]

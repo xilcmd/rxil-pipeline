@@ -51,6 +51,9 @@ RUST_XIL = Path(
 )
 
 MASKS = [
+    # Log records use +0000, the edit journal uses +00:00, and two runs a
+    # second apart must still compare equal.
+    (re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:[+-]\d{2}:?\d{2}|Z)"), "<TS>"),
     (re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{4}"), "<TS>"),
     (re.compile(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}"), "<TS>"),
     (re.compile(r"elapsed=\d+(\.\d+)?s"), "elapsed=<N>s"),
@@ -80,6 +83,69 @@ def cmd_record(_: argparse.Namespace) -> int:
     for md in sorted((CODEROOT / "samples").glob("*.md")):
         shutil.copy2(md, scripts / md.name)
     shutil.copy2(CODEROOT / "samples" / "project.json", WORKSPACE_FIXTURE / "project.json")
+    # A script exercising the parser corners the tidy samples never hit:
+    # a CAST block, every BEAT shape, span markers, stop markers, pipe
+    # hints good and bad, multi-line dialogue, a subtitled act header, an
+    # unrecognised bracket, and an accented cue.
+    (scripts / "torture_S02E05.md").write_text(
+        'Torture Show Season 2: Episode 5: "Every Corner" Arc: "The Hard Parts"\n'
+        "\n"
+        "CAST:\n"
+        "* NORA WALSH — Detective\n"
+        "* T-BONE — Sidekick\n"
+        "* ADAM — Host\n"
+        "\n"
+        "===\n"
+        "\n"
+        "COLD OPEN\n"
+        "\n"
+        "SCENE 1: THE BOOTH [AMBIENCE: room tone | tone.mp3]\n"
+        "\n"
+        "[SFX: DOOR OPENS | door.mp3 | play_volume_pct=20%]\n"
+        "[MUSIC: STING | sting.mp3 | play_duration_pct=35]\n"
+        "[AMBIENCE: RAIN | rain.mp3 | play_duration_pct=50]\n"
+        "[SFX: BAD HINT | play_volume_pct=abc]\n"
+        "[SFX: OUT OF RANGE | play_volume_pct=500]\n"
+        "[SFX: CAFÉ MURMUR]\n"
+        "[drawn out]\n"
+        "[BEAT]\n"
+        "[LONG BEAT]\n"
+        "[BEAT — 3 SECONDS]\n"
+        "[BEAT — LONG, 5 SECONDS]\n"
+        "[AMBIENCE: STOP]\n"
+        "[AMBIENCE: RAIN FADES OUT]\n"
+        "[FILM AUDIO: ENGAGES]\n"
+        "[PHONE FILTER: ENGAGES NORA WALSH]\n"
+        "[SPEAKERPHONE: ENGAGES]\n"
+        "[VINTAGE FILTER: ENGAGES]\n"
+        "\n"
+        "NORA WALSH (quietly)\n"
+        "The first line.\n"
+        "It continues here.\n"
+        "(beat)\n"
+        "And ends here.\n"
+        "\n"
+        "T-BONE\n"
+        "[BEAT]\n"
+        "Interrupted by a cue.\n"
+        "\n"
+        "ADAM (on the phone) Single line form.\n"
+        "\n"
+        "===\n"
+        "\n"
+        'ACT ONE: "Subtitled"\n'
+        "\n"
+        "SCENE 2A: ALLEY\n"
+        "\n"
+        "ADAM Second act line.\n"
+        "\n"
+        "===\n"
+        "\n"
+        "END OF EPISODE\n"
+        "\n"
+        "ADAM This line is past the end marker.\n",
+        encoding="utf-8",
+    )
     src_cfg = CODEROOT / "configs" / "the413"
     if src_cfg.is_dir():
         shutil.copytree(src_cfg, WORKSPACE_FIXTURE / "configs" / "the413")
@@ -88,6 +154,61 @@ def cmd_record(_: argparse.Namespace) -> int:
         d = WORKSPACE_FIXTURE / "configs" / slug
         d.mkdir(parents=True, exist_ok=True)
         (d / "project.json").write_text(json.dumps(show, indent=2) + "\n", encoding="utf-8")
+    # Two more scripts with pre-existing state beside them, so `xil parse`
+    # takes its other two paths: backfill onto an existing sfx config, and
+    # skeleton-then-journal-replay.
+    for tag, name in (("S03E01", "backfill"), ("S04E01", "journal")):
+        (scripts / f"{name}_{tag}.md").write_text(
+            f'Hint Show Season {tag[2]}: Episode {int(tag[-2:])}: "Hints"\n'
+            "\n"
+            "CAST:\n"
+            "* ADAM — Host\n"
+            "\n"
+            "===\n"
+            "\n"
+            "COLD OPEN\n"
+            "\n"
+            "[SFX: KEPT SOURCE | new.mp3]\n"
+            "[SFX: FILLED SOURCE | filled.mp3]\n"
+            "[SFX: BRAND NEW | brandnew.mp3 | play_volume_pct=40]\n"
+            "[AMBIENCE: NEW BED | bed.mp3]\n"
+            "[MUSIC: VOLUME ONLY | play_volume_pct=15]\n"
+            "\n"
+            "ADAM A line.\n",
+            encoding="utf-8",
+        )
+    cfg_dir = WORKSPACE_FIXTURE / "configs" / "hintshow"
+    cfg_dir.mkdir(parents=True, exist_ok=True)
+    (cfg_dir / "project.json").write_text(json.dumps({"show": "Hint Show"}, indent=2) + "\n", encoding="utf-8")
+    # Existing config for the backfill path: one source to keep, one to fill,
+    # one stale piped key, one stub prompt that must be dropped.
+    (cfg_dir / "sfx_S03E01.json").write_text(
+        json.dumps(
+            {
+                "show": "Hint Show", "season": 3, "episode": 1,
+                "defaults": {"prompt_influence": 0.3},
+                "effects": {
+                    "SFX: KEPT SOURCE": {"source": "SFX/already-here.mp3", "duration_seconds": 5.0},
+                    "SFX: FILLED SOURCE": {"prompt": "SFX: FILLED SOURCE", "duration_seconds": 5.0},
+                    "MUSIC: VOLUME ONLY": {"prompt": "MUSIC: VOLUME ONLY", "duration_seconds": 15.0},
+                },
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    # Journal for the skeleton path: an override, a clear, a source that
+    # contradicts the script hint (warns), and an orphan key.
+    (cfg_dir / "sfx_S04E01_edits.jsonl").write_text(
+        '{"ts": "2026-01-01T00:00:00+00:00", "key": "SFX: KEPT SOURCE", "fields": {"source": "SFX/from-journal.mp3"}}\n'
+        '{"ts": "2026-01-01T00:00:01+00:00", "key": "MUSIC: VOLUME ONLY", "fields": {"volume_percentage": 77, "ramp_in_seconds": null}}\n'
+        '{"ts": "2026-01-01T00:00:02+00:00", "key": "SFX: RENAMED AWAY", "fields": {"play_duration": 12}}\n'
+        '{"ts": "2026-01-01T00:00:03+00:00", "scope": "defaults", "fields": {"music_volume_percentage": 44}}\n'
+        "\n"
+        "{not json}\n",
+        encoding="utf-8",
+    )
+
     # Parsed JSONs, straight from the Python parser, so read-only commands
     # (episode-summary, parsed-csv, status...) have real input to chew on.
     env = dict(os.environ, XIL_PROJECTROOT=str(WORKSPACE_FIXTURE))
@@ -493,6 +614,79 @@ def cmd_check(ns: argparse.Namespace) -> int:
     return 1 if failed else 0
 
 
+def cmd_sweep(ns: argparse.Namespace) -> int:
+    """Parse every real production script under both implementations and diff.
+
+    The fixture scripts are a handful of tidy samples; the shows in
+    $XIL_PROJECTROOT are years of real authoring with every oddity the
+    parser ever had to absorb. This reads them and writes nothing back.
+    """
+    src_root = Path(ns.scripts or (Path(os.environ["XIL_PROJECTROOT"]) / "scripts"))
+    if not src_root.is_dir():
+        print(f"no scripts directory at {src_root}", file=sys.stderr)
+        return 2
+    scripts = sorted(p for p in src_root.rglob("*.md") if p.is_file())
+    if ns.limit:
+        scripts = scripts[: ns.limit]
+    if not scripts:
+        print(f"no .md scripts under {src_root}", file=sys.stderr)
+        return 2
+
+    _native_commands()  # fail fast on a stale binary
+    print(f"sweeping {len(scripts)} script(s) from {src_root}")
+    failed = 0
+    for script in scripts:
+        rel = script.relative_to(src_root)
+        results = {}
+        for side, force_py in (("py", True), ("rs", False)):
+            ws = SCRATCH / f"sweep-{side}"
+            if ws.exists():
+                shutil.rmtree(ws)
+            (ws / "scripts").mkdir(parents=True)
+            target = ws / "scripts" / script.name
+            shutil.copy2(script, target)
+            env = dict(os.environ, XIL_PROJECTROOT=str(ws), XIL_TRACE_IMPL="1")
+            env.pop("ELEVENLABS_API_KEY", None)
+            if force_py:
+                env["XIL_FORCE_PY"] = "all"
+            else:
+                env.pop("XIL_FORCE_PY", None)
+            proc = _run([str(RUST_XIL), "parse", f"scripts/{script.name}", "--quiet"], cwd=ws, env=env)
+            out = sorted((ws / "parsed").rglob("*.json"))
+            results[side] = (proc, out[0].read_text(encoding="utf-8") if out else None, _impl_of(proc))
+
+        py_proc, py_json, _ = results["py"]
+        rs_proc, rs_json, rs_impl = results["rs"]
+        problems = []
+        if rs_impl != "native":
+            problems.append(f"the Rust side ran: {rs_impl}")
+        if py_proc.returncode != rs_proc.returncode:
+            problems.append(f"exit code: py={py_proc.returncode} rs={rs_proc.returncode}")
+        if py_json != rs_json:
+            if py_json is None or rs_json is None:
+                problems.append(f"output written by py={py_json is not None} rs={rs_json is not None}")
+            else:
+                problems.append("parsed JSON differs: " + _first_diff(py_json, rs_json))
+        if norm_out(py_proc.stdout) != norm_out(rs_proc.stdout):
+            problems.append("stdout differs: " + _first_diff(norm_out(py_proc.stdout), norm_out(rs_proc.stdout)))
+
+        if problems:
+            failed += 1
+            print(f"[FAIL] {rel}")
+            for p in problems:
+                print(f"        {p}")
+        elif ns.verbose:
+            print(f"[PASS] {rel}")
+    print(f"{len(scripts) - failed}/{len(scripts)} scripts byte-identical")
+    return 1 if failed else 0
+
+
+def norm_out(text: str) -> str:
+    for side in ("py", "rs"):
+        text = text.replace(str(SCRATCH / f"sweep-{side}"), "<WS>")
+    return _mask(text)
+
+
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -501,6 +695,11 @@ def main() -> int:
     c.add_argument("names", nargs="*", help="check names from suite.toml")
     c.add_argument("--suite", action="store_true", help="run every check")
     c.set_defaults(fn=cmd_check)
+    s = sub.add_parser("sweep", help="parse every real script under both implementations")
+    s.add_argument("--scripts", default=None, help="script root (default: $XIL_PROJECTROOT/scripts)")
+    s.add_argument("--limit", type=int, default=0, help="stop after N scripts")
+    s.add_argument("--verbose", "-v", action="store_true", help="print passing scripts too")
+    s.set_defaults(fn=cmd_sweep)
     ns = p.parse_args()
     if ns.cmd == "check" and not ns.suite and not ns.names:
         p.error("give check names or --suite")

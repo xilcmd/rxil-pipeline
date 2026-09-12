@@ -64,7 +64,7 @@ pub const COMMANDS: &[CommandSpec] = &[
     cmd!(native crate::cmd::init::run, "init", "xil_pipeline.xil_init", "workspace scaffolding", Pipeline),
     cmd!(native crate::cmd::use_cmd::run, "use", "xil_pipeline.xil_use", "set / show the active show context", Utility, "(multi-show workspaces)"),
     cmd!("scan", "xil_pipeline.XILP000_script_scanner", "pre-flight script scanner", Pipeline),
-    cmd!("parse", "xil_pipeline.XILP001_script_parser", "script parser", Pipeline),
+    cmd!(native crate::cmd::parse::run, "parse", "xil_pipeline.XILP001_script_parser", "script parser", Pipeline),
     cmd!("cues", "xil_pipeline.XILP006_cues_ingester", "cues sheet ingestion", Pipeline),
     cmd!("produce", "xil_pipeline.XILP002_producer", "voice stem generation", Pipeline),
     cmd!("assemble", "xil_pipeline.XILP003_audio_assembly", "master audio assembly", Pipeline),

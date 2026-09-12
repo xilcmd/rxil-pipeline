@@ -1,0 +1,343 @@
+{
+  "show": "Torture Show",
+  "season": 2,
+  "episode": 5,
+  "title": "Every Corner",
+  "season_title": "The Hard Parts",
+  "source_file": "torture_S02E05.md",
+  "entries": [
+    {
+      "seq": 1,
+      "type": "section_header",
+      "section": "cold-open",
+      "scene": null,
+      "speaker": null,
+      "direction": null,
+      "text": "COLD OPEN",
+      "direction_type": null,
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 2,
+      "type": "scene_header",
+      "section": "cold-open",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "SCENE 1: THE BOOTH",
+      "direction_type": null,
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 3,
+      "type": "direction",
+      "section": "cold-open",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "AMBIENCE: room tone",
+      "direction_type": "AMBIENCE",
+      "sfx_source": "SFX/tortureshow/tone.mp3",
+      "sfx_overrides": null
+    },
+    {
+      "seq": 4,
+      "type": "direction",
+      "section": "cold-open",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "SFX: DOOR OPENS",
+      "direction_type": "SFX",
+      "sfx_source": "SFX/tortureshow/door.mp3",
+      "sfx_overrides": {
+        "volume_percentage": 20.0
+      }
+    },
+    {
+      "seq": 5,
+      "type": "direction",
+      "section": "cold-open",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "MUSIC: STING",
+      "direction_type": "MUSIC",
+      "sfx_source": "SFX/tortureshow/sting.mp3",
+      "sfx_overrides": {
+        "play_duration": 35.0
+      }
+    },
+    {
+      "seq": 6,
+      "type": "direction",
+      "section": "cold-open",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "AMBIENCE: RAIN",
+      "direction_type": "AMBIENCE",
+      "sfx_source": "SFX/tortureshow/rain.mp3",
+      "sfx_overrides": {
+        "play_duration": 50.0
+      }
+    },
+    {
+      "seq": 7,
+      "type": "direction",
+      "section": "cold-open",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "SFX: BAD HINT | play_volume_pct=abc",
+      "direction_type": "SFX",
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 8,
+      "type": "direction",
+      "section": "cold-open",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "SFX: OUT OF RANGE | play_volume_pct=500",
+      "direction_type": "SFX",
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 9,
+      "type": "direction",
+      "section": "cold-open",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "SFX: CAFÉ MURMUR",
+      "direction_type": "SFX",
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 10,
+      "type": "direction",
+      "section": "cold-open",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "BEAT",
+      "direction_type": "BEAT",
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 11,
+      "type": "direction",
+      "section": "cold-open",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "LONG BEAT",
+      "direction_type": "BEAT",
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 12,
+      "type": "direction",
+      "section": "cold-open",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "BEAT — 3 SECONDS",
+      "direction_type": "BEAT",
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 13,
+      "type": "direction",
+      "section": "cold-open",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "BEAT — LONG, 5 SECONDS",
+      "direction_type": "BEAT",
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 14,
+      "type": "direction",
+      "section": "cold-open",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "AMBIENCE: STOP",
+      "direction_type": "AMBIENCE",
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 15,
+      "type": "direction",
+      "section": "cold-open",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "AMBIENCE: RAIN FADES OUT",
+      "direction_type": "AMBIENCE",
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 16,
+      "type": "direction",
+      "section": "cold-open",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "FILM AUDIO: ENGAGES",
+      "direction_type": "FILM AUDIO",
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 17,
+      "type": "direction",
+      "section": "cold-open",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "PHONE FILTER: ENGAGES NORA WALSH",
+      "direction_type": "PHONE FILTER",
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 18,
+      "type": "direction",
+      "section": "cold-open",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "SPEAKERPHONE: ENGAGES",
+      "direction_type": "SPEAKERPHONE",
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 19,
+      "type": "direction",
+      "section": "cold-open",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "VINTAGE FILTER: ENGAGES",
+      "direction_type": "VINTAGE FILTER",
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 20,
+      "type": "dialogue",
+      "section": "cold-open",
+      "scene": "scene-1",
+      "speaker": "nora_walsh",
+      "direction": "quietly",
+      "text": "The first line. It continues here. And ends here.",
+      "direction_type": null,
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 21,
+      "type": "direction",
+      "section": "cold-open",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "BEAT",
+      "direction_type": "BEAT",
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 22,
+      "type": "dialogue",
+      "section": "cold-open",
+      "scene": "scene-1",
+      "speaker": "tbone",
+      "direction": null,
+      "text": "Interrupted by a cue.",
+      "direction_type": null,
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 23,
+      "type": "dialogue",
+      "section": "cold-open",
+      "scene": "scene-1",
+      "speaker": "adam",
+      "direction": "on the phone",
+      "text": "Single line form.",
+      "direction_type": null,
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 24,
+      "type": "section_header",
+      "section": "act1",
+      "scene": null,
+      "speaker": null,
+      "direction": null,
+      "text": "ACT ONE: \"Subtitled\"",
+      "direction_type": null,
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 25,
+      "type": "scene_header",
+      "section": "act1",
+      "scene": "scene-2A",
+      "speaker": null,
+      "direction": null,
+      "text": "SCENE 2A: ALLEY",
+      "direction_type": null,
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 26,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": "scene-2A",
+      "speaker": "adam",
+      "direction": null,
+      "text": "Second act line.",
+      "direction_type": null,
+      "sfx_source": null,
+      "sfx_overrides": null
+    }
+  ],
+  "stats": {
+    "total_entries": 26,
+    "dialogue_lines": 4,
+    "direction_lines": 18,
+    "characters_for_tts": 103,
+    "speakers": [
+      "adam",
+      "nora_walsh",
+      "tbone"
+    ],
+    "sections": [
+      "act1",
+      "cold-open"
+    ]
+  }
+}
