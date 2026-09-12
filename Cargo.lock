@@ -874,6 +874,7 @@ dependencies = [
  "serde_json",
  "sha2",
  "tempfile",
+ "unicode-normalization",
  "xil-audio",
  "xil-core",
 ]

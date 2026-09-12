@@ -57,6 +57,8 @@ MASKS = [
     (re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{4}"), "<TS>"),
     (re.compile(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}"), "<TS>"),
     (re.compile(r"elapsed=\d+(\.\d+)?s"), "elapsed=<N>s"),
+    # The run banner's console trailer: "  xil scan  |  finished … (0.1s)".
+    (re.compile(r"\(\d+\.\d+s\)"), "(<N>s)"),
     (re.compile(r"pid=\d+"), "pid=<PID>"),
     (re.compile(r"ver=\S+"), "ver=<VER>"),
 ]
@@ -286,6 +288,68 @@ def cmd_record(_: argparse.Namespace) -> int:
         "configs/oldshow/cast_S01E02.json",
     ):
         (legacy / f).write_text(f"legacy {f}\n")
+    # A revised episode for `migrate`, `cleanup` and `splice`: an old and a
+    # new parsed JSON differing by an inserted line, a speaker swap, a
+    # punctuation-only edit and a deletion, plus stems on disk for some of
+    # them so every migration status appears.
+    def _entry(seq, kind, text, speaker=None, section="act1", scene=None):
+        return {"seq": seq, "type": kind, "section": section, "scene": scene, "speaker": speaker,
+                "direction": None, "text": text,
+                "direction_type": "SFX" if kind == "direction" else None,
+                "sfx_source": None, "sfx_overrides": None}
+
+    old_entries = [
+        _entry(1, "section_header", "ACT ONE"),
+        _entry(2, "dialogue", "Kept line.", "adam"),
+        _entry(3, "dialogue", "Vanishes from disk.", "adam"),
+        _entry(4, "dialogue", "Reassigned line.", "adam"),
+        _entry(5, "dialogue", "Punctuation \u2014 edited.", "maya"),
+        _entry(6, "direction", "SFX: DOOR"),
+        _entry(7, "dialogue", "Deleted later.", "maya"),
+    ]
+    new_entries = [
+        _entry(1, "section_header", "ACT ONE"),
+        _entry(2, "dialogue", "Kept line.", "adam"),
+        _entry(3, "dialogue", "Vanishes from disk.", "adam"),
+        _entry(4, "dialogue", "Reassigned line.", "maya"),
+        _entry(5, "dialogue", "Punctuation - edited.", "maya"),
+        _entry(6, "direction", "SFX: DOOR"),
+        _entry(7, "dialogue", "Brand new line.", "adam"),
+    ]
+
+    def _parsed_doc(entries):
+        dialogue = [e for e in entries if e["type"] == "dialogue"]
+        return {
+            "show": "Revised Show", "season": 2, "episode": 1, "title": "Revised",
+            "season_title": None, "source_file": "revised_S02E01.md",
+            "entries": entries,
+            "stats": {
+                "total_entries": len(entries),
+                "dialogue_lines": len(dialogue),
+                "direction_lines": sum(1 for e in entries if e["type"] == "direction"),
+                "characters_for_tts": sum(len(e["text"]) for e in dialogue),
+                "speakers": sorted({e["speaker"] for e in dialogue}),
+                "sections": sorted({e["section"] for e in entries if e["section"]}),
+            },
+        }
+
+    pdir = WORKSPACE_FIXTURE / "parsed" / "revisedshow"
+    pdir.mkdir(parents=True, exist_ok=True)
+    (pdir / "parsed_S02E01.json").write_text(json.dumps(_parsed_doc(new_entries), indent=2) + "\n", encoding="utf-8")
+    (WORKSPACE_FIXTURE / "parsed" / "orig_parsed_revisedshow_S02E01.json").write_text(
+        json.dumps(_parsed_doc(old_entries), indent=2) + "\n", encoding="utf-8"
+    )
+    rcfg = WORKSPACE_FIXTURE / "configs" / "revisedshow"
+    rcfg.mkdir(parents=True, exist_ok=True)
+    (rcfg / "project.json").write_text(json.dumps({"show": "Revised Show"}, indent=2) + "\n", encoding="utf-8")
+    sdir = WORKSPACE_FIXTURE / "stems" / "revisedshow" / "S02E01"
+    sdir.mkdir(parents=True, exist_ok=True)
+    # 003's stem is deliberately absent so migrate reports MISSING; the last
+    # three are a stale duplicate, an orphan seq and a header seq for cleanup.
+    for _name in ("002_act1_adam.mp3", "004_act1_adam.mp3", "005_act1_maya.mp3", "006_act1_sfx.mp3",
+                  "004_act1_maya.mp3", "099_act1_adam.mp3", "001_act1_sfx.mp3"):
+        (sdir / _name).write_bytes(b"stem " + _name.encode())
+
     # A full artifact chain for `status`, with pinned mtimes so the freshness
     # verdicts are deterministic: gdoc newer than script (script STALE),
     # sfx config newer than daw (daw STALE), everything else in order.
@@ -633,7 +697,7 @@ def cmd_sweep(ns: argparse.Namespace) -> int:
         return 2
 
     _native_commands()  # fail fast on a stale binary
-    print(f"sweeping {len(scripts)} script(s) from {src_root}")
+    print(f"sweeping `xil {ns.command}` over {len(scripts)} script(s) from {src_root}")
     failed = 0
     for script in scripts:
         rel = script.relative_to(src_root)
@@ -651,9 +715,10 @@ def cmd_sweep(ns: argparse.Namespace) -> int:
                 env["XIL_FORCE_PY"] = "all"
             else:
                 env.pop("XIL_FORCE_PY", None)
-            proc = _run([str(RUST_XIL), "parse", f"scripts/{script.name}", "--quiet"], cwd=ws, env=env)
+            proc = _run([str(RUST_XIL), *ns.command.split(), f"scripts/{script.name}", *ns.args], cwd=ws, env=env)
             out = sorted((ws / "parsed").rglob("*.json"))
-            results[side] = (proc, out[0].read_text(encoding="utf-8") if out else None, _impl_of(proc))
+            written = out[0].read_text(encoding="utf-8") if out else None
+            results[side] = (proc, written, _impl_of(proc))
 
         py_proc, py_json, _ = results["py"]
         rs_proc, rs_json, rs_impl = results["rs"]
@@ -667,6 +732,10 @@ def cmd_sweep(ns: argparse.Namespace) -> int:
                 problems.append(f"output written by py={py_json is not None} rs={rs_json is not None}")
             else:
                 problems.append("parsed JSON differs: " + _first_diff(py_json, rs_json))
+        # The impl trace is on stderr and differs by design; drop it first.
+        py_err, rs_err = norm_err(py_proc.stderr), norm_err(rs_proc.stderr)
+        if py_err != rs_err:
+            problems.append("stderr differs: " + _first_diff(py_err, rs_err))
         if norm_out(py_proc.stdout) != norm_out(rs_proc.stdout):
             problems.append("stdout differs: " + _first_diff(norm_out(py_proc.stdout), norm_out(rs_proc.stdout)))
 
@@ -687,6 +756,11 @@ def norm_out(text: str) -> str:
     return _mask(text)
 
 
+def norm_err(text: str) -> str:
+    """stderr, minus the implementation trace the harness itself asked for."""
+    return norm_out("\n".join(ln for ln in text.splitlines() if not ln.startswith("rxil-impl: ")))
+
+
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -695,7 +769,9 @@ def main() -> int:
     c.add_argument("names", nargs="*", help="check names from suite.toml")
     c.add_argument("--suite", action="store_true", help="run every check")
     c.set_defaults(fn=cmd_check)
-    s = sub.add_parser("sweep", help="parse every real script under both implementations")
+    s = sub.add_parser("sweep", help="run one command over every real script under both implementations")
+    s.add_argument("--command", default="parse", help="subcommand to sweep (default: parse)")
+    s.add_argument("--args", nargs="*", default=["--quiet"], help="extra arguments after the script path")
     s.add_argument("--scripts", default=None, help="script root (default: $XIL_PROJECTROOT/scripts)")
     s.add_argument("--limit", type=int, default=0, help="stop after N scripts")
     s.add_argument("--verbose", "-v", action="store_true", help="print passing scripts too")

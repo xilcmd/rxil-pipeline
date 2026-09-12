@@ -14,6 +14,7 @@
     "configs/hintshow/sfx_S04E01_edits.jsonl",
     "configs/mypodcast/sfx_S01E01.json",
     "configs/nightowls/project.json",
+    "configs/revisedshow/project.json",
     "configs/the413/cast_S01E01.json",
     "configs/the413/project.json",
     "configs/the413/sfx_S01E01.json",
@@ -45,6 +46,8 @@
     "parsed/hintshow/parsed_S03E01.json",
     "parsed/hintshow/parsed_S04E01.json",
     "parsed/mypodcast/parsed_S01E01.json",
+    "parsed/orig_parsed_revisedshow_S02E01.json",
+    "parsed/revisedshow/parsed_S02E01.json",
     "parsed/techdeepdive/parsed_S01E04.json",
     "parsed/tortureshow/parsed_S02E05.json",
     "parsed/unknownshow/parsed_S01E01.json",
@@ -58,6 +61,13 @@
     "scripts/torture_S02E05.md",
     "stems/mypodcast/S01E01/002_cold-open_host.mp3",
     "stems/mypodcast/S01E01/003_cold-open_host.mp3",
-    "stems/mypodcast/S01E01/S01E01_stem_manifest.json"
+    "stems/mypodcast/S01E01/S01E01_stem_manifest.json",
+    "stems/revisedshow/S02E01/001_act1_sfx.mp3",
+    "stems/revisedshow/S02E01/002_act1_adam.mp3",
+    "stems/revisedshow/S02E01/004_act1_adam.mp3",
+    "stems/revisedshow/S02E01/004_act1_maya.mp3",
+    "stems/revisedshow/S02E01/005_act1_maya.mp3",
+    "stems/revisedshow/S02E01/006_act1_sfx.mp3",
+    "stems/revisedshow/S02E01/099_act1_adam.mp3"
   ]
 }

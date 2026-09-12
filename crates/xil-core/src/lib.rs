@@ -14,4 +14,6 @@ pub mod pycsv;
 pub mod pyjson;
 pub mod script;
 pub mod sfxlib;
+pub mod stems;
+pub mod textsim;
 pub mod workspace;

@@ -262,6 +262,88 @@ args = ["parse", "scripts/journal_S04E01.md", "--episode", "S04E01", "--quiet"]
 name = "parse-missing-script-fails"
 args = ["parse", "scripts/nosuch.md", "--quiet"]
 
+# ── migrate / cleanup / splice, over a revised episode ──────────────────
+
+[[check]]
+name = "migrate-dry-run-all-statuses"
+args = ["migrate", "--episode", "S02E01", "--show", "revisedshow", "--dry-run"]
+
+[[check]]
+name = "migrate-executes-the-copies"
+args = ["migrate", "--episode", "S02E01", "--show", "revisedshow"]
+
+[[check]]
+name = "migrate-strict-matching"
+args = ["migrate", "--episode", "S02E01", "--show", "revisedshow", "--strict", "--dry-run", "--quiet"]
+
+[[check]]
+name = "migrate-explicit-paths"
+args = ["migrate", "--old", "parsed/orig_parsed_revisedshow_S02E01.json", "--new", "parsed/revisedshow/parsed_S02E01.json", "--stems", "stems/revisedshow/S02E01", "--dry-run"]
+
+[[check]]
+name = "migrate-without-paths-is-a-usage-error"
+args = ["migrate", "--dry-run"]
+
+[[check]]
+name = "migrate-missing-file-is-a-usage-error"
+args = ["migrate", "--old", "nope.json", "--new", "nope.json", "--stems", "stems"]
+
+[[check]]
+name = "cleanup-dry-run"
+args = ["cleanup", "--episode", "S02E01", "--show", "revisedshow", "--dry-run"]
+
+[[check]]
+name = "cleanup-deletes"
+args = ["cleanup", "--episode", "S02E01", "--show", "revisedshow"]
+
+[[check]]
+name = "cleanup-without-paths-is-a-usage-error"
+args = ["cleanup"]
+
+[[check]]
+name = "cleanup-missing-stems-dir-is-a-usage-error"
+args = ["cleanup", "--parsed", "parsed/revisedshow/parsed_S02E01.json", "--stems", "nope"]
+
+[[check]]
+name = "splice-delete-range"
+args = ["splice", "--episode", "S02E01", "--show", "revisedshow", "--delete-seq-range", "3-4"]
+
+[[check]]
+name = "splice-insert-from-parsed"
+args = ["splice", "--episode", "S02E01", "--show", "revisedshow", "--insert-after", "2", "--from-parsed", "parsed/orig_parsed_revisedshow_S02E01.json", "--from-seq-range", "6-7", "--section", "post-interview"]
+
+[[check]]
+name = "splice-dry-run-keeps-the-file"
+args = ["splice", "--episode", "S02E01", "--show", "revisedshow", "--delete-seq-range", "2-2", "--dry-run"]
+
+[[check]]
+name = "splice-no-backup-quiet"
+args = ["splice", "--episode", "S02E01", "--show", "revisedshow", "--delete-seq-range", "7-7", "--no-backup", "--quiet"]
+
+[[check]]
+name = "splice-empty-range-warns"
+args = ["splice", "--episode", "S02E01", "--show", "revisedshow", "--insert-after", "2", "--from-parsed", "parsed/orig_parsed_revisedshow_S02E01.json", "--from-seq-range", "900-901"]
+
+[[check]]
+name = "splice-nothing-to-do"
+args = ["splice", "--episode", "S02E01", "--show", "revisedshow"]
+
+[[check]]
+name = "splice-insert-without-source-errors"
+args = ["splice", "--episode", "S02E01", "--show", "revisedshow", "--insert-after", "2"]
+
+[[check]]
+name = "regen-revised-episode"
+args = ["regen", "--episode", "S02E01", "--show", "revisedshow"]
+
+[[check]]
+name = "regen-with-sfx-hints"
+args = ["regen", "--episode", "S01E01", "--show", "the413", "--parsed", "parsed/mypodcast/parsed_S01E01.json"]
+
+[[check]]
+name = "regen-missing-parsed-fails"
+args = ["regen", "--episode", "S09E09", "--show", "revisedshow"]
+
 [[check]]
 name = "scan-sample"
 args = ["scan", "scripts/sample_S01E01.md"]

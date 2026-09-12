@@ -8,16 +8,21 @@ use std::sync::OnceLock;
 
 use clap::Parser;
 
+pub mod cleanup;
 pub mod episode_summary;
 pub mod init;
+pub mod migrate;
 pub mod migrate_workspace;
 pub mod mp3_hash;
 pub mod parse;
 pub mod parsed_csv;
+pub mod regen;
 pub mod removal;
 pub mod remove_episode;
 pub mod remove_show;
+pub mod scan;
 pub mod sfx_csv;
+pub mod splice;
 pub mod status;
 pub mod stem_log;
 pub mod use_cmd;

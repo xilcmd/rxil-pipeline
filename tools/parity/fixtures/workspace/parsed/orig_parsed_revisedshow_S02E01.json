@@ -1,0 +1,107 @@
+{
+  "show": "Revised Show",
+  "season": 2,
+  "episode": 1,
+  "title": "Revised",
+  "season_title": null,
+  "source_file": "revised_S02E01.md",
+  "entries": [
+    {
+      "seq": 1,
+      "type": "section_header",
+      "section": "act1",
+      "scene": null,
+      "speaker": null,
+      "direction": null,
+      "text": "ACT ONE",
+      "direction_type": null,
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 2,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": null,
+      "speaker": "adam",
+      "direction": null,
+      "text": "Kept line.",
+      "direction_type": null,
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 3,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": null,
+      "speaker": "adam",
+      "direction": null,
+      "text": "Vanishes from disk.",
+      "direction_type": null,
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 4,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": null,
+      "speaker": "adam",
+      "direction": null,
+      "text": "Reassigned line.",
+      "direction_type": null,
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 5,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": null,
+      "speaker": "maya",
+      "direction": null,
+      "text": "Punctuation \u2014 edited.",
+      "direction_type": null,
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 6,
+      "type": "direction",
+      "section": "act1",
+      "scene": null,
+      "speaker": null,
+      "direction": null,
+      "text": "SFX: DOOR",
+      "direction_type": "SFX",
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 7,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": null,
+      "speaker": "maya",
+      "direction": null,
+      "text": "Deleted later.",
+      "direction_type": null,
+      "sfx_source": null,
+      "sfx_overrides": null
+    }
+  ],
+  "stats": {
+    "total_entries": 7,
+    "dialogue_lines": 5,
+    "direction_lines": 1,
+    "characters_for_tts": 80,
+    "speakers": [
+      "adam",
+      "maya"
+    ],
+    "sections": [
+      "act1"
+    ]
+  }
+}
