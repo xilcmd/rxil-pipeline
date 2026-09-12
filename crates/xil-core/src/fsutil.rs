@@ -215,7 +215,7 @@ mod tests {
         }
         let names = |v: Vec<PathBuf>| {
             v.iter()
-                .map(|p| relpath(p, r).display().to_string())
+                .map(|p| relpath(p, r).display().to_string().replace('\\', "/"))
                 .collect::<Vec<_>>()
         };
         assert_eq!(

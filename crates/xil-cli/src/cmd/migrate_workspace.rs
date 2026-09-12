@@ -361,8 +361,10 @@ mod tests {
         );
     }
 
+    /// Relative path with forward slashes, so the expectations below read
+    /// the same on Windows as they do on the platforms that run the pipeline.
     fn rel_to(p: &Path, root: &Path) -> String {
-        relpath(p, root).display().to_string()
+        relpath(p, root).display().to_string().replace('\\', "/")
     }
 
     #[test]

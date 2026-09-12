@@ -191,6 +191,12 @@ pub fn run(args: &[OsString]) -> anyhow::Result<i32> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Relative path with forward slashes, so these expectations read the
+    /// same on Windows as on the platforms that run the pipeline.
+    fn slashed(p: &Path, root: &Path) -> String {
+        rel_display(p, root).replace('\\', "/")
+    }
     use std::fs;
 
     #[test]
@@ -200,7 +206,7 @@ mod tests {
         fs::create_dir_all(r.join("stems/s/S01E01")).unwrap();
         fs::create_dir_all(r.join("daw/S01E01")).unwrap();
         let items = collect(r, "s", "S01E01");
-        let rels: Vec<String> = items.iter().map(|i| rel_display(&i.path, r)).collect();
+        let rels: Vec<String> = items.iter().map(|i| slashed(&i.path, r)).collect();
         assert!(rels.contains(&"configs/s/cast_S01E01.json".to_string()));
         assert!(rels.contains(&"stems/s/S01E01".to_string()));
         assert!(
@@ -214,7 +220,7 @@ mod tests {
         assert_eq!(
             items
                 .iter()
-                .find(|i| rel_display(&i.path, r) == "daw/S01E01")
+                .find(|i| slashed(&i.path, r) == "daw/S01E01")
                 .unwrap()
                 .label,
             "legacy daw"

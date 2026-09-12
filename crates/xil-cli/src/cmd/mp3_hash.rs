@@ -195,7 +195,9 @@ mod tests {
         let names: Vec<String> = scan_mp3s(r)
             .unwrap()
             .iter()
-            .map(|(p, _)| relpath(p, r).display().to_string())
+            // Windows joins with a backslash; the assertion is about order
+            // and filtering, not the separator.
+            .map(|(p, _)| relpath(p, r).display().to_string().replace('\\', "/"))
             .collect();
         assert_eq!(names, vec!["a.MP3", "b.mp3", "sub/d.mp3"]);
     }

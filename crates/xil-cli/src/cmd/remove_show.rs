@@ -223,6 +223,12 @@ pub fn run(args: &[OsString]) -> anyhow::Result<i32> {
 mod tests {
     use super::*;
 
+    /// Relative path with forward slashes, so these expectations read the
+    /// same on Windows as on the platforms that run the pipeline.
+    fn slashed(p: &Path, root: &Path) -> String {
+        rel_display(p, root).replace('\\', "/")
+    }
+
     fn show(root: &Path, slug: &str, name: &str) {
         let d = root.join("configs").join(slug);
         fs::create_dir_all(&d).unwrap();
@@ -255,7 +261,7 @@ mod tests {
         fs::write(r.join(".active_show"), "s").unwrap();
         let labels: Vec<(String, &str)> = collect(r, "s", true)
             .iter()
-            .map(|i| (rel_display(&i.path, r), i.label))
+            .map(|i| (slashed(&i.path, r), i.label))
             .collect();
         assert_eq!(
             labels,

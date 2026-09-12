@@ -70,4 +70,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - uses: taiki-e/install-action@nextest
       - run: cargo build --workspace
-      - run: cargo nextest run --workspace
+        # --no-fail-fast: nextest stops at the first failure by default, which
+        # hides every later one and turns a cross-platform sweep into a
+        # one-bug-per-CI-run drip.
+      - run: cargo nextest run --workspace --no-fail-fast
