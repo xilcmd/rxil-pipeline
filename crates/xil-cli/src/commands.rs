@@ -92,7 +92,7 @@ pub const COMMANDS: &[CommandSpec] = &[
     cmd!(native crate::cmd::sfx_hydrate::run, "sfx-hydrate", "xil_pipeline.XILU013_sfx_hydrate", "write pipe-hint source fields from parsed JSON into the SFX config", Utility, "(after parse, before produce)"),
     cmd!(native crate::cmd::sfx_restore::run, "sfx-restore", "xil_pipeline.XILU020_sfx_restore", "reapply journaled timeline sound edits onto the SFX config", Utility, "(recover timeline sound edits)"),
     cmd!(native crate::cmd::sfx_impact::run, "sfx-impact", "xil_pipeline.XILU021_sfx_impact", "report which source-backed cues duration_seconds is clipping short", Utility, "(before changing clip durations)"),
-    cmd!("sfx-match", "xil_pipeline.XILU022_sfx_match", "find existing library assets for cues whose source file is missing", Utility, "(when produce reports missing SFX sources)"),
+    cmd!(native crate::cmd::sfx_match::run, "sfx-match", "xil_pipeline.XILU022_sfx_match", "find existing library assets for cues whose source file is missing", Utility, "(when produce reports missing SFX sources)"),
     cmd!(native crate::cmd::episode_summary::run, "episode-summary", "xil_pipeline.XILU014_episode_summary", "write one-row-per-episode summary CSV (lines, words, TTS chars)", Utility, "(any time)"),
     cmd!("stem-verify", "xil_pipeline.XILU015_stem_verify", "scan stems folder → JSON report with file attributes and optional Whisper transcripts", Utility, "(after produce / import)"),
     cmd!("stem-compare", "xil_pipeline.XILU016_stem_compare", "cross-reference a stem-verify transcript report against the parsed script", Utility, "(after stem-verify)"),

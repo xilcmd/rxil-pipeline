@@ -181,17 +181,16 @@ fn print_compact_local(rec: &Map<String, Value>) {
 /// Filename → cheatsheet bucket, by prefix.
 fn category(filename: &str) -> &'static str {
     let f = filename.to_lowercase();
-    let b = f.as_bytes();
     if f.starts_with("ambience_") || f.starts_with("amb-") || f.starts_with("amb_") {
         return "AMBIENCE";
     }
-    if f.starts_with("amb") && b.len() > 3 && b[3].is_ascii_alphabetic() {
+    if f.starts_with("amb") && f.chars().nth(3).is_some_and(char::is_alphabetic) {
         return "AMBIENCE";
     }
     if f.starts_with("music_") || f.starts_with("mus-") || f.starts_with("mus_") {
         return "MUSIC";
     }
-    if f.starts_with("mus") && b.len() > 3 && b[3].is_ascii_alphabetic() {
+    if f.starts_with("mus") && f.chars().nth(3).is_some_and(char::is_alphabetic) {
         return "MUSIC";
     }
     if f.starts_with("beat") {

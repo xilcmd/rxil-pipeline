@@ -33,6 +33,7 @@ pub mod sfx_csv;
 pub mod sfx_hydrate;
 pub mod sfx_impact;
 pub mod sfx_lib;
+pub mod sfx_match;
 pub mod sfx_restore;
 pub mod splice;
 pub mod status;
