@@ -37,17 +37,24 @@ jobs:
       - name: Build binary for parity
         run: cargo build --workspace
 
-      # Parity needs the frozen Python package to delegate to and compare
-      # against. It comes from PyPI, not a checkout, so the pin is explicit.
+      # Parity needs the Python the port is actually reproducing. That is
+      # NOT the PyPI release: xil-pipeline's main is many commits past the
+      # 0.3.2 tag while still reporting "0.3.2", and those commits include
+      # behaviour the port implements (the play_duration_pct pipe-hint, the
+      # PHONE FILTER span). Pin the commit, not the version string, and
+      # move it forward deliberately when the reference moves.
       - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
       - name: Install ffmpeg
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
-      - name: Install Python xil-pipeline 0.3.2
+      - name: Install the reference Python pipeline
+        env:
+          XIL_PY_REF: 6af1a94
         run: |
           python -m venv /tmp/xil-py
-          /tmp/xil-py/bin/pip install --quiet "xil-pipeline==0.3.2" numpy
+          /tmp/xil-py/bin/pip install --quiet \
+            "xil-pipeline @ git+https://github.com/xilcmd/xil-pipeline@${XIL_PY_REF}" numpy
           /tmp/xil-py/bin/xil --version
       - name: Parity suite
         env:

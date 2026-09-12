@@ -261,7 +261,7 @@
       scope: "Both workspace layouts (legacy and normalized), slug and path derivation, serde models for project, cast, sfx, parsed and speakers, edit-journal replay, .active_show, dual-sink logger, Python-compatible JSON writer, difflib port.",
       exit: "Byte-identical JSON, CSV and log messages on the the413 fixtures.",
       cmds: ["use", "status", "init", "episode-summary", "parsed-csv", "sfx-csv", "mp3-hash", "stem-log", "remove-show", "remove-episode", "migrate-workspace"] },
-    { n: 2, title: "Parser, scanner, timeline renderer", weeks: 3, status: "todo",
+    { n: 2, title: "Parser and scanner", weeks: 3, status: "done",
       scope: "XILP001 parser (1,875 lines), XILP000 scanner, timeline_viz, stem migrator, stale-stem cleanup, script regenerator, splice.",
       exit: "parsed_*, orig_*, pre_splice_* JSON and skeleton configs byte-identical for every sample script and the413; timeline ASCII and HTML byte-identical.",
       cmds: ["scan", "parse", "regen", "splice", "migrate", "cleanup"] },
@@ -287,9 +287,11 @@
       cmds: [] },
   ];
   const NATIVE = new Set(["use", "status", "init", "episode-summary", "parsed-csv", "sfx-csv", "mp3-hash",
-                          "stem-log", "remove-show", "remove-episode", "migrate-workspace"]); // flipped to native
-  const PARITY = { passing: 51, total: 51 }; // entries in tools/parity/suite.toml
+                          "stem-log", "remove-show", "remove-episode", "migrate-workspace",
+                          "scan", "parse", "regen", "splice", "migrate", "cleanup"]); // flipped to native
+  const PARITY = { passing: 83, total: 83 }; // entries in tools/parity/suite.toml
   const LOG = [
+    { date: "2026-09-12", text: "Phase 2 complete. The parser and scanner are native, along with the migrator, cleanup, regenerator and splice. Verified two ways: 83 suite checks, and a new sweep mode that runs both implementations over every production script in the workspace — 96 of 96 byte-identical for parse, and again for scan. xil-core gained a transcription of CPython\u2019s difflib (the scanner\u2019s 0.72 near-miss cutoff is a behaviour boundary, so the ratio has to agree to the last bit), the SFX edit journal, and the stem naming rules. The timeline renderer moved to phase 4: it is only ever called by daw, whose dry-run path needs mix_common, so there is no way to prove it correct before then." },
     { date: "2026-09-11", text: "Phase 1 complete. xil-core carries the workspace/path layer (both layouts), the two-sink logger with the exact v2 record format, a Python-identical JSON writer (indent=2, ensure_ascii, float repr) and CSV writer, the run banner, glob/relpath helpers and the SFX slug rules. All 11 phase-1 commands are native and byte-identical to Python across 51 parity checks. The harness now makes each run declare whether Rust or Python served it, so a stale binary can no longer read as a pass." },
     { date: "2026-09-11", text: "Phase 0 complete. Rust 1.98.1 installed; workspace scaffolded; all 38 commands delegate to Python 0.3.2. Help text, exit codes and xil-<cmd> aliases verified byte-identical. Parity harness green on help, use, parse ×2, scan. Repo published at xilcmd/rxil-pipeline with CI (fmt, clippy, nextest, parity suite) and branch protection matching the Python repo." },
     { date: "2026-09-11", text: "Plan approved: strangler port, GUI rewritten in Rust as the last phase, Python repo feature-frozen at 0.3.2." },

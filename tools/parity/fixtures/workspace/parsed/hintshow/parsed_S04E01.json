@@ -1,0 +1,110 @@
+{
+  "show": "Hint Show",
+  "season": 4,
+  "episode": 1,
+  "title": "Hints",
+  "season_title": "Sample Season",
+  "source_file": "journal_S04E01.md",
+  "entries": [
+    {
+      "seq": 1,
+      "type": "section_header",
+      "section": "cold-open",
+      "scene": null,
+      "speaker": null,
+      "direction": null,
+      "text": "COLD OPEN",
+      "direction_type": null,
+      "sfx_source": null,
+      "sfx_overrides": null
+    },
+    {
+      "seq": 2,
+      "type": "direction",
+      "section": "cold-open",
+      "scene": null,
+      "speaker": null,
+      "direction": null,
+      "text": "SFX: KEPT SOURCE",
+      "direction_type": "SFX",
+      "sfx_source": "SFX/hintshow/new.mp3",
+      "sfx_overrides": null
+    },
+    {
+      "seq": 3,
+      "type": "direction",
+      "section": "cold-open",
+      "scene": null,
+      "speaker": null,
+      "direction": null,
+      "text": "SFX: FILLED SOURCE",
+      "direction_type": "SFX",
+      "sfx_source": "SFX/hintshow/filled.mp3",
+      "sfx_overrides": null
+    },
+    {
+      "seq": 4,
+      "type": "direction",
+      "section": "cold-open",
+      "scene": null,
+      "speaker": null,
+      "direction": null,
+      "text": "SFX: BRAND NEW",
+      "direction_type": "SFX",
+      "sfx_source": "SFX/hintshow/brandnew.mp3",
+      "sfx_overrides": {
+        "volume_percentage": 40.0
+      }
+    },
+    {
+      "seq": 5,
+      "type": "direction",
+      "section": "cold-open",
+      "scene": null,
+      "speaker": null,
+      "direction": null,
+      "text": "AMBIENCE: NEW BED",
+      "direction_type": "AMBIENCE",
+      "sfx_source": "SFX/hintshow/bed.mp3",
+      "sfx_overrides": null
+    },
+    {
+      "seq": 6,
+      "type": "direction",
+      "section": "cold-open",
+      "scene": null,
+      "speaker": null,
+      "direction": null,
+      "text": "MUSIC: VOLUME ONLY",
+      "direction_type": "MUSIC",
+      "sfx_source": null,
+      "sfx_overrides": {
+        "volume_percentage": 15.0
+      }
+    },
+    {
+      "seq": 7,
+      "type": "dialogue",
+      "section": "cold-open",
+      "scene": null,
+      "speaker": "adam",
+      "direction": null,
+      "text": "A line.",
+      "direction_type": null,
+      "sfx_source": null,
+      "sfx_overrides": null
+    }
+  ],
+  "stats": {
+    "total_entries": 7,
+    "dialogue_lines": 1,
+    "direction_lines": 5,
+    "characters_for_tts": 7,
+    "speakers": [
+      "adam"
+    ],
+    "sections": [
+      "cold-open"
+    ]
+  }
+}

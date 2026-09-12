@@ -3,6 +3,10 @@
 Rust port of [xil-pipeline](https://github.com/xilcmd/xil-pipeline), the
 show-agnostic audio production pipeline (markdown script → podcast MP3).
 
+The reference is that repository's **main branch**, not its PyPI release:
+its version string has read `0.3.2` for many commits past the tag of the
+same name. CI pins the exact reference commit.
+
 The port is a **strangler**: the Rust `xil` binary ships from day one and
 hands any command it does not yet implement to the Python package. A command
 switches to Rust only when `tools/parity/` proves the output matches.

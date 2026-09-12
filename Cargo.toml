@@ -31,6 +31,8 @@ hostname = "0.4"
 tempfile = "3"
 sha2 = "0.10"
 id3 = "1"
+indexmap = { version = "2", features = ["serde"] }
+unicode-normalization = "0.1"
 
 [profile.release]
 lto = "thin"
