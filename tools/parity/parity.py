@@ -8,6 +8,12 @@
 
 Only the standard library is required; numpy is imported lazily for audio.
 
+The reference implementation is the Python at $XIL_CODEROOT — its working
+main, not the PyPI release. xil-pipeline's version string has said "0.3.2"
+for many commits past the 0.3.2 tag, and the port reproduces the behaviour
+of the code as it stands, not of the last release. CI pins the matching
+commit; see .github/workflows/ci.yml.
+
 Each check copies fixtures/workspace/ twice into a scratch dir on the local
 disk, runs `xil <args>` once under Python (XIL_FORCE_PY=all) and once under
 Rust, then compares exit code, stdout, and every file the command wrote:
