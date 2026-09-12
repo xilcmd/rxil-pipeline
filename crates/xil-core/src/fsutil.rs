@@ -174,7 +174,11 @@ pub fn basename(p: &Path) -> String {
 mod tests {
     use super::*;
 
+    // Unix path semantics: on Windows "/a/b" is drive-relative, so
+    // absolute() prepends a drive letter and the comparison is meaningless.
+    // The pipeline only ever runs on Linux/WSL/macOS.
     #[test]
+    #[cfg(unix)]
     fn abspath_normalises() {
         assert_eq!(abspath(Path::new("/a/b/../c/./d/")), Path::new("/a/c/d"));
         assert_eq!(abspath(Path::new("/a/b/")), Path::new("/a/b"));

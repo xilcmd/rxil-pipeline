@@ -357,7 +357,10 @@ mod tests {
         assert_eq!(p.len(), 13);
     }
 
+    // $HOME is a Unix variable; Windows uses USERPROFILE and this would
+    // panic on the unwrap. Tilde expansion only matters where xil runs.
     #[test]
+    #[cfg(unix)]
     fn expanduser_only_leading_tilde() {
         let home = env::var("HOME").unwrap();
         assert_eq!(expanduser("~/x"), Path::new(&home).join("x"));
