@@ -324,7 +324,9 @@ mod tests {
             .iter()
             .map(|p| relpath(p, r).display().to_string())
             .collect();
-        assert_eq!(names, vec!["a.MP3", "b.mp3", "sub/d.mp3"]);
+        // os.path.relpath uses the native separator, so Windows shows sub\d.mp3.
+        let nested = format!("sub{}d.mp3", std::path::MAIN_SEPARATOR);
+        assert_eq!(names, vec!["a.MP3", "b.mp3", nested.as_str()]);
     }
 
     #[test]
