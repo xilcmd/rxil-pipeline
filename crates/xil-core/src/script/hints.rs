@@ -134,7 +134,7 @@ fn parse_hint_value(
 }
 
 /// Python `repr()` of a string: single quotes unless the value contains one.
-fn py_repr(s: &str) -> String {
+pub fn py_repr(s: &str) -> String {
     if s.contains('\'') && !s.contains('"') {
         format!("\"{s}\"")
     } else {

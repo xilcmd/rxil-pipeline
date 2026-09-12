@@ -373,3 +373,73 @@ args = ["db-profile"]
 [[check]]
 name = "db-profile-missing-path"
 args = ["db-profile", "nope"]
+
+# ── csv-join ─────────────────────────────────────────────────────────────
+
+[[check]]
+name = "csv-join-episode"
+args = ["csv-join", "--episode", "S01E04", "--show", "techdeepdive"]
+
+[[check]]
+name = "csv-join-output-override"
+args = ["csv-join", "--episode", "S01E04", "--show", "techdeepdive", "--output", "joined.csv"]
+
+[[check]]
+name = "csv-join-same-path"
+args = ["csv-join", "--episode", "S01E04", "--show", "techdeepdive", "--output", "parsed/techdeepdive/parsed_S01E04.csv"]
+
+[[check]]
+name = "csv-join-missing-csv"
+args = ["csv-join", "--episode", "S09E09", "--show", "techdeepdive"]
+
+[[check]]
+name = "csv-join-usage-error"
+args = ["csv-join"]
+
+# ── sfx-hydrate ──────────────────────────────────────────────────────────
+
+[[check]]
+name = "sfx-hydrate-dry-run"
+args = ["sfx-hydrate", "--episode", "S03E01", "--show", "hintshow", "--dry-run"]
+
+[[check]]
+name = "sfx-hydrate-apply"
+args = ["sfx-hydrate", "--episode", "S03E01", "--show", "hintshow"]
+
+[[check]]
+name = "sfx-hydrate-force-dry-run"
+args = ["sfx-hydrate", "--episode", "S03E01", "--show", "hintshow", "--force", "--dry-run"]
+
+[[check]]
+name = "sfx-hydrate-force"
+args = ["sfx-hydrate", "--episode", "S03E01", "--show", "hintshow", "--force"]
+
+[[check]]
+name = "sfx-hydrate-nothing-to-do"
+args = ["sfx-hydrate", "--episode", "S01E04", "--show", "techdeepdive"]
+
+[[check]]
+name = "sfx-hydrate-missing-config"
+args = ["sfx-hydrate", "--episode", "S04E01", "--show", "hintshow"]
+
+[[check]]
+name = "sfx-hydrate-missing-parsed"
+args = ["sfx-hydrate", "--episode", "S09E09", "--show", "hintshow"]
+
+# ── sfx-restore ──────────────────────────────────────────────────────────
+
+[[check]]
+name = "sfx-restore-dry-run"
+args = ["sfx-restore", "--episode", "S03E01", "--show", "hintshow", "--dry-run"]
+
+[[check]]
+name = "sfx-restore-apply"
+args = ["sfx-restore", "--episode", "S03E01", "--show", "hintshow"]
+
+[[check]]
+name = "sfx-restore-missing-config"
+args = ["sfx-restore", "--episode", "S09E09", "--show", "hintshow"]
+
+[[check]]
+name = "sfx-restore-missing-journal"
+args = ["sfx-restore", "--episode", "S01E04", "--show", "techdeepdive"]

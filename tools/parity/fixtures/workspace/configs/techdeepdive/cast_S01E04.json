@@ -1,0 +1,16 @@
+{
+  "show": "Tech Deep Dive",
+  "season": 1,
+  "episode": 4,
+  "title": "The Rise of Open Source AI",
+  "season_title": "The Architect",
+  "cast": {
+    "maya": {
+      "full_name": "Maya",
+      "voice_id": "TBD",
+      "pan": 0.0,
+      "filter": false,
+      "role": "TBD"
+    }
+  }
+}

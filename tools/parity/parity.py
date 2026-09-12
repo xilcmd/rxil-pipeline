@@ -229,7 +229,24 @@ def cmd_record(_: argparse.Namespace) -> int:
         r = _run([str(PY_XIL), "parse", str(md.relative_to(WORKSPACE_FIXTURE)), "--quiet"], cwd=WORKSPACE_FIXTURE, env=env)
         if r.returncode != 0:
             print(f"parse failed for {md.name}:\n{r.stdout}{r.stderr}", file=sys.stderr)
+    # One episode parsed with --debug so csv-join has a parsed CSV plus the
+    # skeleton cast/sfx configs it joins against.
+    r = _run([str(PY_XIL), "parse", "scripts/Tech_Deep_Dive_S01E04.md", "--episode", "S01E04", "--debug", "--quiet"],
+             cwd=WORKSPACE_FIXTURE, env=env)
+    if r.returncode != 0:
+        print(f"debug parse failed:\n{r.stdout}{r.stderr}", file=sys.stderr)
     shutil.rmtree(WORKSPACE_FIXTURE / "logs", ignore_errors=True)
+    # sfx-hydrate --force: the KEPT SOURCE hint resolves on disk, so it is
+    # replaced; the FILLED SOURCE hint does not, so that add still happens
+    # but a forced replace elsewhere would be skipped.
+    (WORKSPACE_FIXTURE / "SFX" / "hintshow").mkdir(parents=True, exist_ok=True)
+    (WORKSPACE_FIXTURE / "SFX" / "hintshow" / "new.mp3").write_bytes(b"ID3\x03\x00new!")
+    # sfx-restore on the S03E01 config: one override and one orphan.
+    (cfg_dir / "sfx_S03E01_edits.jsonl").write_text(
+        '{"ts": "2026-01-02T00:00:00+00:00", "key": "MUSIC: VOLUME ONLY", "fields": {"volume_percentage": 61}}\n'
+        '{"ts": "2026-01-02T00:00:01+00:00", "key": "SFX: GONE", "fields": {"play_duration": 50}}\n',
+        encoding="utf-8",
+    )
     # Historical logs in all three on-disk formats for stem-log. Seq/speaker
     # pairs 2/host, 3/host and 11/caller exist in parsed/mypodcast so --audit
     # gets one OK, one flagged and one unmatched record.

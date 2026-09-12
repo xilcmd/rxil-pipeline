@@ -1,0 +1,51 @@
+{
+  "_docs": {
+    "defaults": "Episode-wide fallbacks. Category prefixes: ambience_, music_, sfx_, vintage_filter_. E.g. 'ambience_volume_percentage': 30. Global fallbacks: volume_percentage, ramp_in_seconds, ramp_out_seconds.",
+    "per_effect_override": "Use plain 'volume_percentage' (no prefix) inside an effect entry to override the category default for that one cue only.",
+    "source": "Relative path from workspace root, e.g. 'SFX/filename.mp3'. Explicit source always wins over the shared pool cache.",
+    "play_duration": "Percentage of clip to play (0–100, e.g. 50 = half). Not applicable to AMBIENCE.",
+    "prompt": "ElevenLabs SFX API natural-language description for generated effects.",
+    "type": "'sfx' for API-generated audio, 'silence' for local silence padding."
+  },
+  "show": "Tech Deep Dive",
+  "season": 1,
+  "episode": 4,
+  "defaults": {
+    "prompt_influence": 0.3,
+    "volume_percentage": 20,
+    "ramp_in_seconds": 1.0,
+    "ramp_out_seconds": 1.0,
+    "ambience_volume_percentage": 30,
+    "ambience_ramp_in_seconds": 1.0,
+    "ambience_ramp_out_seconds": 1.0
+  },
+  "effects": {
+    "INTRO MUSIC": {
+      "source": "SFX/techdeepdive/INTRO_MUSIC.mp3",
+      "duration_seconds": 5.0,
+      "volume_percentage": 26.0
+    },
+    "AMBIENCE: Quiet studio hum, occasional keyboard clicks in background": {
+      "prompt": "AMBIENCE: Quiet studio hum, occasional keyboard clicks in background",
+      "duration_seconds": 30.0,
+      "loop": true
+    },
+    "BEAT": {
+      "type": "silence",
+      "duration_seconds": 1.0
+    },
+    "MUSIC: SHOW INTRO — FPS - TECH and LOUNGE": {
+      "prompt": "MUSIC: SHOW INTRO — FPS - TECH and LOUNGE",
+      "duration_seconds": 15.0
+    },
+    "SFX: Coffee mug set down on desk": {
+      "prompt": "SFX: Coffee mug set down on desk",
+      "duration_seconds": 5.0
+    },
+    "OUTRO MUSIC": {
+      "source": "SFX/techdeepdive/OUTRO_MUSIC.mp3",
+      "duration_seconds": 5.0,
+      "volume_percentage": 13.0
+    }
+  }
+}

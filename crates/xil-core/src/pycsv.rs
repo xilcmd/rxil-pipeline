@@ -87,10 +87,233 @@ pub fn write_dicts<W: Write>(
     Ok(())
 }
 
+/// `csv.reader` on a file opened with `newline=""`: the C state machine
+/// from `_csv.c`, default dialect. Quoted fields may span lines and keep
+/// their line endings verbatim; a quote inside an unquoted field is
+/// literal; a doubled quote inside a quoted field is one quote. A blank
+/// line yields an empty row.
+pub fn read_rows(text: &str) -> Vec<Vec<String>> {
+    #[derive(PartialEq)]
+    enum S {
+        StartRecord,
+        StartField,
+        InField,
+        InQuoted,
+        QuoteInQuoted,
+        EatCrnl,
+    }
+    struct Machine {
+        rows: Vec<Vec<String>>,
+        fields: Vec<String>,
+        field: String,
+        state: S,
+    }
+    impl Machine {
+        fn save(&mut self) {
+            self.fields.push(std::mem::take(&mut self.field));
+        }
+        /// The sentinel the C reader feeds after every physical line. A
+        /// record closes when it leaves the machine in StartRecord.
+        fn eol(&mut self) {
+            match self.state {
+                S::StartField | S::InField | S::QuoteInQuoted => {
+                    self.save();
+                    self.state = S::StartRecord;
+                }
+                S::EatCrnl => self.state = S::StartRecord,
+                S::InQuoted => return, // the field continues on the next line
+                S::StartRecord => {}
+            }
+            self.rows.push(std::mem::take(&mut self.fields));
+        }
+    }
+    let mut m = Machine {
+        rows: Vec::new(),
+        fields: Vec::new(),
+        field: String::new(),
+        state: S::StartRecord,
+    };
+
+    // Lines split the way `newline=""` does — on \n, \r or \r\n, with the
+    // terminator kept as ordinary characters.
+    let chars: Vec<char> = text.chars().collect();
+    let mut i = 0;
+    while i < chars.len() {
+        let c = chars[i];
+        let Machine {
+            ref mut fields,
+            ref mut field,
+            ref mut state,
+            ..
+        } = m;
+        match state {
+            S::StartRecord => {
+                if c == '\n' || c == '\r' {
+                    *state = S::EatCrnl;
+                } else {
+                    *state = S::StartField;
+                    continue; // re-dispatch this char
+                }
+            }
+            S::StartField => {
+                if c == '\n' || c == '\r' {
+                    fields.push(std::mem::take(field));
+                    *state = S::EatCrnl;
+                } else if c == '"' {
+                    *state = S::InQuoted;
+                } else if c == ',' {
+                    fields.push(std::mem::take(field));
+                } else {
+                    field.push(c);
+                    *state = S::InField;
+                }
+            }
+            S::InField => {
+                if c == '\n' || c == '\r' {
+                    fields.push(std::mem::take(field));
+                    *state = S::EatCrnl;
+                } else if c == ',' {
+                    fields.push(std::mem::take(field));
+                    *state = S::StartField;
+                } else {
+                    field.push(c);
+                }
+            }
+            S::InQuoted => {
+                if c == '"' {
+                    *state = S::QuoteInQuoted;
+                } else {
+                    field.push(c);
+                }
+            }
+            S::QuoteInQuoted => {
+                if c == '"' {
+                    field.push('"');
+                    *state = S::InQuoted;
+                } else if c == ',' {
+                    fields.push(std::mem::take(field));
+                    *state = S::StartField;
+                } else if c == '\n' || c == '\r' {
+                    fields.push(std::mem::take(field));
+                    *state = S::EatCrnl;
+                } else {
+                    // Non-strict dialect: text after a closing quote is kept.
+                    field.push(c);
+                    *state = S::InField;
+                }
+            }
+            S::EatCrnl => {
+                // Anything but a line ending here is a Python csv.Error;
+                // a file this crate wrote never produces one.
+            }
+        }
+        i += 1;
+        if c == '\n' || (c == '\r' && chars.get(i) != Some(&'\n')) {
+            m.eol();
+        }
+    }
+    // A final line with no terminator still gets its sentinel.
+    if !text.is_empty() && !text.ends_with('\n') && !text.ends_with('\r') {
+        m.eol();
+    }
+    // End of input inside a quoted field: the non-strict reader keeps
+    // what it has.
+    if m.state == S::InQuoted {
+        m.save();
+        m.rows.push(std::mem::take(&mut m.fields));
+    }
+    m.rows
+}
+
+/// `csv.DictReader`: the first row names the columns. A short row leaves
+/// its missing columns absent (Python's `None`); a long row's extras are
+/// dropped; a blank line is skipped.
+pub fn read_dicts(text: &str) -> Vec<indexmap::IndexMap<String, String>> {
+    let mut rows = read_rows(text).into_iter();
+    let Some(header) = rows.next() else {
+        return Vec::new();
+    };
+    rows.filter(|r| !r.is_empty())
+        .map(|r| header.iter().cloned().zip(r).collect())
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use serde_json::json;
+
+    fn rows(text: &str) -> Vec<Vec<&'static str>> {
+        read_rows(text)
+            .into_iter()
+            .map(|r| {
+                r.into_iter()
+                    .map(|s| &*Box::leak(s.into_boxed_str()))
+                    .collect()
+            })
+            .collect()
+    }
+
+    /// Every case here was run through CPython's csv module; the expected
+    /// values are what it returned.
+    #[test]
+    fn reader_matches_cpython_state_machine() {
+        assert_eq!(rows("a,b\r\n1,2\r\n"), vec![vec!["a", "b"], vec!["1", "2"]]);
+        assert_eq!(
+            rows("a,b\r\n\"x,y\",\"q\"\"r\"\r\n"),
+            vec![vec!["a", "b"], vec!["x,y", "q\"r"]]
+        );
+        assert_eq!(
+            rows("a,b\r\n\"multi\nline\",z\r\n"),
+            vec![vec!["a", "b"], vec!["multi\nline", "z"]]
+        );
+        assert_eq!(
+            rows("a,b\r\n\"a\r\nb\",c\r\n"),
+            vec![vec!["a", "b"], vec!["a\r\nb", "c"]]
+        );
+        assert_eq!(
+            rows("a,b\r\n\r\n1,2\r\n"),
+            vec![vec!["a", "b"], vec![], vec!["1", "2"]]
+        );
+        assert_eq!(rows("a,b\r\n1\r\n"), vec![vec!["a", "b"], vec!["1"]]);
+        assert_eq!(rows("a,b\n1,2\n"), vec![vec!["a", "b"], vec!["1", "2"]]);
+        assert_eq!(rows("a,b\r1,2\r"), vec![vec!["a", "b"], vec!["1", "2"]]);
+        assert_eq!(rows("a,b\r\n1,2"), vec![vec!["a", "b"], vec!["1", "2"]]);
+        assert_eq!(
+            rows("a,b\r\nab\"c,d\r\n"),
+            vec![vec!["a", "b"], vec!["ab\"c", "d"]]
+        );
+        assert_eq!(
+            rows("a,b\r\n\"ab\"c,d\r\n"),
+            vec![vec!["a", "b"], vec!["abc", "d"]]
+        );
+        assert_eq!(rows("a,b\r\n\"\",\r\n"), vec![vec!["a", "b"], vec!["", ""]]);
+        assert_eq!(rows("a,b\r\n ,\r\n"), vec![vec!["a", "b"], vec![" ", ""]]);
+        assert_eq!(
+            rows("a,b\r\n1,\"2\"\r\n\r\n"),
+            vec![vec!["a", "b"], vec!["1", "2"], vec![]]
+        );
+        assert_eq!(rows(""), Vec::<Vec<&str>>::new());
+    }
+
+    #[test]
+    fn dict_reader_short_long_and_blank_rows() {
+        let d = read_dicts("a,b\r\n1\r\n\r\n1,2,3\r\n");
+        assert_eq!(d.len(), 2);
+        assert_eq!(d[0].get("a").map(String::as_str), Some("1"));
+        assert_eq!(d[0].get("b"), None, "short row: column absent, like None");
+        assert_eq!(d[1].get("b").map(String::as_str), Some("2"));
+        assert_eq!(d[1].len(), 2, "extras under None are dropped");
+    }
+
+    #[test]
+    fn writer_output_reads_back_verbatim() {
+        let mut buf = Vec::new();
+        let fields = ["plain", "with,comma", "with \"quote\"", "multi\nline", ""];
+        write_row(&mut buf, &fields.map(String::from)).unwrap();
+        let back = read_rows(std::str::from_utf8(&buf).unwrap());
+        assert_eq!(back, vec![fields.map(String::from).to_vec()]);
+    }
 
     fn row(fields: &[&str]) -> String {
         let mut buf = Vec::new();

@@ -482,7 +482,7 @@ fn write_json_no_newline(path: &Path, v: &Value) -> anyhow::Result<()> {
 
 /// Does a hint's `SFX/...` path resolve on disk? Guards forced replacement:
 /// plenty of working sources are bare `SFX/<file>` with no slug-form twin.
-fn hint_target_exists(source: &str) -> bool {
+pub(crate) fn hint_target_exists(source: &str) -> bool {
     let p = Path::new(source);
     if p.is_absolute() {
         p.exists()
@@ -496,7 +496,11 @@ fn hint_target_exists(source: &str) -> bool {
 /// A hint never replaces an existing source unless `force`, and then only
 /// when the hinted file resolves. Attribute hints go the other way: the
 /// script is authoritative and overwrites whatever the config holds.
-fn backfill_sfx_sources(parsed: &Value, sfx_path: &Path, force: bool) -> anyhow::Result<()> {
+pub(crate) fn backfill_sfx_sources(
+    parsed: &Value,
+    sfx_path: &Path,
+    force: bool,
+) -> anyhow::Result<()> {
     let text = fs::read_to_string(sfx_path)?;
     let mut data: Value = serde_json::from_str(&text)?;
     let obj = data

@@ -1,0 +1,26 @@
+md_line_num,md_raw,seq,type,section,scene,speaker,direction,direction_type,text
+5,"MAYA CHEN — host and tech journalist, skeptically optimistic",1,dialogue,,,maya,,,"CHEN — host and tech journalist, skeptically optimistic DARIUS OKAFOR — open source advocate and ML engineer"
+10,PREAMBLE,2,section_header,preamble,,,,,PREAMBLE
+12,"MAYA  Welcome to Tech Deep Dive. Season 1, Episode 4: The Rise of Open Source A I.",3,dialogue,preamble,,maya,,,"Welcome to Tech Deep Dive. Season 1, Episode 4: The Rise of Open Source A I."
+14,[INTRO MUSIC | INTRO_MUSIC.mp3 | play_volume_pct=26%],4,direction,preamble,,,,MUSIC,INTRO MUSIC
+18,COLD OPEN,5,section_header,cold-open,,,,,COLD OPEN
+19,SCENE 1: PODCAST STUDIO — PRE-SHOW,6,scene_header,cold-open,scene-1,,,,SCENE 1: PODCAST STUDIO — PRE-SHOW
+20,"[AMBIENCE: Quiet studio hum, occasional keyboard clicks in background]",7,direction,cold-open,scene-1,,,AMBIENCE,"AMBIENCE: Quiet studio hum, occasional keyboard clicks in background"
+23,Okay. Three minutes to air.,8,dialogue,cold-open,scene-1,maya,checking notes,,Okay. Three minutes to air. DARIUS I've been waiting for someone to ask these questions out loud.
+28,Then let's make it worth it.,9,dialogue,cold-open,scene-1,maya,,,Then let's make it worth it.
+29,[BEAT],10,direction,cold-open,scene-1,,,BEAT,BEAT
+33,ACT TWO,11,section_header,act2,,,,,ACT TWO
+35,SCENE 6: PODCAST STUDIO,12,scene_header,act2,scene-6,,,,SCENE 6: PODCAST STUDIO
+37,"[AMBIENCE: Quiet studio hum, occasional keyboard clicks in background]",13,direction,act2,scene-6,,,AMBIENCE,"AMBIENCE: Quiet studio hum, occasional keyboard clicks in background"
+39,[MUSIC: SHOW INTRO — FPS - TECH and LOUNGE],14,direction,act2,scene-6,,,MUSIC,MUSIC: SHOW INTRO — FPS - TECH and LOUNGE
+42,"So when Meta dropped LLaMA, that was kind of a watershed moment, right? Nobody really saw it coming.",15,dialogue,act2,scene-6,maya,,,"So when Meta dropped LLaMA, that was kind of a watershed moment, right? Nobody really saw it coming."
+44,[BEAT],16,direction,act2,scene-6,,,BEAT,BEAT
+50,Meaning the cost of training came down enough that hoarding the weights stopped making sense?,17,dialogue,act2,scene-6,maya,leaning in,,Meaning the cost of training came down enough that hoarding the weights stopped making sense? DARIUS Exactly. And once LLaMA was out — even the way it got out — you had thousands of people fine-tuning
+53,[SFX: Coffee mug set down on desk],18,direction,act2,scene-6,,,SFX,SFX: Coffee mug set down on desk
+55,But there's a real tension here. Openness accelerates capability. And capability without guardrails...,19,dialogue,act2,scene-6,maya,,,But there's a real tension here. Openness accelerates capability. And capability without guardrails... DARIUS ...is the thing everyone's quietly terrified about. Yeah.
+60,[BEAT],20,direction,act2,scene-6,,,BEAT,BEAT
+63,We'll get into the safety implications right after the break.,21,dialogue,act2,scene-6,maya,,,We'll get into the safety implications right after the break.
+67,POSTAMBLE,22,section_header,postamble,,,,,POSTAMBLE
+69,[OUTRO MUSIC | OUTRO_MUSIC.mp3 | play_volume_pct=13%],23,direction,postamble,,,,MUSIC,OUTRO MUSIC
+71,"MAYA  That was Tech Deep Dive, Season 1, Episode 4: The Rise of Open Source A I.",24,dialogue,postamble,,maya,,,"That was Tech Deep Dive, Season 1, Episode 4: The Rise of Open Source A I."
+72,MAYA  Thanks for listening.,25,dialogue,postamble,,maya,,,Thanks for listening.
