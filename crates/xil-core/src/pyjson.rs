@@ -41,6 +41,33 @@ impl Style {
     };
 }
 
+/// Marker prefix for a value that must be emitted verbatim, unquoted.
+///
+/// Python writes non-finite floats as the bare tokens `NaN`, `Infinity`
+/// and `-Infinity`. JSON has no syntax for them and `serde_json::Number`
+/// cannot hold them, so they travel as strings carrying this prefix. A
+/// NUL cannot occur in the data this serializes, which is what makes it
+/// safe as a sentinel.
+pub const RAW_MARKER: char = '\u{0}';
+
+/// Wrap a float the way Python's json module would write it: an ordinary
+/// number when finite, a bare token when not.
+pub fn py_float(v: f64) -> Value {
+    if v.is_finite() {
+        return serde_json::Number::from_f64(v)
+            .map(Value::Number)
+            .unwrap_or(Value::Null);
+    }
+    let token = if v.is_nan() {
+        "NaN"
+    } else if v > 0.0 {
+        "Infinity"
+    } else {
+        "-Infinity"
+    };
+    Value::String(format!("{RAW_MARKER}{token}"))
+}
+
 /// Serialize `v` in the given style. Never fails: every `Value` is representable.
 pub fn dumps(v: &Value, style: Style) -> String {
     let mut out = String::new();
@@ -62,7 +89,10 @@ fn write_value(out: &mut String, v: &Value, style: Style, depth: usize) {
                 out.push_str(&float_repr(f));
             }
         }
-        Value::String(s) => write_string(out, s, style.ensure_ascii),
+        Value::String(s) => match s.strip_prefix(RAW_MARKER) {
+            Some(token) => out.push_str(token),
+            None => write_string(out, s, style.ensure_ascii),
+        },
         Value::Array(items) => {
             if items.is_empty() {
                 out.push_str("[]");
@@ -255,6 +285,17 @@ mod tests {
         assert_eq!(dumps(&v, Style::COMPACT), r#"{"a": [1, 2], "b": "c"}"#);
         assert_eq!(dumps(&json!([]), Style::COMPACT), "[]");
         assert_eq!(dumps(&json!({}), Style::COMPACT), "{}");
+    }
+
+    #[test]
+    fn non_finite_floats_are_bare_tokens() {
+        let v =
+            json!({"a": py_float(f64::NEG_INFINITY), "b": py_float(1.5), "c": py_float(f64::NAN)});
+        assert_eq!(
+            dumps(&v, Style::COMPACT),
+            r#"{"a": -Infinity, "b": 1.5, "c": NaN}"#
+        );
+        assert_eq!(dumps(&py_float(f64::INFINITY), Style::COMPACT), "Infinity");
     }
 
     #[test]

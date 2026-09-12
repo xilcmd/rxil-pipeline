@@ -1,0 +1,44 @@
+{
+  "show": "impactshow",
+  "defaults": {},
+  "effects": {
+    "MUSIC: LONG BED": {
+      "source": "SFX/impactshow/bed_8s.mp3",
+      "duration_seconds": 5.0
+    },
+    "SFX: SHORT CLIP": {
+      "source": "SFX/impactshow/bed_8s.mp3",
+      "duration_seconds": 7.0
+    },
+    "SFX: STING": {
+      "source": "SFX/impactshow/sting.mp3",
+      "duration_seconds": 5.0
+    },
+    "AMBIENCE: LOOPED": {
+      "source": "SFX/impactshow/bed_8s.mp3",
+      "duration_seconds": 5.0,
+      "loop": true
+    },
+    "SFX: HALF": {
+      "source": "SFX/impactshow/bed_8s.mp3",
+      "play_duration": 50
+    },
+    "SFX: FULL": {
+      "source": "SFX/impactshow/sting.mp3",
+      "duration_seconds": 0
+    },
+    "SFX: FAKE": {
+      "source": "SFX/beat.mp3",
+      "duration_seconds": 5.0
+    },
+    "SFX: GONE": {
+      "source": "SFX/impactshow/nope.mp3",
+      "duration_seconds": 5.0
+    },
+    "BEAT": {
+      "type": "silence",
+      "duration_seconds": 1.0
+    },
+    "SFX: NOT A DICT": "oops"
+  }
+}

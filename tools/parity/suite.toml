@@ -347,3 +347,205 @@ args = ["regen", "--episode", "S09E09", "--show", "revisedshow"]
 [[check]]
 name = "scan-sample"
 args = ["scan", "scripts/sample_S01E01.md"]
+
+# ── db-profile, over generated tones ────────────────────────────────────
+
+[[check]]
+name = "db-profile-dir"
+args = ["db-profile", "audio"]
+
+[[check]]
+name = "db-profile-json"
+args = ["db-profile", "audio", "--json"]
+
+[[check]]
+name = "db-profile-absolute-and-csv"
+args = ["db-profile", "audio", "--absolute", "--output", "levels.csv"]
+
+[[check]]
+name = "db-profile-single-file"
+args = ["db-profile", "audio/silence.mp3", "--json"]
+
+[[check]]
+name = "db-profile-default-path"
+args = ["db-profile"]
+
+[[check]]
+name = "db-profile-missing-path"
+args = ["db-profile", "nope"]
+
+# ── csv-join ─────────────────────────────────────────────────────────────
+
+[[check]]
+name = "csv-join-episode"
+args = ["csv-join", "--episode", "S01E04", "--show", "techdeepdive"]
+
+[[check]]
+name = "csv-join-output-override"
+args = ["csv-join", "--episode", "S01E04", "--show", "techdeepdive", "--output", "joined.csv"]
+
+[[check]]
+name = "csv-join-same-path"
+args = ["csv-join", "--episode", "S01E04", "--show", "techdeepdive", "--output", "parsed/techdeepdive/parsed_S01E04.csv"]
+
+[[check]]
+name = "csv-join-missing-csv"
+args = ["csv-join", "--episode", "S09E09", "--show", "techdeepdive"]
+
+[[check]]
+name = "csv-join-usage-error"
+args = ["csv-join"]
+
+# ── sfx-hydrate ──────────────────────────────────────────────────────────
+
+[[check]]
+name = "sfx-hydrate-dry-run"
+args = ["sfx-hydrate", "--episode", "S03E01", "--show", "hintshow", "--dry-run"]
+
+[[check]]
+name = "sfx-hydrate-apply"
+args = ["sfx-hydrate", "--episode", "S03E01", "--show", "hintshow"]
+
+[[check]]
+name = "sfx-hydrate-force-dry-run"
+args = ["sfx-hydrate", "--episode", "S03E01", "--show", "hintshow", "--force", "--dry-run"]
+
+[[check]]
+name = "sfx-hydrate-force"
+args = ["sfx-hydrate", "--episode", "S03E01", "--show", "hintshow", "--force"]
+
+[[check]]
+name = "sfx-hydrate-nothing-to-do"
+args = ["sfx-hydrate", "--episode", "S01E04", "--show", "techdeepdive"]
+
+[[check]]
+name = "sfx-hydrate-missing-config"
+args = ["sfx-hydrate", "--episode", "S04E01", "--show", "hintshow"]
+
+[[check]]
+name = "sfx-hydrate-missing-parsed"
+args = ["sfx-hydrate", "--episode", "S09E09", "--show", "hintshow"]
+
+# ── sfx-restore ──────────────────────────────────────────────────────────
+
+[[check]]
+name = "sfx-restore-dry-run"
+args = ["sfx-restore", "--episode", "S03E01", "--show", "hintshow", "--dry-run"]
+
+[[check]]
+name = "sfx-restore-apply"
+args = ["sfx-restore", "--episode", "S03E01", "--show", "hintshow"]
+
+[[check]]
+name = "sfx-restore-missing-config"
+args = ["sfx-restore", "--episode", "S09E09", "--show", "hintshow"]
+
+[[check]]
+name = "sfx-restore-missing-journal"
+args = ["sfx-restore", "--episode", "S01E04", "--show", "techdeepdive"]
+
+# ── sfx-lib ──────────────────────────────────────────────────────────────
+
+[[check]]
+name = "sfx-lib-compact"
+args = ["sfx-lib"]
+
+[[check]]
+name = "sfx-lib-verbose"
+args = ["sfx-lib", "--verbose"]
+
+[[check]]
+name = "sfx-lib-json"
+args = ["sfx-lib", "--json"]
+
+[[check]]
+name = "sfx-lib-search"
+args = ["sfx-lib", "--search", "RAIN"]
+
+[[check]]
+name = "sfx-lib-search-nothing"
+args = ["sfx-lib", "--search", "it's gone"]
+
+[[check]]
+name = "sfx-lib-sfx-dir"
+args = ["sfx-lib", "--sfx-dir", "SFX/matchshow", "--local"]
+
+[[check]]
+name = "sfx-lib-missing-dir"
+args = ["sfx-lib", "--sfx-dir", "nope"]
+
+[[check]]
+name = "sfx-lib-export-kit"
+args = ["sfx-lib", "--export-kit", "kit"]
+
+[[check]]
+name = "sfx-lib-usage-error"
+args = ["sfx-lib", "--api", "--local"]
+
+# ── sfx-impact ───────────────────────────────────────────────────────────
+
+[[check]]
+name = "sfx-impact-workspace"
+args = ["sfx-impact", "--output", "impact.csv"]
+
+[[check]]
+name = "sfx-impact-one-show-html"
+args = ["sfx-impact", "--show", "impactshow", "--output", "impact.csv", "--html", "impact.html"]
+
+[[check]]
+name = "sfx-impact-stdout"
+args = ["sfx-impact", "--show", "impactshow", "--output", "-"]
+
+[[check]]
+name = "sfx-impact-actionable-quiet"
+args = ["sfx-impact", "--show", "impactshow", "--tier", "actionable", "--output", "a.csv", "--quiet"]
+
+[[check]]
+name = "sfx-impact-episode"
+args = ["sfx-impact", "--show", "impactshow", "--episode", "S01E01", "--output", "e.csv"]
+
+[[check]]
+name = "sfx-impact-no-configs"
+args = ["sfx-impact", "--show", "nosuchshow", "--output", "x.csv"]
+
+[[check]]
+name = "sfx-impact-no-configs-stdout"
+args = ["sfx-impact", "--show", "nosuchshow", "--output", "-"]
+
+[[check]]
+name = "sfx-impact-bad-tier"
+args = ["sfx-impact", "--tier", "1-nochange"]
+
+# ── sfx-match ────────────────────────────────────────────────────────────
+
+[[check]]
+name = "sfx-match-report"
+args = ["sfx-match", "--show", "matchshow", "--output", "match.csv"]
+
+[[check]]
+name = "sfx-match-stdout-hints"
+args = ["sfx-match", "--show", "matchshow", "--output", "-", "--emit-hints", "hints.md"]
+
+[[check]]
+name = "sfx-match-top-and-floor"
+args = ["sfx-match", "--show", "matchshow", "--top", "1", "--min-coverage", "0.3", "--output", "m.csv", "--quiet"]
+
+[[check]]
+name = "sfx-match-apply-dry-run"
+args = ["sfx-match", "--show", "matchshow", "--output", "m.csv", "--apply", "--dry-run"]
+
+[[check]]
+name = "sfx-match-apply"
+args = ["sfx-match", "--show", "matchshow", "--episode", "S01E01", "--output", "m.csv", "--apply"]
+
+[[check]]
+name = "sfx-match-apply-accept-review"
+args = ["sfx-match", "--show", "matchshow", "--output", "m.csv", "--apply", "--accept-review"]
+
+[[check]]
+name = "sfx-match-nothing-missing"
+args = ["sfx-match", "--show", "impactshow", "--episode", "S09E09", "--output", "m.csv"]
+
+[[check]]
+name = "sfx-match-all-resolve"
+args = ["sfx-match", "--show", "mypodcast", "--output", "m.csv", "--emit-hints", "h.md"]

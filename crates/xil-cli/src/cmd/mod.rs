@@ -3,12 +3,20 @@
 //! Each `run(args)` receives the arguments after the command name — what a
 //! Python `main()` sees in `sys.argv[1:]` — and returns the exit code.
 
+// The `///` lines on clap fields ARE the `--help` text, copied verbatim from
+// argparse so the parity suite can diff it. Placeholders like `<slug>` and
+// `<TAG>` look like HTML to rustdoc; wrapping them in backticks would change
+// the help output, so silence that one lint here instead.
+#![allow(rustdoc::invalid_html_tags)]
+
 use std::ffi::OsString;
 use std::sync::OnceLock;
 
 use clap::Parser;
 
 pub mod cleanup;
+pub mod csv_join;
+pub mod db_profile;
 pub mod episode_summary;
 pub mod init;
 pub mod migrate;
@@ -22,6 +30,11 @@ pub mod remove_episode;
 pub mod remove_show;
 pub mod scan;
 pub mod sfx_csv;
+pub mod sfx_hydrate;
+pub mod sfx_impact;
+pub mod sfx_lib;
+pub mod sfx_match;
+pub mod sfx_restore;
 pub mod splice;
 pub mod status;
 pub mod stem_log;
@@ -49,7 +62,7 @@ pub fn argv_line(args: &[OsString]) -> String {
     s
 }
 
-/// Parse `args` with a clap derive type, using `prog` as argv[0] so help and
+/// Parse `args` with a clap derive type, using `prog` as `argv[0]` so help and
 /// usage lines name the command the way argparse does (`xil-use`).
 ///
 /// On a usage error or `--help`, prints what clap would print and returns
@@ -85,9 +98,21 @@ pub fn get_or_blank(
 ) -> serde_json::Value {
     use serde_json::Value;
     match map.get(key) {
-        None | Some(Value::Null) | Some(Value::Bool(false)) => Value::String(String::new()),
-        Some(Value::String(s)) if s.is_empty() => Value::String(String::new()),
-        Some(Value::Number(n)) if n.as_f64() == Some(0.0) => Value::String(String::new()),
-        Some(v) => v.clone(),
+        Some(v) if truthy(v) => v.clone(),
+        _ => Value::String(String::new()),
+    }
+}
+
+/// `bool(value)` for a JSON value: `null`, `false`, `0`, `""`, `[]` and
+/// `{}` are false, everything else true.
+pub fn truthy(v: &serde_json::Value) -> bool {
+    use serde_json::Value;
+    match v {
+        Value::Null | Value::Bool(false) => false,
+        Value::Bool(true) => true,
+        Value::Number(n) => n.as_f64() != Some(0.0),
+        Value::String(s) => !s.is_empty(),
+        Value::Array(a) => !a.is_empty(),
+        Value::Object(o) => !o.is_empty(),
     }
 }

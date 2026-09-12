@@ -251,7 +251,7 @@
 
 <script>
   // ---- Edit this block as phases progress. Everything else renders from it.
-  const UPDATED = "2026-09-11";
+  const UPDATED = "2026-09-12";
   const PHASES = [
     { n: 0, title: "Toolchain, shim, harness, CI", weeks: 1, status: "done",
       scope: "rustup, Cargo workspace with the target dir on ext4, the 38-entry command table, Python hand-off with argv[0] aliases and XIL_FORCE_PY, the parity harness, GitHub repo with CI and branch protection.",
@@ -265,7 +265,7 @@
       scope: "XILP001 parser (1,875 lines), XILP000 scanner, timeline_viz, stem migrator, stale-stem cleanup, script regenerator, splice.",
       exit: "parsed_*, orig_*, pre_splice_* JSON and skeleton configs byte-identical for every sample script and the413; timeline ASCII and HTML byte-identical.",
       cmds: ["scan", "parse", "regen", "splice", "migrate", "cleanup"] },
-    { n: 3, title: "xil-audio", weeks: 2, status: "todo",
+    { n: 3, title: "xil-audio", weeks: 2, status: "done",
       scope: "PCM buffer ops matching audioop, ffmpeg bridge modelled on audio_fx.run_ffmpeg_filter, WAV via hound, ID3 via the id3 crate, sfx_common library functions.",
       exit: "WAV output byte-identical to pydub for each primitive op; ID3 dumps identical; sfx JSON byte-identical.",
       cmds: ["db-profile", "sfx-impact", "sfx-hydrate", "sfx-restore", "sfx-match", "sfx-lib", "csv-join"] },
@@ -288,9 +288,11 @@
   ];
   const NATIVE = new Set(["use", "status", "init", "episode-summary", "parsed-csv", "sfx-csv", "mp3-hash",
                           "stem-log", "remove-show", "remove-episode", "migrate-workspace",
-                          "scan", "parse", "regen", "splice", "migrate", "cleanup"]); // flipped to native
-  const PARITY = { passing: 83, total: 83 }; // entries in tools/parity/suite.toml
+                          "scan", "parse", "regen", "splice", "migrate", "cleanup",
+                          "db-profile", "csv-join", "sfx-hydrate", "sfx-restore", "sfx-impact", "sfx-lib", "sfx-match"]); // flipped to native
+  const PARITY = { passing: 130, total: 130 }; // entries in tools/parity/suite.toml
   const LOG = [
+    { date: "2026-09-12", text: "Phase 3 complete. All seven SFX utility commands are native: db-profile, csv-join, sfx-hydrate, sfx-restore, sfx-impact, sfx-lib and sfx-match (24 of 38 commands now). xil-audio gained a PCM layer with pydub\u2019s exact level math, an ffmpeg bridge that runs pydub\u2019s own decode command, ID3 read and retag, and a line-by-line port of mutagen\u2019s MP3 header reader \u2014 checked against mutagen on all 1,880 files of the real SFX library with zero differences (ffprobe disagrees on about one file in six). xil-core gained a reader with CPython\u2019s csv state machine and Python number formatting. 130 suite checks, all green. sfx-lib --api still hands off to Python until the network phase." },
     { date: "2026-09-12", text: "Phase 2 complete. The parser and scanner are native, along with the migrator, cleanup, regenerator and splice. Verified two ways: 83 suite checks, and a new sweep mode that runs both implementations over every production script in the workspace — 96 of 96 byte-identical for parse, and again for scan. xil-core gained a transcription of CPython\u2019s difflib (the scanner\u2019s 0.72 near-miss cutoff is a behaviour boundary, so the ratio has to agree to the last bit), the SFX edit journal, and the stem naming rules. The timeline renderer moved to phase 4: it is only ever called by daw, whose dry-run path needs mix_common, so there is no way to prove it correct before then." },
     { date: "2026-09-11", text: "Phase 1 complete. xil-core carries the workspace/path layer (both layouts), the two-sink logger with the exact v2 record format, a Python-identical JSON writer (indent=2, ensure_ascii, float repr) and CSV writer, the run banner, glob/relpath helpers and the SFX slug rules. All 11 phase-1 commands are native and byte-identical to Python across 51 parity checks. The harness now makes each run declare whether Rust or Python served it, so a stale binary can no longer read as a pass." },
     { date: "2026-09-11", text: "Phase 0 complete. Rust 1.98.1 installed; workspace scaffolded; all 38 commands delegate to Python 0.3.2. Help text, exit codes and xil-<cmd> aliases verified byte-identical. Parity harness green on help, use, parse ×2, scan. Repo published at xilcmd/rxil-pipeline with CI (fmt, clippy, nextest, parity suite) and branch protection matching the Python repo." },

@@ -1,0 +1,29 @@
+{
+  "show": "matchshow",
+  "defaults": {},
+  "effects": {
+    "SFX: DOOR CREAKS OPEN": {
+      "source": "SFX/matchshow/old-door.mp3"
+    },
+    "AMBIENCE: RAIN ON WINDOW": {
+      "source": "SFX/matchshow/rain.mp3",
+      "loop": true
+    },
+    "SFX: PHONE BUZZ LOUD": {
+      "source": "SFX/matchshow/buzz.mp3"
+    },
+    "SFX: GLASS SHATTERS": {
+      "source": "NEW STEM NEEDED: sfx_glass-shatters.mp3"
+    },
+    "MUSIC: FOLK THEME": {
+      "source": "SFX/matchshow/folk.mp3"
+    },
+    "SFX: STING": {
+      "source": "SFX/impactshow/sting.mp3"
+    },
+    "BEAT": {
+      "type": "silence",
+      "duration_seconds": 1.0
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "show": "matchshow",
+  "defaults": {},
+  "effects": {
+    "SFX: PHONE BUZZ": {
+      "source": "SFX/phone.mp3"
+    }
+  }
+}
