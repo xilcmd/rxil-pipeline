@@ -347,3 +347,29 @@ args = ["regen", "--episode", "S09E09", "--show", "revisedshow"]
 [[check]]
 name = "scan-sample"
 args = ["scan", "scripts/sample_S01E01.md"]
+
+# ── db-profile, over generated tones ────────────────────────────────────
+
+[[check]]
+name = "db-profile-dir"
+args = ["db-profile", "audio"]
+
+[[check]]
+name = "db-profile-json"
+args = ["db-profile", "audio", "--json"]
+
+[[check]]
+name = "db-profile-absolute-and-csv"
+args = ["db-profile", "audio", "--absolute", "--output", "levels.csv"]
+
+[[check]]
+name = "db-profile-single-file"
+args = ["db-profile", "audio/silence.mp3", "--json"]
+
+[[check]]
+name = "db-profile-default-path"
+args = ["db-profile"]
+
+[[check]]
+name = "db-profile-missing-path"
+args = ["db-profile", "nope"]

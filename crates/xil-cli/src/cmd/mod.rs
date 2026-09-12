@@ -3,12 +3,19 @@
 //! Each `run(args)` receives the arguments after the command name — what a
 //! Python `main()` sees in `sys.argv[1:]` — and returns the exit code.
 
+// The `///` lines on clap fields ARE the `--help` text, copied verbatim from
+// argparse so the parity suite can diff it. Placeholders like `<slug>` and
+// `<TAG>` look like HTML to rustdoc; wrapping them in backticks would change
+// the help output, so silence that one lint here instead.
+#![allow(rustdoc::invalid_html_tags)]
+
 use std::ffi::OsString;
 use std::sync::OnceLock;
 
 use clap::Parser;
 
 pub mod cleanup;
+pub mod db_profile;
 pub mod episode_summary;
 pub mod init;
 pub mod migrate;
@@ -49,7 +56,7 @@ pub fn argv_line(args: &[OsString]) -> String {
     s
 }
 
-/// Parse `args` with a clap derive type, using `prog` as argv[0] so help and
+/// Parse `args` with a clap derive type, using `prog` as `argv[0]` so help and
 /// usage lines name the command the way argparse does (`xil-use`).
 ///
 /// On a usage error or `--help`, prints what clap would print and returns

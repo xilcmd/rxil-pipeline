@@ -1,5 +1,5 @@
 {
-  "python_git_sha": "4972c355786352ddae2f7559fc05db443bbc2843",
+  "python_git_sha": "74bb7713e1607461974f0d687272c10f7e5232fa",
   "python_version": "0.3.2",
   "files": [
     "SFX/Door Slam.mp3",
@@ -9,6 +9,12 @@
     "SFX/sfx_good-thing.mp3",
     "SFX/sfx_rejected-thing.mp3",
     "SFX/sub/rain.MP3",
+    "audio/Mixed Case.MP3",
+    "audio/loud_sine.mp3",
+    "audio/nested/noise.mp3",
+    "audio/notes.txt",
+    "audio/quiet_sine.mp3",
+    "audio/silence.mp3",
     "configs/hintshow/project.json",
     "configs/hintshow/sfx_S03E01.json",
     "configs/hintshow/sfx_S04E01_edits.jsonl",

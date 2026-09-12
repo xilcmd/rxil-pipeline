@@ -32,6 +32,14 @@ jobs:
         run: cargo fmt --all --check
       - name: Clippy
         run: cargo clippy --workspace --all-targets -- -D warnings
+      # Strict rustdoc, the Rust-side twin of mkdocs `strict: true` in the
+      # Python repo: a broken intra-doc link or bad HTML in a doc comment
+      # fails the merge. Private items are documented too because every
+      # crate here is internal to the binary; nothing is published yet.
+      - name: Docs
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo doc --workspace --no-deps --document-private-items
       - name: Unit tests
         run: cargo nextest run --workspace
       - name: Build binary for parity
