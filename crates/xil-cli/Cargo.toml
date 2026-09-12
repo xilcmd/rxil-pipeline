@@ -13,4 +13,15 @@ name = "xil"
 path = "src/main.rs"
 
 [dependencies]
+xil-core = { path = "../xil-core" }
+xil-audio = { path = "../xil-audio" }
 anyhow.workspace = true
+clap.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+regex.workspace = true
+chrono.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+filetime = "0.2"

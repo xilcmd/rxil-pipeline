@@ -1,5 +1,15 @@
 //! Shared core for the xil pipeline: workspace layout, slug/path derivation,
 //! config models, the SFX edit journal, and logging.
 //!
-//! Phase 1 of the port fills this crate in. It mirrors `models.py` and
-//! `log_config.py` from the Python package.
+//! Mirrors `models.py` and `log_config.py` from the Python package. Where
+//! the Python does something odd (resolving symlinks, creating an empty log
+//! file at startup), this crate does the same odd thing on purpose — the
+//! parity harness compares the two byte for byte.
+
+pub mod banner;
+pub mod fsutil;
+pub mod log;
+pub mod pycsv;
+pub mod pyjson;
+pub mod sfxlib;
+pub mod workspace;

@@ -29,6 +29,8 @@ regex = "1"
 chrono = "0.4"
 hostname = "0.4"
 tempfile = "3"
+sha2 = "0.10"
+id3 = "1"
 
 [profile.release]
 lto = "thin"

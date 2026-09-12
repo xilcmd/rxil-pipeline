@@ -1,0 +1,87 @@
+//! Native command implementations, one module per subcommand.
+//!
+//! Each `run(args)` receives the arguments after the command name — what a
+//! Python `main()` sees in `sys.argv[1:]` — and returns the exit code.
+
+use std::ffi::OsString;
+use std::sync::OnceLock;
+
+use clap::Parser;
+
+pub mod episode_summary;
+pub mod init;
+pub mod migrate_workspace;
+pub mod mp3_hash;
+pub mod parsed_csv;
+pub mod removal;
+pub mod remove_episode;
+pub mod remove_show;
+pub mod sfx_csv;
+pub mod status;
+pub mod stem_log;
+pub mod use_cmd;
+
+/// What Python sees as `sys.argv[0]` for this run: `"xil parse"` through the
+/// dispatcher, `"xil-parse"` through an alias. Feeds the run banner.
+static PROG: OnceLock<String> = OnceLock::new();
+
+pub fn set_prog(prog: &str) {
+    let _ = PROG.set(prog.to_string());
+}
+
+pub fn prog() -> &'static str {
+    PROG.get().map(String::as_str).unwrap_or("xil")
+}
+
+/// `" ".join(sys.argv)` — the BEGIN record's `argv=` field.
+pub fn argv_line(args: &[OsString]) -> String {
+    let mut s = prog().to_string();
+    for a in args {
+        s.push(' ');
+        s.push_str(&a.to_string_lossy());
+    }
+    s
+}
+
+/// Parse `args` with a clap derive type, using `prog` as argv[0] so help and
+/// usage lines name the command the way argparse does (`xil-use`).
+///
+/// On a usage error or `--help`, prints what clap would print and returns
+/// the exit code to hand back (2 for errors, 0 for help/version), matching
+/// argparse.
+pub fn parse_or_exit<T: Parser>(prog: &str, args: &[OsString]) -> Result<T, i32> {
+    let argv = std::iter::once(OsString::from(prog)).chain(args.iter().cloned());
+    match T::try_parse_from(argv) {
+        Ok(t) => Ok(t),
+        Err(e) => {
+            let _ = e.print();
+            Err(e.exit_code())
+        }
+    }
+}
+
+/// `data.get(key, "")` — the value when the key is present (even `null`),
+/// an empty string when it is absent.
+pub fn get_or_empty(
+    map: &serde_json::Map<String, serde_json::Value>,
+    key: &str,
+) -> serde_json::Value {
+    map.get(key)
+        .cloned()
+        .unwrap_or(serde_json::Value::String(String::new()))
+}
+
+/// `entry.get(key) or ""` — falsy values (`null`, `""`, `0`, `false`) become
+/// an empty string, anything else passes through.
+pub fn get_or_blank(
+    map: &serde_json::Map<String, serde_json::Value>,
+    key: &str,
+) -> serde_json::Value {
+    use serde_json::Value;
+    match map.get(key) {
+        None | Some(Value::Null) | Some(Value::Bool(false)) => Value::String(String::new()),
+        Some(Value::String(s)) if s.is_empty() => Value::String(String::new()),
+        Some(Value::Number(n)) if n.as_f64() == Some(0.0) => Value::String(String::new()),
+        Some(v) => v.clone(),
+    }
+}

@@ -4,6 +4,7 @@
 //! `--help` lists the commands, `--version` prints the version, an unknown
 //! command exits 2. The `xil-<command>` aliases work through `argv[0]`.
 
+mod cmd;
 mod commands;
 mod delegate;
 
@@ -49,7 +50,27 @@ fn real_main() -> anyhow::Result<i32> {
             println!("{VERSION}");
             return Ok(0);
         }
+        // Hidden: one native command name per line. The parity harness uses
+        // it to know which commands must NOT have been delegated.
+        "--native-list" => {
+            for c in commands::COMMANDS.iter().filter(|c| c.native.is_some()) {
+                println!("{}", c.name);
+            }
+            return Ok(0);
+        }
         _ => {}
+    }
+
+    // What Python's sys.argv[0] would be: "xil-parse" via an alias, else
+    // "xil parse" (the dispatcher rewrites argv[0] that way before handing off).
+    match alias_command(&program) {
+        Some(_) => cmd::set_prog(
+            &Path::new(&program)
+                .file_name()
+                .unwrap_or_default()
+                .to_string_lossy(),
+        ),
+        None => cmd::set_prog(&format!("xil {first}")),
     }
 
     let Some(spec) = commands::find(&first) else {
@@ -76,9 +97,22 @@ fn real_main() -> anyhow::Result<i32> {
         return Ok(0);
     }
 
-    match spec.native {
-        Some(run) if !delegate::forced(spec.name) => run(args),
-        _ => delegate::run(spec.name, args),
+    let native = spec.native.filter(|_| !delegate::forced(spec.name));
+    // XIL_TRACE_IMPL=1 announces which implementation serves this run, so a
+    // test can prove the Rust code actually ran rather than the Python fallback.
+    if env::var_os("XIL_TRACE_IMPL").is_some() {
+        eprintln!(
+            "rxil-impl: {}",
+            if native.is_some() {
+                "native"
+            } else {
+                "delegated"
+            }
+        );
+    }
+    match native {
+        Some(run) => run(args),
+        None => delegate::run(spec.name, args),
     }
 }
 

@@ -1,0 +1,360 @@
+<title>rxil Port Tracker</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #f4f5f8;
+    --surface: #ffffff;
+    --surface-2: #eceef3;
+    --ink: #1a202b;
+    --ink-2: #4b5563;
+    --ink-3: #7b8594;
+    --line: #d5dae3;
+    --line-2: #e6e9ef;
+    --accent: #c98a1c;
+    --accent-ink: #7a5006;
+    --accent-soft: #fbf1dc;
+    --done: #2f8a5a;
+    --done-soft: #e2f3ea;
+    --todo: #aeb6c2;
+    --todo-soft: #eef0f4;
+    --risk: #b0453a;
+    --code-bg: #eef0f4;
+    --shadow: 0 1px 2px rgba(20, 28, 40, .06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #12161d;
+      --surface: #1a1f28;
+      --surface-2: #222833;
+      --ink: #e6e9ef;
+      --ink-2: #b4bcc8;
+      --ink-3: #7f8896;
+      --line: #313846;
+      --line-2: #272d39;
+      --accent: #e0a33a;
+      --accent-ink: #f1c976;
+      --accent-soft: #3a2d12;
+      --done: #4fbd82;
+      --done-soft: #16301f;
+      --todo: #58606e;
+      --todo-soft: #232935;
+      --risk: #e07a6e;
+      --code-bg: #232935;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #12161d;
+    --surface: #1a1f28;
+    --surface-2: #222833;
+    --ink: #e6e9ef;
+    --ink-2: #b4bcc8;
+    --ink-3: #7f8896;
+    --line: #313846;
+    --line-2: #272d39;
+    --accent: #e0a33a;
+    --accent-ink: #f1c976;
+    --accent-soft: #3a2d12;
+    --done: #4fbd82;
+    --done-soft: #16301f;
+    --todo: #58606e;
+    --todo-soft: #232935;
+    --risk: #e07a6e;
+    --code-bg: #232935;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .35);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font: 15px/1.55 "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main { max-width: 920px; margin: 0 auto; padding: 40px 24px 72px; }
+  h1, h2, h3 {
+    font-family: "IBM Plex Sans Condensed", "IBM Plex Sans", system-ui, sans-serif;
+    font-weight: 600; letter-spacing: -.005em; text-wrap: balance; margin: 0;
+  }
+  h1 { font-size: 34px; line-height: 1.1; }
+  h2 { font-size: 21px; margin: 44px 0 14px; }
+  h3 { font-size: 16px; }
+  p { margin: 0 0 12px; max-width: 68ch; }
+  a { color: inherit; text-decoration-color: var(--ink-3); text-underline-offset: 2px; }
+  a:hover { text-decoration-color: var(--ink); }
+  code, .mono {
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: .92em;
+  }
+  code { background: var(--code-bg); padding: 1px 5px; border-radius: 3px; }
+  .eyebrow {
+    font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--ink-3); font-weight: 500; margin-bottom: 8px;
+  }
+  .lede { color: var(--ink-2); font-size: 16px; max-width: 62ch; margin-top: 12px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px 22px; color: var(--ink-3); font-size: 13px; margin-top: 18px; }
+  .meta a { color: var(--ink-2); }
+
+  /* ---- track lane ---- */
+  .lane { margin-top: 32px; }
+  .lane-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; color: var(--ink-3); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 8px; }
+  .ruler { position: relative; height: 16px; border-bottom: 1px solid var(--line); margin-bottom: 6px; }
+  .ruler span { position: absolute; top: 0; font-size: 11px; color: var(--ink-3); font-variant-numeric: tabular-nums; transform: translateX(-50%); }
+  .ruler span::after { content: ""; position: absolute; left: 50%; bottom: -7px; width: 1px; height: 6px; background: var(--line); }
+  .clips { position: relative; display: flex; gap: 3px; height: 54px; }
+  .clip {
+    position: relative; border-radius: 3px; padding: 6px 8px; overflow: hidden;
+    display: flex; flex-direction: column; justify-content: space-between;
+    border: 1px solid transparent; min-width: 0;
+  }
+  .clip .n { font-family: "IBM Plex Mono", monospace; font-size: 12px; font-weight: 500; }
+  .clip .t { font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .clip.done { background: var(--done-soft); border-color: var(--done); color: var(--done); }
+  .clip.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
+  .clip.todo { background: var(--todo-soft); border-color: var(--line); color: var(--ink-2); }
+  .clip.done .t, .clip.active .t { color: inherit; }
+  .playhead { position: absolute; top: -22px; bottom: -6px; width: 2px; background: var(--accent); pointer-events: none; }
+  .playhead::before {
+    content: ""; position: absolute; top: 0; left: -5px; border: 6px solid transparent; border-top: 8px solid var(--accent); border-bottom: 0;
+  }
+  .legend { display: flex; gap: 18px; margin-top: 10px; font-size: 12.5px; color: var(--ink-2); }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; border: 1px solid; }
+  .legend .done i { background: var(--done-soft); border-color: var(--done); }
+  .legend .active i { background: var(--accent-soft); border-color: var(--accent); }
+  .legend .todo i { background: var(--todo-soft); border-color: var(--line); }
+
+  /* ---- tiles ---- */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 28px; }
+  .tile { background: var(--surface); border: 1px solid var(--line-2); border-radius: 6px; padding: 14px 16px; box-shadow: var(--shadow); }
+  .tile .v { font-family: "IBM Plex Sans Condensed", sans-serif; font-size: 28px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+  .tile .v small { font-size: 15px; color: var(--ink-3); font-weight: 500; }
+  .tile .k { font-size: 12.5px; color: var(--ink-3); margin-top: 6px; }
+
+  /* ---- phases ---- */
+  .phase { display: grid; grid-template-columns: 56px 1fr; gap: 0 16px; padding: 18px 0; border-top: 1px solid var(--line-2); }
+  .phase:last-of-type { border-bottom: 1px solid var(--line-2); }
+  .phase .num { font-family: "IBM Plex Mono", monospace; font-size: 13px; color: var(--ink-3); padding-top: 3px; }
+  .phase .num b { display: block; font-size: 18px; color: var(--ink); font-weight: 500; }
+  .phase-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .pill { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; font-weight: 600; padding: 2px 8px; border-radius: 99px; border: 1px solid; }
+  .pill.done { color: var(--done); border-color: var(--done); background: var(--done-soft); }
+  .pill.active { color: var(--accent-ink); border-color: var(--accent); background: var(--accent-soft); }
+  .pill.todo { color: var(--ink-3); border-color: var(--line); background: var(--todo-soft); }
+  .weeks { color: var(--ink-3); font-size: 13px; font-variant-numeric: tabular-nums; margin-left: auto; }
+  .phase p { margin: 6px 0 8px; color: var(--ink-2); }
+  .phase .exit { font-size: 13.5px; color: var(--ink-2); }
+  .phase .exit b { color: var(--ink); font-weight: 500; }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+  .chip { font-family: "IBM Plex Mono", monospace; font-size: 12px; padding: 2px 7px; border-radius: 3px; border: 1px solid var(--line); color: var(--ink-2); background: var(--surface); }
+  .chip.native { border-color: var(--done); color: var(--done); background: var(--done-soft); }
+  .chip.native::before { content: "✓ "; }
+
+  /* ---- rules / risks ---- */
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px 28px; }
+  ul { margin: 0; padding-left: 18px; }
+  li { margin: 0 0 8px; max-width: 68ch; }
+  li b { font-weight: 600; }
+  .risk li::marker { color: var(--risk); }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  .scroll { overflow-x: auto; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  th { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); font-weight: 500; }
+  td.mono { white-space: nowrap; }
+
+  /* ---- changelog ---- */
+  .log { border-left: 2px solid var(--line); padding-left: 16px; }
+  .log-item { display: grid; grid-template-columns: 96px 1fr; gap: 12px; margin-bottom: 14px; }
+  .log-item time { font-family: "IBM Plex Mono", monospace; font-size: 12.5px; color: var(--ink-3); padding-top: 2px; }
+  .log-item p { margin: 0; }
+  footer { margin-top: 48px; color: var(--ink-3); font-size: 12.5px; }
+  @media (max-width: 560px) {
+    h1 { font-size: 28px; }
+    .phase { grid-template-columns: 40px 1fr; }
+    .log-item { grid-template-columns: 1fr; gap: 2px; }
+    .clip .t { display: none; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .playhead { transition: left .4s ease; }
+  }
+</style>
+
+<main>
+  <div class="eyebrow">xil-pipeline → rxil-pipeline</div>
+  <h1>rxil Port Tracker</h1>
+  <p class="lede">Rewriting the Python podcast pipeline in Rust one stage at a time. A Rust <code>xil</code> ships from day one and hands every command it cannot do yet to the Python one. A command switches to Rust only when a parity check proves the output matches.</p>
+  <div class="meta">
+    <span>Rust: <a href="https://github.com/xilcmd/rxil-pipeline">xilcmd/rxil-pipeline</a></span>
+    <span>Python (frozen at 0.3.2): <a href="https://github.com/xilcmd/xil-pipeline">xilcmd/xil-pipeline</a></span>
+    <span>Updated <span id="updated" class="mono"></span></span>
+  </div>
+
+  <section class="lane" aria-label="Phase timeline">
+    <div class="lane-head"><span>Phase lane · 1 clip = 1 phase · width = planned weeks</span><span id="lane-total"></span></div>
+    <div class="ruler" id="ruler"></div>
+    <div class="clips" id="clips"></div>
+    <div class="legend">
+      <span class="done"><i></i>Done</span>
+      <span class="active"><i></i>In progress</span>
+      <span class="todo"><i></i>Not started</span>
+    </div>
+  </section>
+
+  <section class="tiles" id="tiles" aria-label="Status"></section>
+
+  <h2>Phases</h2>
+  <p>Each phase is done when its unit tests pass, its parity checks pass, and the command table flips those commands to native. Numbering is the real build order: every phase depends only on crates finished before it.</p>
+  <div id="phases"></div>
+
+  <h2>Rules the port follows</h2>
+  <div class="two">
+    <ul>
+      <li><b>Never go dark.</b> Any command without a Rust implementation runs the Python one. Same flags, same exit code, same output. <code>XIL_FORCE_PY=all</code> forces Python for A/B runs.</li>
+      <li><b>ffmpeg does every codec job.</b> pydub decodes through ffmpeg, so Rust decoding through the same ffmpeg keeps the samples identical. Rust only does the PCM math.</li>
+      <li><b>Copy pydub's math, do not improve it.</b> Gain truncates toward zero and saturates to 16-bit. Fades above 100 ms step once per millisecond. Pan uses pydub's own formula.</li>
+      <li><b>The ML workers stay Python.</b> Chatterbox, Whisper and MMAudio keep their venvs. Rust is only their JSON-over-stdio client.</li>
+    </ul>
+    <ul>
+      <li><b>Parity before flip.</b> A command flips to native only when its entry in <code>tools/parity/suite.toml</code> is green in CI.</li>
+      <li><b>Text is byte-identical.</b> JSON (key order and float formatting included), CSV, Audacity labels, timeline HTML, log messages.</li>
+      <li><b>Audio has limits, not equality.</b> Length within ±1 ms · RMS within 0.1 dB · peak within 0.2 dB · 1 s envelope correlation above 0.999. DAW layer WAVs must still be byte-identical.</li>
+      <li><b>Build on ext4.</b> Source may live on <code>/mnt/c</code>; object files go to <code>~/.cargo-target/rxil</code>.</li>
+    </ul>
+  </div>
+
+  <h2>Crate map</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>Crate</th><th>Mirrors (Python)</th><th>Holds</th><th>Phase</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">xil-cli</td><td class="mono">xil.py + every XILP*/XILU*</td><td>the <code>xil</code> binary, command table, Python hand-off, one module per stage</td><td>0 →</td></tr>
+      <tr><td class="mono">xil-core</td><td class="mono">models.py, log_config.py</td><td>workspace layouts, slug and path derivation, config models, edit journal, dual-sink logger, Python-compatible JSON writer, difflib port</td><td>1</td></tr>
+      <tr><td class="mono">xil-audio</td><td class="mono">pydub surface, audio_fx.py, mutagen</td><td>PCM buffers matching audioop, ffmpeg bridge, ID3 and WAV tags</td><td>3</td></tr>
+      <tr><td class="mono">xil-api</td><td class="mono">elevenlabs SDK, anthropic, gTTS</td><td>TTS and SFX streaming, quota, voices, Studio, retry on 429/5xx</td><td>5</td></tr>
+      <tr><td class="mono">xil-workers</td><td class="mono">sfx_backends._WorkerClient</td><td>newline-JSON client for the three Python ML workers</td><td>5</td></tr>
+      <tr><td class="mono">xil-web</td><td class="mono">xil_gui.py</td><td>axum + htmx dashboard, the three <code>/xil/*</code> JSON routes, live stage runner</td><td>6</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Known risks</h2>
+  <ul class="risk">
+    <li><b>pydub arithmetic.</b> One wrong rounding rule and every WAV differs by a bit. Mitigation: each primitive op gets a byte-identical WAV test against recorded pydub output before any stage uses it.</li>
+    <li><b>JSON formatting.</b> Python writes <code>1e-05</code>, Rust writes <code>1e-5</code>; some files escape non-ASCII, some do not. Mitigation: a custom serializer with a per-file <code>ascii</code> switch taken from the Python source.</li>
+    <li><b>difflib ratios.</b> The scanner's 0.72 near-miss cutoff is a behaviour boundary. Mitigation: hand-rolled Ratcliff/Obershelp tested against a table of ratios recorded from Python.</li>
+    <li><b>Slow builds on drvfs.</b> Mitigation in place: target dir on ext4. Fallback: move the source to <code>~/src</code> and symlink.</li>
+    <li><b>A broken Python venv breaks every delegated command.</b> Mitigation in place: <code>xil status --toolchain</code> shows which Python is resolved.</li>
+  </ul>
+
+  <h2>Changelog</h2>
+  <div class="log" id="log"></div>
+
+  <footer>Source of truth for the plan lives in the Claude Code plan file on hibirdy; this page tracks progress against it.</footer>
+</main>
+
+<script>
+  // ---- Edit this block as phases progress. Everything else renders from it.
+  const UPDATED = "2026-09-11";
+  const PHASES = [
+    { n: 0, title: "Toolchain, shim, harness, CI", weeks: 1, status: "done",
+      scope: "rustup, Cargo workspace with the target dir on ext4, the 38-entry command table, Python hand-off with argv[0] aliases and XIL_FORCE_PY, the parity harness, GitHub repo with CI and branch protection.",
+      exit: "Every Python command runs unchanged through the Rust xil with the same exit code and output.",
+      cmds: [] },
+    { n: 1, title: "xil-core", weeks: 2, status: "done",
+      scope: "Both workspace layouts (legacy and normalized), slug and path derivation, serde models for project, cast, sfx, parsed and speakers, edit-journal replay, .active_show, dual-sink logger, Python-compatible JSON writer, difflib port.",
+      exit: "Byte-identical JSON, CSV and log messages on the the413 fixtures.",
+      cmds: ["use", "status", "init", "episode-summary", "parsed-csv", "sfx-csv", "mp3-hash", "stem-log", "remove-show", "remove-episode", "migrate-workspace"] },
+    { n: 2, title: "Parser, scanner, timeline renderer", weeks: 3, status: "todo",
+      scope: "XILP001 parser (1,875 lines), XILP000 scanner, timeline_viz, stem migrator, stale-stem cleanup, script regenerator, splice.",
+      exit: "parsed_*, orig_*, pre_splice_* JSON and skeleton configs byte-identical for every sample script and the413; timeline ASCII and HTML byte-identical.",
+      cmds: ["scan", "parse", "regen", "splice", "migrate", "cleanup"] },
+    { n: 3, title: "xil-audio", weeks: 2, status: "todo",
+      scope: "PCM buffer ops matching audioop, ffmpeg bridge modelled on audio_fx.run_ffmpeg_filter, WAV via hound, ID3 via the id3 crate, sfx_common library functions.",
+      exit: "WAV output byte-identical to pydub for each primitive op; ID3 dumps identical; sfx JSON byte-identical.",
+      cmds: ["db-profile", "sfx-impact", "sfx-hydrate", "sfx-restore", "sfx-match", "sfx-lib", "csv-join"] },
+    { n: 4, title: "Mixing and export", weeks: 3, status: "todo",
+      scope: "mix_common (stem plans, layer builders, span treatments), audio_fx filter graphs including the libgsm phone round trip, DAW export, assembly, master.",
+      exit: "DAW layer WAVs and Audacity labels byte-identical; assembled and mastered MP3 within audio limits; cover art embedded.",
+      cmds: ["daw", "assemble", "master"] },
+    { n: 5, title: "Network and ML workers", weeks: 3, status: "todo",
+      scope: "ElevenLabs TTS/SFX streaming, quota, voices, Studio; Anthropic; gTTS; retry loop; JSON-over-stdio bridge to the worker venvs; remaining stages.",
+      exit: "All --dry-run outputs byte-identical; worker protocol replayed against a mock; one real the413 episode produced end to end within limits.",
+      cmds: ["produce", "sfx", "sample", "voices", "cues", "studio-onboard", "import", "stem-verify", "stem-compare", "publish"] },
+    { n: 6, title: "Web GUI", weeks: 3, status: "todo",
+      scope: "axum + htmx dashboard: nine tabs, the three /xil/* JSON routes with the same contracts, iframe timeline, live stage runner over SSE.",
+      exit: "Route tests pass; stage runner streams stdout live; SFX edits land in the _edits.jsonl journal identically.",
+      cmds: ["gui"] },
+    { n: 7, title: "Remove the shim", weeks: 1, status: "todo",
+      scope: "Delete delegation and XIL_FORCE_PY, generate man pages with clap_mangen, docs; the Python venv becomes optional. Only the three worker venvs remain.",
+      exit: "No reference to venv/bin/xil remains; full parity suite green against archived goldens.",
+      cmds: [] },
+  ];
+  const NATIVE = new Set(["use", "status", "init", "episode-summary", "parsed-csv", "sfx-csv", "mp3-hash",
+                          "stem-log", "remove-show", "remove-episode", "migrate-workspace"]); // flipped to native
+  const PARITY = { passing: 51, total: 51 }; // entries in tools/parity/suite.toml
+  const LOG = [
+    { date: "2026-09-11", text: "Phase 1 complete. xil-core carries the workspace/path layer (both layouts), the two-sink logger with the exact v2 record format, a Python-identical JSON writer (indent=2, ensure_ascii, float repr) and CSV writer, the run banner, glob/relpath helpers and the SFX slug rules. All 11 phase-1 commands are native and byte-identical to Python across 51 parity checks. The harness now makes each run declare whether Rust or Python served it, so a stale binary can no longer read as a pass." },
+    { date: "2026-09-11", text: "Phase 0 complete. Rust 1.98.1 installed; workspace scaffolded; all 38 commands delegate to Python 0.3.2. Help text, exit codes and xil-<cmd> aliases verified byte-identical. Parity harness green on help, use, parse ×2, scan. Repo published at xilcmd/rxil-pipeline with CI (fmt, clippy, nextest, parity suite) and branch protection matching the Python repo." },
+    { date: "2026-09-11", text: "Plan approved: strangler port, GUI rewritten in Rust as the last phase, Python repo feature-frozen at 0.3.2." },
+  ];
+  // ---- end of editable block
+
+  const totalWeeks = PHASES.reduce((s, p) => s + p.weeks, 0);
+  const totalCmds = PHASES.reduce((s, p) => s + p.cmds.length, 0);
+  document.getElementById("updated").textContent = UPDATED;
+  document.getElementById("lane-total").textContent = `${totalWeeks} weeks planned`;
+
+  // ruler
+  const ruler = document.getElementById("ruler");
+  for (let w = 0; w <= totalWeeks; w += 2) {
+    const s = document.createElement("span");
+    s.style.left = `${(w / totalWeeks) * 100}%`;
+    s.textContent = w === 0 ? "wk 0" : w;
+    ruler.appendChild(s);
+  }
+
+  // clips + playhead
+  const clips = document.getElementById("clips");
+  let doneWeeks = 0;
+  PHASES.forEach(p => {
+    const c = document.createElement("div");
+    c.className = `clip ${p.status}`;
+    c.style.flex = `${p.weeks} 1 0`;
+    c.title = `Phase ${p.n} — ${p.title} (${p.weeks} wk)`;
+    c.innerHTML = `<span class="n">P${p.n}</span><span class="t">${p.title}</span>`;
+    clips.appendChild(c);
+    if (p.status === "done") doneWeeks += p.weeks;
+  });
+  const ph = document.createElement("div");
+  ph.className = "playhead";
+  ph.style.left = `calc(${(doneWeeks / totalWeeks) * 100}% - 1px)`;
+  clips.appendChild(ph);
+
+  // tiles
+  const donePhases = PHASES.filter(p => p.status === "done").length;
+  const active = PHASES.find(p => p.status === "active");
+  const tiles = [
+    { v: `${donePhases}<small>/${PHASES.length}</small>`, k: "phases complete" },
+    { v: `${NATIVE.size}<small>/${totalCmds}</small>`, k: "commands native in Rust" },
+    { v: `${PARITY.passing}<small>/${PARITY.total}</small>`, k: "parity checks passing" },
+    { v: active ? `P${active.n}` : `P${donePhases}`, k: active ? `in progress — ${active.title}` : "next up: " + (PHASES[donePhases] ? PHASES[donePhases].title : "done") },
+  ];
+  document.getElementById("tiles").innerHTML = tiles.map(t => `<div class="tile"><div class="v">${t.v}</div><div class="k">${t.k}</div></div>`).join("");
+
+  // phases
+  const labels = { done: "Done", active: "In progress", todo: "Not started" };
+  document.getElementById("phases").innerHTML = PHASES.map(p => `
+    <article class="phase" id="phase-${p.n}">
+      <div class="num">Phase<b>${p.n}</b></div>
+      <div>
+        <div class="phase-head">
+          <h3>${p.title}</h3>
+          <span class="pill ${p.status}">${labels[p.status]}</span>
+          <span class="weeks">~${p.weeks} wk</span>
+        </div>
+        <p>${p.scope}</p>
+        <div class="exit"><b>Done when:</b> ${p.exit}</div>
+        ${p.cmds.length ? `<div class="chips">${p.cmds.map(c => `<span class="chip ${NATIVE.has(c) ? "native" : ""}">xil ${c}</span>`).join("")}</div>` : ""}
+      </div>
+    </article>`).join("");
+
+  // changelog
+  document.getElementById("log").innerHTML = LOG.map(l => `<div class="log-item"><time>${l.date}</time><p>${l.text}</p></div>`).join("");
+</script>

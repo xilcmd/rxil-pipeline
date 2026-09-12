@@ -9,3 +9,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+id3.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
