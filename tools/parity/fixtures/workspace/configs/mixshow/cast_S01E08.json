@@ -1,0 +1,14 @@
+{
+  "show": "Mix Show",
+  "season": 1,
+  "episode": 8,
+  "cast": {
+    "host": {
+      "full_name": "Host",
+      "voice_id": "v-host-001",
+      "pan": 0.0,
+      "filter": null,
+      "role": "Host"
+    }
+  }
+}

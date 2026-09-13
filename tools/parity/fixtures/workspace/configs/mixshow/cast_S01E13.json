@@ -1,0 +1,39 @@
+{
+  "show": "Mix Show",
+  "season": 1,
+  "episode": 13,
+  "preamble": {
+    "speaker": "host",
+    "text": "Intro.",
+    "speed": 0.9
+  },
+  "cast": {
+    "host": {
+      "full_name": "Harper Host",
+      "voice_id": "v-host-001",
+      "pan": 0,
+      "filter": null,
+      "role": "Host",
+      "stability": 1,
+      "similarity_boost": 0.8,
+      "style": 0,
+      "use_speaker_boost": true,
+      "language_code": "en",
+      "speed": 1.1
+    },
+    "guest": {
+      "full_name": "Gus Guest",
+      "voice_id": "v-guest-002",
+      "pan": 0,
+      "filter": null,
+      "role": "Guest"
+    },
+    "tbd": {
+      "full_name": "To Be Decided",
+      "voice_id": "TBD",
+      "pan": 0,
+      "filter": null,
+      "role": "?"
+    }
+  }
+}

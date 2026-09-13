@@ -1,0 +1,32 @@
+{
+  "show": "Pub Show",
+  "season": 2,
+  "episode": 4,
+  "title": "No Cast",
+  "entries": [
+    {
+      "type": "section_header",
+      "section": "preamble",
+      "speaker": null,
+      "text": "PREAMBLE",
+      "seq": 1
+    },
+    {
+      "type": "dialogue",
+      "section": "preamble",
+      "speaker": "adam",
+      "text": "Intro.",
+      "seq": 2
+    },
+    {
+      "type": "section_header",
+      "section": "cold-open",
+      "speaker": null,
+      "text": "COLD OPEN",
+      "seq": 3
+    }
+  ],
+  "stats": {
+    "speakers": []
+  }
+}

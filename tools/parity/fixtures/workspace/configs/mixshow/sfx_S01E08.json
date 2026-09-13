@@ -1,0 +1,47 @@
+{
+  "show": "Mix Show",
+  "season": 1,
+  "episode": 8,
+  "defaults": {
+    "prompt_influence": 0.25
+  },
+  "effects": {
+    "SFX: DOOR SLAM": {
+      "prompt": "a heavy wooden door slams",
+      "duration_seconds": 1.5
+    },
+    "BEAT": {
+      "type": "silence",
+      "duration_seconds": 0.5
+    },
+    "MUSIC: THEME": {
+      "source": "SFX/mixshow/theme_src.mp3"
+    },
+    "AMBIENCE: RAIN": {
+      "source": "SFX/mixshow/nope.mp3",
+      "prompt": "steady rain on a tin roof",
+      "duration_seconds": 2.0,
+      "prompt_influence": 0.7
+    },
+    "AMBIENCE: STOP": {
+      "type": "silence",
+      "duration_seconds": 0.0
+    },
+    "SFX: CACHED": {
+      "prompt": "already generated",
+      "duration_seconds": 1.0
+    },
+    "SFX: REJECTED": {
+      "prompt": "graded out",
+      "duration_seconds": 1.0
+    },
+    "SFX: LONG": {
+      "prompt": "a long rumble",
+      "duration_seconds": 6.0
+    },
+    "SFX: UNUSED": {
+      "prompt": "never cued",
+      "duration_seconds": 1.0
+    }
+  }
+}

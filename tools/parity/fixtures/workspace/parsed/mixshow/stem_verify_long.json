@@ -1,0 +1,43 @@
+{
+  "files": [
+    {
+      "filename": "001_act1_old.mp3",
+      "seq": 1,
+      "speaker": "old",
+      "transcript": {
+        "text": "back in my day we walked up hill both ways to the studio through the snow and rain carrying tape machines on our backs while producers shouted about the levels and engineers argued over which microphone sounded warmer till the sun came up again",
+        "language": "en"
+      }
+    },
+    {
+      "filename": "002_act1_a-very-long-speaker-name.mp3",
+      "seq": 2,
+      "speaker": "a-very-long-speaker-name",
+      "transcript": {
+        "text": "Short and sweat!"
+      }
+    },
+    {
+      "filename": "004_act1_sfx.mp3",
+      "seq": 4,
+      "speaker": "sfx",
+      "transcript": {
+        "text": "bang"
+      }
+    },
+    {
+      "filename": "005_act1_host.mp3",
+      "seq": 5,
+      "speaker": "host",
+      "transcript": {
+        "text": "uberraschung cafe naive"
+      }
+    },
+    {
+      "filename": "Chapter.mp3",
+      "seq": null,
+      "speaker": null,
+      "transcript": null
+    }
+  ]
+}

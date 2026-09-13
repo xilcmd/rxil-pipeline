@@ -17,9 +17,11 @@ use clap::Parser;
 pub mod assemble;
 pub mod cleanup;
 pub mod csv_join;
+pub mod cues;
 pub mod daw;
 pub mod db_profile;
 pub mod episode_summary;
+pub mod import;
 pub mod init;
 pub mod master;
 pub mod migrate;
@@ -27,11 +29,15 @@ pub mod migrate_workspace;
 pub mod mp3_hash;
 pub mod parse;
 pub mod parsed_csv;
+pub mod produce;
+pub mod publish;
 pub mod regen;
 pub mod removal;
 pub mod remove_episode;
 pub mod remove_show;
+pub mod sample;
 pub mod scan;
+pub mod sfx;
 pub mod sfx_csv;
 pub mod sfx_hydrate;
 pub mod sfx_impact;
@@ -40,8 +46,12 @@ pub mod sfx_match;
 pub mod sfx_restore;
 pub mod splice;
 pub mod status;
+pub mod stem_compare;
 pub mod stem_log;
+pub mod stem_verify;
+pub mod studio_onboard;
 pub mod use_cmd;
+pub mod voices;
 
 /// What Python sees as `sys.argv[0]` for this run: `"xil parse"` through the
 /// dispatcher, `"xil-parse"` through an alias. Feeds the run banner.
@@ -63,6 +73,41 @@ pub fn argv_line(args: &[OsString]) -> String {
         s.push_str(&a.to_string_lossy());
     }
     s
+}
+
+/// A `sys.exit(<message>)` from inside a command, reported the way Python
+/// reports it once the run banner has closed: through the `xil` dispatcher
+/// (`_normalize_exit_code`) the message is logged as an error; through an
+/// `xil-<command>` entry point the interpreter prints it to stderr. Either
+/// way the status is 1.
+#[derive(Debug)]
+pub struct SysExit(pub String);
+
+impl std::fmt::Display for SysExit {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
+impl std::error::Error for SysExit {}
+
+/// Finish a command whose body may have raised [`SysExit`]. Call after the
+/// banner guard has been dropped.
+pub fn finish(result: anyhow::Result<i32>) -> anyhow::Result<i32> {
+    match result {
+        Err(e) => match e.downcast::<SysExit>() {
+            Ok(SysExit(msg)) => {
+                if prog().starts_with("xil ") {
+                    xil_core::log::error(&msg);
+                } else {
+                    eprintln!("{msg}");
+                }
+                Ok(1)
+            }
+            Err(other) => Err(other),
+        },
+        ok => ok,
+    }
 }
 
 /// Parse `args` with a clap derive type, using `prog` as `argv[0]` so help and
@@ -108,6 +153,18 @@ pub fn get_or_blank(
 
 /// `bool(value)` for a JSON value: `null`, `false`, `0`, `""`, `[]` and
 /// `{}` are false, everything else true.
+/// `str(value)` for a JSON value printed through an f-string.
+pub fn py_str(v: &serde_json::Value) -> String {
+    use serde_json::Value;
+    match v {
+        Value::Null => "None".into(),
+        Value::Bool(true) => "True".into(),
+        Value::Bool(false) => "False".into(),
+        Value::String(s) => s.clone(),
+        other => xil_core::pycsv::cell(other),
+    }
+}
+
 pub fn truthy(v: &serde_json::Value) -> bool {
     use serde_json::Value;
     match v {

@@ -199,7 +199,7 @@ fn or_default(v: Option<&Value>, default: Value) -> Value {
 }
 
 /// Python `str.title()`: first letter of each run of letters uppercased.
-fn title_case(s: &str) -> String {
+pub(crate) fn title_case(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     let mut prev_alpha = false;
     for c in s.chars() {

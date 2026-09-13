@@ -1,0 +1,31 @@
+{
+  "show": "Mix Show",
+  "season": 1,
+  "episode": 11,
+  "effects": {
+    "MUSIC: MUS-THEME-MAIN-01 — EERIE INDIE FOLK, FADES UNDER": {
+      "prompt": "old prompt",
+      "duration_seconds": 60
+    },
+    "MUSIC: mus-theme-main-01 — up briefly, then out": {
+      "prompt": "Eerie indie folk theme, fingerpicked guitar",
+      "duration_seconds": 29.8
+    },
+    "MUSIC: MUS-STING-02": {
+      "duration_seconds": 5.0
+    },
+    "AMBIENCE: AMB-DINER-01 CAFÉ": {
+      "prompt": null,
+      "duration_seconds": 10.0,
+      "loop": false
+    },
+    "SFX: SFX-DOOR-01": {
+      "prompt": "A heavy diner door swings shut",
+      "duration_seconds": 5.2
+    },
+    "SFX: UNRELATED": {
+      "prompt": "x",
+      "duration_seconds": 1.0
+    }
+  }
+}

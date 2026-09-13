@@ -1,0 +1,9 @@
+{
+  "show": "Mix Show",
+  "effects": {
+    "SFX: DOOR SLAM": {
+      "prompt": "door slams",
+      "duration_seconds": 1.0
+    }
+  }
+}

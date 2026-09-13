@@ -2,3 +2,4 @@
 tools/parity/scratch/
 *.swp
 .DS_Store
+__pycache__/

@@ -1,0 +1,105 @@
+{
+  "show": "Mix Show",
+  "title": "Onboarding",
+  "entries": [
+    {
+      "seq": 1,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": null,
+      "speaker": "guest",
+      "text": "Before any section — café talk.",
+      "direction_type": null
+    },
+    {
+      "seq": 2,
+      "type": "scene_header",
+      "section": "act1",
+      "scene": null,
+      "speaker": null,
+      "text": "SCENE 0: COLD OPEN",
+      "direction_type": null
+    },
+    {
+      "seq": 3,
+      "type": "section_header",
+      "section": "act1",
+      "scene": null,
+      "speaker": null,
+      "text": "ACT ONE",
+      "direction_type": null
+    },
+    {
+      "seq": 4,
+      "type": "scene_header",
+      "section": "act1",
+      "scene": null,
+      "speaker": null,
+      "text": "SCENE 1: STUDIO",
+      "direction_type": null
+    },
+    {
+      "seq": 5,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": null,
+      "speaker": "host",
+      "text": "Welcome back.",
+      "direction_type": null
+    },
+    {
+      "seq": 6,
+      "type": "direction",
+      "section": "act1",
+      "scene": null,
+      "speaker": null,
+      "text": "SFX: APPLAUSE",
+      "direction_type": "SFX"
+    },
+    {
+      "seq": 7,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": null,
+      "speaker": "mystery",
+      "text": "Who am I?",
+      "direction_type": null
+    },
+    {
+      "seq": 8,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": null,
+      "speaker": "extra",
+      "text": "The extra speaks.",
+      "direction_type": null
+    },
+    {
+      "seq": 9,
+      "type": "section_header",
+      "section": "act1",
+      "scene": null,
+      "speaker": null,
+      "text": "ACT TWO",
+      "direction_type": null
+    },
+    {
+      "seq": 10,
+      "type": "section_header",
+      "section": "act1",
+      "scene": null,
+      "speaker": null,
+      "text": "ACT THREE",
+      "direction_type": null
+    },
+    {
+      "seq": 11,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": null,
+      "speaker": "host",
+      "text": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "direction_type": null
+    }
+  ]
+}

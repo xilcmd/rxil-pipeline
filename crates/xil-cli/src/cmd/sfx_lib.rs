@@ -1,8 +1,6 @@
 //! `xil sfx-lib` — inventory of the local SFX library from ID3 and MPEG
-//! headers. Port of `XILU005_discover_SFX.py`.
-//!
-//! The `--api` path (ElevenLabs history over HTTP) is phase 5 work; until
-//! then it hands off to Python before anything else happens.
+//! headers, or of the account's ElevenLabs sound-generation history with
+//! `--api`. Port of `XILU005_discover_SFX.py`.
 
 use std::ffi::OsString;
 use std::fs;
@@ -154,6 +152,172 @@ fn print_verbose_local(rec: &Map<String, Value>) {
         fmt_size(rec.get("size_bytes").and_then(Value::as_u64).unwrap_or(0))
     ));
     log::info("");
+}
+
+/// `fetch_api_records(api_key, max_items)`. `None` means the key lacks the
+/// permission: the warnings are logged and the command exits 1.
+fn fetch_api_records(
+    api_key: &str,
+    max_items: Option<usize>,
+) -> anyhow::Result<Option<Vec<Map<String, Value>>>> {
+    let client = xil_api::elevenlabs::Client::new(Some(api_key.to_string()));
+    let mut records = Vec::new();
+    let mut start_after: Option<String> = None;
+    loop {
+        let data = match client.sound_generation_history(100, start_after.as_deref()) {
+            Ok(d) => d,
+            Err(xil_api::ApiError::Status { status: 401, body }) => {
+                let parsed: Value = serde_json::from_str(&body).unwrap_or(Value::Null);
+                let status = parsed
+                    .get("detail")
+                    .and_then(|d| d.get("status"))
+                    .and_then(Value::as_str)
+                    .unwrap_or("");
+                log::warning("ElevenLabs API: permission denied for sound-generation history.");
+                log::warning("");
+                if matches!(status, "missing_permissions" | "needs_authorization") {
+                    log::warning("    Fix: ElevenLabs dashboard → Profile → API Keys");
+                    log::warning("    Edit your key → Endpoints → Sound Effects → set to 'Access'");
+                    log::warning("    then re-run without --api to fall back to local scan,");
+                    log::warning("    or with --api once the permission is active.");
+                } else {
+                    log::warning(&format!("    Response: {}", head(&body, 200)));
+                }
+                return Ok(None);
+            }
+            Err(e) => anyhow::bail!("httpx.HTTPStatusError: {e}"),
+        };
+        let truthy = crate::cmd::truthy;
+        let first = |keys: &[&str]| {
+            keys.iter()
+                .filter_map(|k| data.get(*k))
+                .find(|v| truthy(v))
+                .cloned()
+        };
+        let items = first(&["history", "generations", "items"])
+            .and_then(|v| v.as_array().cloned())
+            .unwrap_or_default();
+
+        for item in &items {
+            let get = |k: &str| item.get(k).cloned();
+            let or = |a: &str, b: &str, default: Value| {
+                get(a).filter(truthy).or_else(|| get(b)).unwrap_or(default)
+            };
+            let cfg = [get("generation_config"), get("settings")]
+                .into_iter()
+                .flatten()
+                .find(truthy)
+                .unwrap_or(Value::Object(Map::new()));
+            let ts = get("date_unix")
+                .filter(truthy)
+                .or_else(|| get("created_at_unix"))
+                .filter(|v| !v.is_null());
+            let date = ts
+                .as_ref()
+                .and_then(Value::as_f64)
+                .and_then(|t| chrono::DateTime::from_timestamp(t.floor() as i64, 0))
+                .map(|d| d.format("%Y-%m-%d %H:%M").to_string())
+                .unwrap_or_default();
+            let count = |k: &str| item.get(k).and_then(Value::as_i64).unwrap_or(0);
+
+            let mut rec = Map::new();
+            rec.insert("source".into(), "api".into());
+            rec.insert(
+                "history_item_id".into(),
+                or("history_item_id", "id", "".into()),
+            );
+            rec.insert("prompt".into(), or("text", "prompt", "".into()));
+            rec.insert(
+                "model_id".into(),
+                get("model_id").unwrap_or_else(|| "".into()),
+            );
+            rec.insert("date".into(), date.into());
+            rec.insert(
+                "date_unix".into(),
+                ts.filter(truthy).unwrap_or_else(|| 0.into()),
+            );
+            rec.insert(
+                "duration_seconds".into(),
+                cfg.get("duration_seconds").cloned().unwrap_or(Value::Null),
+            );
+            rec.insert(
+                "prompt_influence".into(),
+                cfg.get("prompt_influence").cloned().unwrap_or(Value::Null),
+            );
+            rec.insert(
+                "credits_used".into(),
+                (count("character_count_change_to") - count("character_count_change_from")).into(),
+            );
+            rec.insert("filename".into(), "".into());
+            rec.insert("path".into(), "".into());
+            records.push(rec);
+
+            if max_items.is_some_and(|m| records.len() >= m) {
+                return Ok(Some(records));
+            }
+        }
+
+        if !data.get("has_more").is_some_and(truthy) {
+            break;
+        }
+        let next = data
+            .get("last_history_item_id")
+            .filter(|v| truthy(v))
+            .or_else(|| items.last().and_then(|i| i.get("history_item_id")))
+            .filter(|v| truthy(v));
+        match next {
+            Some(v) => start_after = Some(crate::cmd::py_str(v)),
+            None => break,
+        }
+    }
+    Ok(Some(records))
+}
+
+fn print_verbose_api(rec: &Map<String, Value>) {
+    let field = |k: &str| rec.get(k).map(crate::cmd::py_str).unwrap_or_default();
+    log::info(&format!("  Prompt         : {}", field("prompt")));
+    log::info(&format!("  History ID     : {}", field("history_item_id")));
+    if rec.get("model_id").is_some_and(crate::cmd::truthy) {
+        log::info(&format!("  Model          : {}", field("model_id")));
+    }
+    let date = get_str(rec, "date");
+    log::info(&format!(
+        "  Created        : {}",
+        if date.is_empty() { "—" } else { date }
+    ));
+    if let Some(d) = rec.get("duration_seconds").and_then(Value::as_f64) {
+        log::info(&format!("  Duration       : {}", fmt_duration(Some(d))));
+    }
+    if rec.get("prompt_influence").is_some_and(|v| !v.is_null()) {
+        log::info(&format!("  Prompt infl.   : {}", field("prompt_influence")));
+    }
+    log::info(&format!("  Credits used   : {}", field("credits_used")));
+    log::info("");
+}
+
+fn print_compact_api(rec: &Map<String, Value>) {
+    let dur = rec
+        .get("duration_seconds")
+        .filter(|v| crate::cmd::truthy(v))
+        .and_then(Value::as_f64)
+        .map(|d| fmt_duration(Some(d)))
+        .unwrap_or_default();
+    let prompt = get_str(rec, "prompt");
+    let prompt = if prompt.chars().count() > 72 {
+        format!("{}…", head(prompt, 72))
+    } else {
+        prompt.to_string()
+    };
+    log::info(&format!(
+        "  {}  {}  {dur}",
+        get_str(rec, "date"),
+        rec.get("history_item_id")
+            .map(crate::cmd::py_str)
+            .unwrap_or_default()
+    ));
+    if !prompt.is_empty() {
+        log::info(&format!("    {prompt}"));
+    }
 }
 
 fn print_compact_local(rec: &Map<String, Value>) {
@@ -366,8 +530,22 @@ fn execute(a: &Args) -> anyhow::Result<i32> {
         .sfx_dir
         .clone()
         .unwrap_or_else(|| workspace_root().join("SFX").to_string_lossy().into_owned());
-    let mut records = fetch_local_records(Path::new(&sfx_dir));
-    let data_source = format!("local ({sfx_dir}/)");
+    let (mut records, data_source) = if a.api {
+        let api_key = std::env::var("ELEVENLABS_API_KEY").unwrap_or_default();
+        if api_key.is_empty() {
+            log::warning("ELEVENLABS_API_KEY not set.");
+            return Ok(1);
+        }
+        match fetch_api_records(&api_key, if a.all { None } else { Some(100) })? {
+            Some(r) => (r, "API".to_string()),
+            None => return Ok(1),
+        }
+    } else {
+        (
+            fetch_local_records(Path::new(&sfx_dir)),
+            format!("local ({sfx_dir}/)"),
+        )
+    };
 
     if let Some(q) = &a.search {
         let q = q.to_lowercase();
@@ -376,7 +554,16 @@ fn execute(a: &Args) -> anyhow::Result<i32> {
                 || get_str(r, "filename").to_lowercase().contains(&q)
         });
     }
-    records.sort_by_key(|r| get_str(r, "filename").to_lowercase());
+    let date_unix =
+        |r: &Map<String, Value>| r.get("date_unix").and_then(Value::as_f64).unwrap_or(0.0);
+    if records
+        .first()
+        .is_some_and(|r| r.get("date_unix").is_some_and(crate::cmd::truthy))
+    {
+        records.sort_by(|x, y| date_unix(y).total_cmp(&date_unix(x)));
+    } else {
+        records.sort_by_key(|r| get_str(r, "filename").to_lowercase());
+    }
 
     if let Some(dir) = &a.export_kit {
         let (json_path, hints_path, md_path) = export_kit(&records, Path::new(dir))?;
@@ -420,22 +607,41 @@ fn execute(a: &Args) -> anyhow::Result<i32> {
 
     if a.verbose {
         for rec in &records {
-            print_verbose_local(rec);
+            if get_str(rec, "source") == "local" {
+                print_verbose_local(rec);
+            } else {
+                print_verbose_api(rec);
+            }
         }
     } else {
         for rec in &records {
-            print_compact_local(rec);
+            if get_str(rec, "source") == "local" {
+                print_compact_local(rec);
+            } else {
+                print_compact_api(rec);
+            }
         }
         log::info("");
-        let total: u64 = records
-            .iter()
-            .map(|r| r.get("size_bytes").and_then(Value::as_u64).unwrap_or(0))
-            .sum();
-        log::info(&format!(
-            "  Total size: {} MB  ({} files)",
-            fixed(total as f64 / (1024.0 * 1024.0), 1),
-            records.len()
-        ));
+        if data_source.starts_with("local") {
+            let total: u64 = records
+                .iter()
+                .map(|r| r.get("size_bytes").and_then(Value::as_u64).unwrap_or(0))
+                .sum();
+            log::info(&format!(
+                "  Total size: {} MB  ({} files)",
+                fixed(total as f64 / (1024.0 * 1024.0), 1),
+                records.len()
+            ));
+        } else {
+            let total: i64 = records
+                .iter()
+                .map(|r| r.get("credits_used").and_then(Value::as_i64).unwrap_or(0))
+                .sum();
+            log::info(&format!(
+                "  Total credits used: {}",
+                xil_core::pyfmt::commas(total)
+            ));
+        }
         log::info("");
         log::info("  Use --verbose for full details, --json for machine-readable output,");
         log::info("  --search <text> to filter, --local / --api to select data source.");
@@ -444,11 +650,6 @@ fn execute(a: &Args) -> anyhow::Result<i32> {
 }
 
 pub fn run(args: &[OsString]) -> anyhow::Result<i32> {
-    // The ElevenLabs history endpoint is network code; Python keeps it
-    // until phase 5.
-    if args.iter().any(|a| a == "--api") {
-        return crate::delegate::run("sfx-lib", args);
-    }
     log::init("sfx-lib");
     let _banner = banner::begin(super::prog(), &super::argv_line(args));
     let a: Args = match super::parse_or_exit("xil-sfx-lib", args) {

@@ -220,6 +220,35 @@ pub fn derive_paths(slug: &str, tag: &str) -> Paths {
     }
 }
 
+/// `resolve_venv_python(venv_name, explicit)` — the interpreter of an
+/// optional local-model venv (`venv-whisper`, `venv-chatterbox`, …).
+///
+/// An explicit path wins. With `XIL_CODEROOT` set, only
+/// `$XIL_CODEROOT/<venv>/bin/python3` is considered. Otherwise the
+/// workspace root, then the repo root above the Python package
+/// (`package_dir/../..`), are tried.
+pub fn resolve_venv_python(
+    venv_name: &str,
+    explicit: Option<&str>,
+    package_dir: Option<&Path>,
+) -> Option<String> {
+    if let Some(e) = explicit.filter(|e| !e.is_empty()) {
+        return Some(e.to_string());
+    }
+    if let Some(root) = code_root() {
+        let cand = root.join(venv_name).join("bin").join("python3");
+        return cand.exists().then(|| cand.to_string_lossy().into_owned());
+    }
+    let mut candidates = vec![workspace_root().join(venv_name).join("bin").join("python3")];
+    if let Some(repo) = package_dir.and_then(Path::parent).and_then(Path::parent) {
+        candidates.push(repo.join(venv_name).join("bin").join("python3"));
+    }
+    candidates
+        .into_iter()
+        .find(|c| c.exists())
+        .map(|c| c.to_string_lossy().into_owned())
+}
+
 /// Parsed `project.json`, or an empty object when absent.
 ///
 /// A relative `project_path` is anchored at the workspace root. The bare

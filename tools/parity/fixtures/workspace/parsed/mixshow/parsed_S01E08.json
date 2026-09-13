@@ -1,0 +1,112 @@
+{
+  "entries": [
+    {
+      "seq": -1,
+      "type": "direction",
+      "section": "preamble",
+      "scene": null,
+      "speaker": null,
+      "text": "MUSIC: THEME",
+      "direction_type": "MUSIC"
+    },
+    {
+      "seq": 1,
+      "type": "section_header",
+      "section": "act1",
+      "scene": null,
+      "speaker": null,
+      "text": "ACT ONE",
+      "direction_type": null
+    },
+    {
+      "seq": 2,
+      "type": "direction",
+      "section": "act1",
+      "scene": "scene-1",
+      "speaker": null,
+      "text": "SFX: DOOR SLAM",
+      "direction_type": "SFX"
+    },
+    {
+      "seq": 3,
+      "type": "direction",
+      "section": "act1",
+      "scene": "scene-1",
+      "speaker": null,
+      "text": "BEAT",
+      "direction_type": "BEAT"
+    },
+    {
+      "seq": 4,
+      "type": "direction",
+      "section": "act1",
+      "scene": "scene-1",
+      "speaker": null,
+      "text": "AMBIENCE: RAIN",
+      "direction_type": "AMBIENCE"
+    },
+    {
+      "seq": 5,
+      "type": "direction",
+      "section": "act1",
+      "scene": null,
+      "speaker": null,
+      "text": "SFX: CACHED",
+      "direction_type": "SFX"
+    },
+    {
+      "seq": 6,
+      "type": "direction",
+      "section": "act1",
+      "scene": "scene-1",
+      "speaker": null,
+      "text": "SFX: REJECTED",
+      "direction_type": "SFX"
+    },
+    {
+      "seq": 7,
+      "type": "direction",
+      "section": "act1",
+      "scene": "scene-1",
+      "speaker": null,
+      "text": "SFX: LONG",
+      "direction_type": "SFX"
+    },
+    {
+      "seq": 8,
+      "type": "direction",
+      "section": "act1",
+      "scene": "scene-1",
+      "speaker": null,
+      "text": "AMBIENCE: STOP",
+      "direction_type": "AMBIENCE"
+    },
+    {
+      "seq": 9,
+      "type": "direction",
+      "section": "act1",
+      "scene": "scene-1",
+      "speaker": null,
+      "text": "SFX: DOOR SLAM",
+      "direction_type": "SFX"
+    },
+    {
+      "seq": 10,
+      "type": "direction",
+      "section": "act1",
+      "scene": "scene-1",
+      "speaker": null,
+      "text": "SFX: NOT CONFIGURED",
+      "direction_type": "SFX"
+    },
+    {
+      "seq": 11,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": "scene-1",
+      "speaker": "host",
+      "text": "Hi.",
+      "direction_type": null
+    }
+  ]
+}

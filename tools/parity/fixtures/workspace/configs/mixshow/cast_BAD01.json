@@ -1,0 +1,20 @@
+{
+  "show": "Mix Show",
+  "tag_override": "BAD01",
+  "cast": {
+    "ok": {
+      "full_name": "Okay Voice",
+      "voice_id": "v-host-001",
+      "pan": 0,
+      "filter": null,
+      "role": "r"
+    },
+    "broken": {
+      "full_name": "Broken Voice",
+      "voice_id": "bad-voice",
+      "pan": 0,
+      "filter": null,
+      "role": "r"
+    }
+  }
+}

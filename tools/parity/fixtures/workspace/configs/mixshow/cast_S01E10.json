@@ -1,0 +1,28 @@
+{
+  "show": "Mix Show",
+  "season": 1,
+  "episode": 10,
+  "cast": {
+    "guest": {
+      "full_name": "Gäst Star",
+      "voice_id": "v-guest-002",
+      "pan": 0.0,
+      "filter": null,
+      "role": "Guest"
+    },
+    "host": {
+      "full_name": "Harper",
+      "voice_id": "v-host-001",
+      "pan": 0.0,
+      "filter": null,
+      "role": "Host/Narrator"
+    },
+    "extra": {
+      "full_name": "Extra",
+      "voice_id": "v-extra-004",
+      "pan": 0.0,
+      "filter": null,
+      "role": "Extra"
+    }
+  }
+}

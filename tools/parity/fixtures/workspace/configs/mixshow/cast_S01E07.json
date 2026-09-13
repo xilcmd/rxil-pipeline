@@ -1,0 +1,44 @@
+{
+  "show": "Mix Show",
+  "season": 1,
+  "episode": 7,
+  "cast": {
+    "host": {
+      "full_name": "Host",
+      "voice_id": "v-host-001",
+      "pan": 0.0,
+      "filter": null,
+      "role": "TBD"
+    },
+    "guest": {
+      "full_name": "Gäst",
+      "voice_id": "v-guest-002",
+      "pan": 0.0,
+      "filter": null,
+      "role": "TBD",
+      "language_code": null
+    },
+    "clone": {
+      "full_name": "Clone",
+      "voice_id": "v-clone-003",
+      "pan": 0.0,
+      "filter": null,
+      "role": "Villain",
+      "language_code": "en"
+    },
+    "nobody": {
+      "full_name": "Nobody",
+      "voice_id": "TBD",
+      "pan": 0.0,
+      "filter": null,
+      "role": "TBD"
+    },
+    "ghost": {
+      "full_name": "Ghost",
+      "voice_id": "v-missing",
+      "pan": 0.0,
+      "filter": null,
+      "role": "TBD"
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "entries": [
+    {
+      "seq": 1,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": null,
+      "speaker": "host",
+      "direction": null,
+      "text": "Alpha line.",
+      "direction_type": null
+    },
+    {
+      "seq": 2,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": null,
+      "speaker": "guest",
+      "direction": null,
+      "text": "Beta line.",
+      "direction_type": null
+    },
+    {
+      "seq": 3,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": null,
+      "speaker": "host",
+      "direction": null,
+      "text": "Gamma line.",
+      "direction_type": null
+    },
+    {
+      "seq": 4,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": null,
+      "speaker": "guest",
+      "direction": null,
+      "text": "Delta line.",
+      "direction_type": null
+    },
+    {
+      "seq": 5,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": null,
+      "speaker": "host",
+      "direction": null,
+      "text": "Epsilon line.",
+      "direction_type": null
+    }
+  ]
+}

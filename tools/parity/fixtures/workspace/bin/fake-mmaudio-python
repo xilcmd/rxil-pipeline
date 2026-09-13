@@ -1,0 +1,27 @@
+#!/usr/bin/env python3
+"""A stand-in for venv-mmaudio's python running mmaudio_worker.py.
+
+Prints model-loading noise before the ready line (the client must skip it),
+then renders each request as an ffmpeg tone of the requested length at
+out_path. A prompt containing "explode" gets an error reply.
+"""
+import json
+import subprocess
+import sys
+
+print("Loading MMAudio weights... 100%", flush=True)
+print("{not json", flush=True)
+print(json.dumps({"ready": True, "sr": 44100, "device": "cpu"}), flush=True)
+for raw in sys.stdin:
+    raw = raw.strip()
+    if not raw:
+        continue
+    req = json.loads(raw)
+    if "explode" in (req.get("prompt") or ""):
+        print(json.dumps({"error": "sampler diverged"}), flush=True)
+        continue
+    freq = 300 + len(req.get("prompt") or "") * 7
+    subprocess.run(["ffmpeg", "-v", "quiet", "-y", "-f", "lavfi", "-i",
+                    f"sine=frequency={freq}:duration={req['duration_seconds']}:sample_rate=44100",
+                    "-ac", "1", req["out_path"]], check=True)
+    print(json.dumps({"done": True, "seed": req.get("seed"), "steps": req.get("num_inference_steps")}), flush=True)

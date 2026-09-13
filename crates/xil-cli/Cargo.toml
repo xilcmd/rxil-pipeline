@@ -15,6 +15,8 @@ path = "src/main.rs"
 [dependencies]
 xil-core = { path = "../xil-core" }
 xil-audio = { path = "../xil-audio" }
+xil-workers = { path = "../xil-workers" }
+xil-api = { path = "../xil-api" }
 anyhow.workspace = true
 clap.workspace = true
 serde_json.workspace = true
@@ -24,7 +26,8 @@ chrono.workspace = true
 indexmap.workspace = true
 id3.workspace = true
 unicode-normalization.workspace = true
+zip.workspace = true
+filetime = "0.2"
+tempfile.workspace = true
 
 [dev-dependencies]
-tempfile.workspace = true
-filetime = "0.2"

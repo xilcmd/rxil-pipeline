@@ -58,7 +58,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - name: Install the reference Python pipeline
         env:
-          XIL_PY_REF: 74bb771
+          XIL_PY_REF: e228100
         run: |
           python -m venv /tmp/xil-py
           /tmp/xil-py/bin/pip install --quiet \

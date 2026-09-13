@@ -1,0 +1,49 @@
+{
+  "entries": [
+    {
+      "seq": 1,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": "scene-1",
+      "speaker": "old",
+      "text": "Back in my day we walked uphill both ways to the studio, through the snow and the rain, carrying the tape machines on our backs while the producers shouted about levels and the engineers argued about which microphone sounded warmer until the sun came up again.",
+      "direction_type": null
+    },
+    {
+      "seq": 2,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": null,
+      "speaker": "a-very-long-speaker-name",
+      "text": "Short and sweet.",
+      "direction_type": null
+    },
+    {
+      "seq": 3,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": null,
+      "speaker": null,
+      "text": "Nobody said this.",
+      "direction_type": null
+    },
+    {
+      "seq": 4,
+      "type": "direction",
+      "section": "act1",
+      "scene": null,
+      "speaker": null,
+      "text": "SFX: DOOR",
+      "direction_type": "SFX"
+    },
+    {
+      "seq": 5,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": null,
+      "speaker": "host",
+      "text": "\u00dcberraschung \u2014 caf\u00e9, na\u00efve!",
+      "direction_type": null
+    }
+  ]
+}
