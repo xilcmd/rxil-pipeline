@@ -857,9 +857,13 @@ version = "0.1.0"
 name = "xil-audio"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "id3",
+ "indexmap",
+ "sha2",
  "tempfile",
  "thiserror",
+ "xil-core",
 ]
 
 [[package]]
@@ -870,6 +874,7 @@ dependencies = [
  "chrono",
  "clap",
  "filetime",
+ "id3",
  "indexmap",
  "regex",
  "serde_json",

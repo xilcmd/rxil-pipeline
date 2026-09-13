@@ -1,0 +1,51 @@
+{
+  "show": "Mix Show",
+  "season": 1,
+  "episode": 2,
+  "title": null,
+  "season_title": "The Mix",
+  "cast": {
+    "host": {
+      "full_name": "Host",
+      "voice_id": "TBD",
+      "pan": -0.3,
+      "filter": null,
+      "role": "fixture"
+    },
+    "guest": {
+      "full_name": "Guest",
+      "voice_id": "TBD",
+      "pan": 0.4,
+      "filter": "phone",
+      "role": "fixture"
+    },
+    "caller": {
+      "full_name": "Caller",
+      "voice_id": "TBD",
+      "pan": 0.0,
+      "filter": "speakerphone",
+      "role": "fixture"
+    },
+    "old": {
+      "full_name": "Old Timer",
+      "voice_id": "TBD",
+      "pan": 0.0,
+      "filter": "vintage",
+      "role": "fixture"
+    },
+    "dez": {
+      "full_name": "Dez",
+      "voice_id": "TBD",
+      "pan": 0.2,
+      "filter": false,
+      "role": "fixture"
+    },
+    "bot": {
+      "full_name": "Bot",
+      "voice_id": "TBD",
+      "pan": 1.0,
+      "filter": "Robot, vintage",
+      "role": "fixture"
+    }
+  }
+}

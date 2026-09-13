@@ -14,11 +14,14 @@ use std::sync::OnceLock;
 
 use clap::Parser;
 
+pub mod assemble;
 pub mod cleanup;
 pub mod csv_join;
+pub mod daw;
 pub mod db_profile;
 pub mod episode_summary;
 pub mod init;
+pub mod master;
 pub mod migrate;
 pub mod migrate_workspace;
 pub mod mp3_hash;

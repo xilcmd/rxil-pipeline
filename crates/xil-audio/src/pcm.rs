@@ -111,13 +111,10 @@ impl Pcm {
     }
 }
 
-/// `pydub.utils.ratio_to_db` in amplitude mode: `20 * log10(ratio)`,
-/// `-inf` at zero.
+/// `pydub.utils.ratio_to_db` in amplitude mode, `-inf` at zero. See
+/// [`crate::segment::ratio_to_db`] for why this is not `log10`.
 pub fn ratio_to_db(ratio: f64) -> f64 {
-    if ratio == 0.0 {
-        return f64::NEG_INFINITY;
-    }
-    20.0 * ratio.log10()
+    crate::segment::ratio_to_db(ratio)
 }
 
 /// Python's `round()` — half away from zero is *not* what it does; it is

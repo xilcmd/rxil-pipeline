@@ -7,6 +7,7 @@
 mod cmd;
 mod commands;
 mod delegate;
+mod mix;
 
 use std::env;
 use std::ffi::OsString;

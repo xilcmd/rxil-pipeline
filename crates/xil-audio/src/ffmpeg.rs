@@ -30,6 +30,10 @@ pub enum AudioError {
     /// stderr included.
     #[error("Decoding failed. ffmpeg returned error code: {code}\n\nOutput from ffmpeg/avlib:\n\n{stderr}")]
     CouldntDecode { code: i32, stderr: String },
+    /// pydub's `CouldntEncodeError` (the command itself is left out: it
+    /// names temporary files).
+    #[error("Encoding failed. ffmpeg/avlib returned error code: {code}\n\nOutput from ffmpeg/avlib:\n\n{stderr}")]
+    CouldntEncode { code: i32, stderr: String },
     #[error("{path}: {what}")]
     Malformed { path: String, what: String },
 }

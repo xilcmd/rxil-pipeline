@@ -549,3 +549,72 @@ args = ["sfx-match", "--show", "impactshow", "--episode", "S09E09", "--output", 
 [[check]]
 name = "sfx-match-all-resolve"
 args = ["sfx-match", "--show", "mypodcast", "--output", "m.csv", "--emit-hints", "h.md"]
+
+# ── daw / assemble / master, over the mixshow fixture episode ────────────
+#
+# S01E01 exercises every layer, span and stale-stem path; S01E02 has stems
+# but no parsed script; S01E03 holds small layer WAVs of mixed formats.
+
+[[check]]
+name = "daw-dry-run"
+args = ["daw", "--episode", "S01E01", "--show", "mixshow", "--dry-run"]
+
+[[check]]
+name = "daw-dry-run-timelines"
+args = ["daw", "--episode", "S01E01", "--show", "mixshow", "--dry-run", "--timeline", "--timeline-html"]
+
+[[check]]
+name = "daw-export"
+args = ["daw", "--episode", "S01E01", "--show", "mixshow", "--timeline", "--timeline-html"]
+
+[[check]]
+name = "daw-export-gap-output-dir-aup3"
+args = ["daw", "--tag", "S01E01", "--show", "mixshow", "--gap-ms", "250", "--output-dir", "exports/mix", "--save-aup3"]
+
+[[check]]
+name = "daw-parsed-override-missing"
+args = ["daw", "--episode", "S01E01", "--show", "mixshow", "--parsed", "nope.json"]
+
+[[check]]
+name = "daw-no-parsed"
+args = ["daw", "--episode", "S01E02", "--show", "mixshow"]
+
+[[check]]
+name = "daw-no-cast"
+args = ["daw", "--episode", "S09E09", "--show", "mixshow"]
+
+[[check]]
+name = "daw-no-tag"
+args = ["daw", "--show", "mixshow"]
+
+[[check]]
+name = "assemble-multitrack"
+args = ["assemble", "--episode", "S01E01", "--show", "mixshow", "--output", "mix_master.mp3"]
+
+[[check]]
+name = "assemble-multitrack-default-output-missing-dir"
+args = ["assemble", "--episode", "S01E01", "--show", "mixshow"]
+
+[[check]]
+name = "assemble-sequential"
+args = ["assemble", "--episode", "S01E02", "--show", "mixshow", "--output", "seq.mp3", "--gap-ms", "100"]
+
+[[check]]
+name = "assemble-no-cast"
+args = ["assemble", "--episode", "S09E09", "--show", "mixshow"]
+
+[[check]]
+name = "master-dry-run"
+args = ["master", "--episode", "S01E03", "--show", "mixshow", "--dry-run", "--output", "m.mp3"]
+
+[[check]]
+name = "master-export"
+args = ["master", "--episode", "S01E03", "--show", "mixshow", "--output", "final.mp3"]
+
+[[check]]
+name = "master-no-layers"
+args = ["master", "--episode", "S01E02", "--show", "mixshow", "--output", "none.mp3"]
+
+[[check]]
+name = "master-daw-dir-override"
+args = ["master", "--tag", "S01E03", "--show", "mixshow", "--daw-dir", "daw/mixshow/S01E03", "--output", "o.mp3"]
