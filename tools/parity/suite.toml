@@ -8,6 +8,10 @@
 #   args          argv after `xil`
 #   mask_keys     JSON keys whose values are volatile (timestamps, hosts)
 #   stdout_masks  regexes replaced with <MASK> in stdout before comparison
+#   env           extra environment for both sides (e.g. a fake API key)
+#
+# Every check runs against tools/parity/mockapi.py: no request can reach a
+# real API, and the requests each side made land in _api_requests.jsonl.
 
 [[check]]
 name = "help"
@@ -475,6 +479,49 @@ name = "sfx-lib-missing-dir"
 args = ["sfx-lib", "--sfx-dir", "nope"]
 
 [[check]]
+name = "sfx-lib-api-compact"
+args = ["sfx-lib", "--api"]
+env = { ELEVENLABS_API_KEY = "parity-fake-key" }
+
+[[check]]
+name = "sfx-lib-api-all-verbose"
+args = ["sfx-lib", "--api", "--all", "--verbose"]
+env = { ELEVENLABS_API_KEY = "parity-fake-key" }
+
+[[check]]
+name = "sfx-lib-api-json-search"
+args = ["sfx-lib", "--api", "--json", "--search", "DOOR"]
+env = { ELEVENLABS_API_KEY = "parity-fake-key" }
+
+[[check]]
+name = "sfx-lib-api-search-nothing"
+args = ["sfx-lib", "--api", "--search", "zzz"]
+env = { ELEVENLABS_API_KEY = "parity-fake-key" }
+
+[[check]]
+name = "sfx-lib-api-export-kit"
+args = ["sfx-lib", "--api", "--export-kit", "kit_api"]
+env = { ELEVENLABS_API_KEY = "parity-fake-key" }
+
+[[check]]
+name = "sfx-lib-api-no-key"
+args = ["sfx-lib", "--api"]
+
+[[check]]
+name = "sfx-lib-api-denied"
+args = ["sfx-lib", "--api"]
+env = { ELEVENLABS_API_KEY = "parity-denied-key" }
+
+[[check]]
+name = "sfx-lib-api-invalid-key"
+args = ["sfx-lib", "--api"]
+env = { ELEVENLABS_API_KEY = "parity-invalid-key" }
+
+[[check]]
+name = "sfx-lib-api-local-conflict"
+args = ["sfx-lib", "--api", "--local"]
+
+[[check]]
 name = "sfx-lib-export-kit"
 args = ["sfx-lib", "--export-kit", "kit"]
 
@@ -618,3 +665,406 @@ args = ["master", "--episode", "S01E02", "--show", "mixshow", "--output", "none.
 [[check]]
 name = "master-daw-dir-override"
 args = ["master", "--tag", "S01E03", "--show", "mixshow", "--daw-dir", "daw/mixshow/S01E03", "--output", "o.mp3"]
+
+# ── stem-verify / stem-compare (phase 5) ─────────────────────────────────
+#
+# Transcription runs against bin/fake-whisper-python, a stand-in for the
+# venv-whisper interpreter that speaks whisper_worker.py's protocol. Always
+# pass it explicitly: the harness's XIL_CODEROOT may hold a real venv-whisper.
+
+[[check]]
+name = "stem-verify-no-transcribe"
+args = ["stem-verify", "--show", "mixshow", "--episode", "S01E01", "--no-transcribe"]
+mask_keys = ["generated"]
+
+[[check]]
+name = "stem-verify-fake-whisper"
+args = ["stem-verify", "-s", "mixshow", "-e", "S01E01", "--whisper-python", "bin/fake-whisper-python", "--device", "cpu", "--language", "auto", "--beam-size", "2", "-o", "reports/sv.json"]
+mask_keys = ["generated"]
+
+[[check]]
+name = "stem-verify-stems-dir"
+args = ["stem-verify", "--stems-dir", "stems/mixshow/S01E02", "--no-transcribe"]
+mask_keys = ["generated"]
+
+[[check]]
+name = "stem-verify-needs-a-target"
+args = ["stem-verify"]
+
+[[check]]
+name = "stem-verify-missing-dir"
+args = ["stem-verify", "--show", "mixshow", "--episode", "S09E09", "--no-transcribe"]
+
+[[check]]
+name = "stem-verify-empty-dir"
+args = ["stem-verify", "--stems-dir", "configs", "--no-transcribe"]
+
+[[check]]
+name = "stem-compare-episode"
+args = ["stem-compare", "--show", "mixshow", "--episode", "S01E01"]
+
+[[check]]
+name = "stem-compare-csv-json"
+args = ["stem-compare", "-s", "mixshow", "-e", "S01E01", "--csv", "--threshold", "0.9", "-o", "out/cmp.json"]
+mask_keys = ["generated"]
+
+[[check]]
+name = "stem-compare-long-lines"
+args = ["stem-compare", "--stem-verify", "parsed/mixshow/stem_verify_long.json", "--parsed", "parsed/mixshow/compare_long.json", "--threshold", "0.6", "--output", "long.json"]
+mask_keys = ["generated"]
+
+[[check]]
+name = "stem-compare-needs-episode"
+args = ["stem-compare"]
+
+[[check]]
+name = "stem-compare-needs-episode-for-parsed"
+args = ["stem-compare", "--stem-verify", "parsed/mixshow/stem_verify_long.json"]
+
+[[check]]
+name = "stem-compare-missing-files"
+args = ["stem-compare", "--show", "mixshow", "--episode", "S09E09"]
+
+# ── import (phase 5) ─────────────────────────────────────────────────────
+
+[[check]]
+name = "import-dry-run"
+args = ["import", "--show", "mixshow", "--episode", "S01E01", "--zip", "exports/studio_S01E01.zip", "--dry-run"]
+
+[[check]]
+name = "import-dialogue-only"
+args = ["import", "--show", "mixshow", "--episode", "S01E01", "--zip", "exports/studio_S01E01.zip"]
+
+[[check]]
+name = "import-all-force-stems-dir"
+args = ["import", "--show", "mixshow", "--tag", "S01E01", "--zip", "exports/studio_S01E01.zip", "--all", "--force", "--stems-dir", "imported"]
+
+[[check]]
+name = "import-sfx-music-parsed-override"
+args = ["import", "--episode", "S01E01", "--zip", "exports/studio_S01E01.zip", "--gen-sfx", "--gen-beats", "--parsed", "parsed/mixshow/parsed_S01E01.json", "--stems-dir", "imported"]
+
+[[check]]
+name = "import-missing-zip"
+args = ["import", "--show", "mixshow", "--episode", "S01E01", "--zip", "nope.zip"]
+
+[[check]]
+name = "import-missing-parsed"
+args = ["import", "--show", "mixshow", "--episode", "S09E09", "--zip", "exports/studio_S01E01.zip"]
+
+[[check]]
+name = "import-requires-zip"
+args = ["import", "--episode", "S01E01"]
+
+# ── voices (phase 5, against the mock API) ───────────────────────────────
+
+[[check]]
+name = "voices-list"
+args = ["voices"]
+env = { ELEVENLABS_API_KEY = "parity-fake-key" }
+
+[[check]]
+name = "voices-verbose-category"
+args = ["voices", "--verbose", "--category", "professional", "PREMADE"]
+env = { ELEVENLABS_API_KEY = "parity-fake-key" }
+
+[[check]]
+name = "voices-json-search"
+args = ["voices", "--json", "--search", "CLONE"]
+env = { ELEVENLABS_API_KEY = "parity-fake-key" }
+
+[[check]]
+name = "voices-id"
+args = ["voices", "--id", "v-host-001"]
+env = { ELEVENLABS_API_KEY = "parity-fake-key" }
+
+[[check]]
+name = "voices-id-missing"
+args = ["voices", "--id", "nope"]
+
+[[check]]
+name = "voices-update-cast-dry-run"
+args = ["voices", "--update-cast", "configs/mixshow/cast_S01E07.json", "--dry-run"]
+env = { ELEVENLABS_API_KEY = "parity-fake-key" }
+
+[[check]]
+name = "voices-update-cast"
+args = ["voices", "--update-cast", "configs/mixshow/cast_S01E07.json"]
+env = { ELEVENLABS_API_KEY = "parity-fake-key" }
+
+# ── sfx (phase 5, against the mock API and a fake MMAudio worker) ────────
+
+[[check]]
+name = "sfx-dry-run"
+args = ["sfx", "--show", "mixshow", "--episode", "S01E08", "--dry-run"]
+
+[[check]]
+name = "sfx-dry-run-filters"
+args = ["sfx", "--show", "mixshow", "--episode", "S01E08", "--dry-run", "--gen-sfx", "--gen-ambience", "--max-duration", "5"]
+
+[[check]]
+name = "sfx-dry-run-local-backend"
+args = ["sfx", "--show", "mixshow", "--tag", "S01E08", "--dry-run", "--sfx-backend", "mmaudio", "--local-only"]
+
+[[check]]
+name = "sfx-needs-api-key"
+args = ["sfx", "--show", "mixshow", "--episode", "S01E08"]
+
+[[check]]
+name = "sfx-generate"
+args = ["sfx", "--show", "mixshow", "--episode", "S01E08"]
+env = { ELEVENLABS_API_KEY = "parity-fake-key" }
+mask_keys = ["placed_at"]
+
+[[check]]
+name = "sfx-generate-music-only-local"
+args = ["sfx", "--show", "mixshow", "--episode", "S01E08", "--sfx-music", "--local-only"]
+env = { ELEVENLABS_API_KEY = "parity-fake-key" }
+mask_keys = ["placed_at"]
+
+[[check]]
+name = "sfx-missing-source-no-prompt"
+args = ["sfx", "--show", "mixshow", "--episode", "S01E09"]
+env = { ELEVENLABS_API_KEY = "parity-fake-key" }
+mask_keys = ["placed_at"]
+
+[[check]]
+name = "sfx-mmaudio-needs-acknowledgement"
+args = ["sfx", "--show", "mixshow", "--episode", "S01E08", "--sfx-backend", "mmaudio"]
+
+[[check]]
+name = "sfx-mmaudio-fake-worker"
+args = ["sfx", "--show", "mixshow", "--episode", "S01E08", "--gen-sfx", "--sfx-backend", "mmaudio", "--mmaudio-accept-noncommercial", "--mmaudio-python", "bin/fake-mmaudio-python", "--mmaudio-duration", "3", "--mmaudio-seed", "7", "--mmaudio-steps", "10"]
+mask_keys = ["placed_at"]
+
+[[check]]
+name = "sfx-no-cast"
+args = ["sfx", "--show", "mixshow", "--episode", "S09E09", "--dry-run"]
+
+[[check]]
+name = "sfx-script-override"
+args = ["sfx", "--show", "mixshow", "--episode", "S01E08", "--dry-run", "--script", "parsed/mixshow/parsed_S01E09.json"]
+
+# ── studio-onboard (phase 5) ─────────────────────────────────────────────
+
+[[check]]
+name = "studio-onboard-dry-run"
+args = ["studio-onboard", "--show", "mixshow", "--episode", "S01E10", "--dry-run"]
+
+[[check]]
+name = "studio-onboard-create"
+args = ["studio-onboard", "--show", "mixshow", "--episode", "S01E10", "--quality", "high", "--model", "eleven_multilingual_v2"]
+env = { ELEVENLABS_API_KEY = "parity-fake-key" }
+
+[[check]]
+name = "studio-onboard-needs-key"
+args = ["studio-onboard", "--show", "mixshow", "--episode", "S01E10"]
+
+[[check]]
+name = "studio-onboard-tbd-voices"
+args = ["studio-onboard", "--show", "mixshow", "--episode", "S01E07", "--dry-run"]
+
+[[check]]
+name = "studio-onboard-no-parsed"
+args = ["studio-onboard", "--show", "mixshow", "--tag", "S09E09", "--dry-run"]
+
+# ── publish (phase 5, Anthropic through the mock) ────────────────────────
+
+[[check]]
+name = "publish-dry-run"
+args = ["publish", "--show", "pubshow", "--episode", "S02E03", "--dry-run"]
+
+[[check]]
+name = "publish-episode"
+args = ["publish", "--show", "pubshow", "--episode", "S02E03", "--platform", "instagram", "--model", "claude-test-model"]
+env = { ANTHROPIC_API_KEY = "parity-fake-key" }
+
+[[check]]
+name = "publish-all"
+args = ["publish", "--show", "pubshow", "--all"]
+env = { ANTHROPIC_API_KEY = "parity-fake-key" }
+
+[[check]]
+name = "publish-all-dry-run"
+args = ["publish", "--show", "pubshow", "--all", "--dry-run"]
+
+[[check]]
+name = "publish-needs-key"
+args = ["publish", "--show", "pubshow", "--tag", "S02E03"]
+
+[[check]]
+name = "publish-needs-target"
+args = ["publish", "--show", "pubshow"]
+
+[[check]]
+name = "publish-missing-episode"
+args = ["publish", "--show", "pubshow", "--episode", "S09E09", "--dry-run"]
+
+[[check]]
+name = "publish-all-empty"
+args = ["publish", "--show", "nosuchshow", "--all"]
+
+# ── cues (phase 5) ───────────────────────────────────────────────────────
+
+[[check]]
+name = "cues-audit"
+args = ["cues", "--show", "mixshow", "--episode", "S01E11"]
+
+[[check]]
+name = "cues-enrich-dry-run-generate-dry-run"
+args = ["cues", "--show", "mixshow", "--episode", "S01E11", "--enrich-sfx-config", "--generate", "--dry-run"]
+
+[[check]]
+name = "cues-enrich"
+args = ["cues", "--show", "mixshow", "--episode", "S01E11", "--enrich-sfx-config"]
+
+[[check]]
+name = "cues-generate"
+args = ["cues", "--show", "mixshow", "--tag", "S01E11", "--generate"]
+env = { ELEVENLABS_API_KEY = "parity-fake-key" }
+
+[[check]]
+name = "cues-generate-needs-key"
+args = ["cues", "--show", "mixshow", "--episode", "S01E11", "--generate"]
+
+[[check]]
+name = "cues-single-file-fallback"
+args = ["cues", "--show", "pubshow", "--episode", "S02E03", "--enrich-sfx-config"]
+
+[[check]]
+name = "cues-explicit-path"
+args = ["cues", "--show", "mixshow", "--episode", "S01E12", "--cues", "cues/mixshow/cues_S01E11.md"]
+
+[[check]]
+name = "cues-no-sheet"
+args = ["cues", "--show", "nosuchshow", "--episode", "S01E01"]
+
+# ── sample (phase 5: ElevenLabs and gTTS via the mock, fake Chatterbox) ──
+
+[[check]]
+name = "sample-dry-run"
+args = ["sample", "--show", "mixshow", "--episode", "S01E07", "--dry-run"]
+
+[[check]]
+name = "sample-dry-run-chatterbox-alias"
+args = ["sample", "--show", "mixshow", "--episode", "S01E10", "--dry-run", "--backend", "chatterbox"]
+
+[[check]]
+name = "sample-elevenlabs"
+args = ["sample", "--show", "mixshow", "--episode", "S01E10"]
+env = { ELEVENLABS_API_KEY = "parity-fake-key" }
+
+[[check]]
+name = "sample-elevenlabs-force-tbd"
+args = ["sample", "--cast", "configs/mixshow/cast_S01E07.json", "--force", "--sample-text", "{{Test}} {name}."]
+env = { ELEVENLABS_API_KEY = "parity-fake-key" }
+
+[[check]]
+name = "sample-gtts-long-text"
+args = ["sample", "--show", "mixshow", "--episode", "S01E10", "--backend", "gtts", "--force", "--sample-text", "Dr. {name} speaks! Mrs. Smith, Esq. replied: at 10:30, well... it's late; far too late — the café (closed) won't open again until the morning, when the bakers come in. [laugh] See you then?"]
+
+[[check]]
+name = "sample-gtts-only-tags"
+args = ["sample", "--show", "mixshow", "--episode", "S01E10", "--backend", "gtts", "--sample-text", "[sigh] [laugh]"]
+
+[[check]]
+name = "sample-chatterbox-fake-worker"
+args = ["sample", "--cast", "configs/mixshow/cast_S01E10.json", "--backend", "chatterbox-turbo", "--chatterbox-python", "bin/fake-chatterbox-python", "--voice-refs", "voice_refs"]
+
+[[check]]
+name = "sample-chatterbox-worker-error"
+args = ["sample", "--show", "mixshow", "--episode", "S01E10", "--backend", "chatterbox-turbo", "--chatterbox-python", "bin/fake-chatterbox-python", "--sample-text", "[explode] {name}", "--device", "cpu"]
+
+[[check]]
+name = "sample-chatterbox-no-python"
+args = ["sample", "--show", "mixshow", "--episode", "S01E10", "--backend", "chatterbox-turbo"]
+
+[[check]]
+name = "sample-bad-voice"
+args = ["sample", "--show", "mixshow", "--episode", "BAD01"]
+env = { ELEVENLABS_API_KEY = "parity-fake-key" }
+
+[[check]]
+name = "sample-needs-key"
+args = ["sample", "--show", "mixshow", "--episode", "S01E10"]
+
+[[check]]
+name = "sample-no-cast"
+args = ["sample", "--show", "mixshow", "--episode", "S09E09", "--dry-run"]
+
+[[check]]
+name = "sample-bad-template"
+args = ["sample", "--show", "mixshow", "--episode", "S01E10", "--dry-run", "--sample-text", "{nope}"]
+
+# ── produce (phase 5) ────────────────────────────────────────────────────
+
+[[check]]
+name = "produce-dry-run"
+args = ["produce", "--show", "mixshow", "--episode", "S01E12", "--dry-run"]
+
+[[check]]
+name = "produce-dry-run-range-sfx-force"
+args = ["produce", "--show", "mixshow", "--episode", "S01E12", "--dry-run", "--start-from", "5", "--stop-at", "9", "--gen-sfx", "--force"]
+
+[[check]]
+name = "produce-dry-run-seq-list-gtts"
+args = ["produce", "--show", "mixshow", "--episode", "S01E12", "--dry-run", "--backend", "gtts", "--seq-list", "2,9,11,12,13,14,15,16,17,18,19,20"]
+
+[[check]]
+name = "produce-dry-run-thru-terse-chatterbox"
+args = ["produce", "--show", "mixshow", "--tag", "S01E12", "--dry-run", "--terse", "--stop-at", "8", "--backend", "chatterbox", "--voice-refs", "voice_refs"]
+
+[[check]]
+name = "produce-blocked-by-tbd"
+args = ["produce", "--show", "mixshow", "--episode", "S01E12"]
+env = { ELEVENLABS_API_KEY = "parity-fake-key" }
+
+[[check]]
+name = "produce-elevenlabs"
+args = ["produce", "--show", "mixshow", "--episode", "S01E12", "--stop-at", "9", "--gen-sfx"]
+env = { ELEVENLABS_API_KEY = "parity-fake-key" }
+mask_keys = ["generated_at", "placed_at"]
+
+[[check]]
+name = "produce-elevenlabs-seq-list-force"
+args = ["produce", "--show", "mixshow", "--episode", "S01E12", "--seq-list", "2,5,11", "--force"]
+env = { ELEVENLABS_API_KEY = "parity-fake-key" }
+mask_keys = ["generated_at"]
+
+[[check]]
+name = "produce-gtts"
+args = ["produce", "--show", "mixshow", "--episode", "S01E12", "--backend", "gtts", "--start-from", "5"]
+mask_keys = ["generated_at"]
+
+[[check]]
+name = "produce-chatterbox"
+args = ["produce", "--show", "mixshow", "--episode", "S01E12", "--backend", "chatterbox-turbo", "--chatterbox-python", "bin/fake-chatterbox-python", "--device", "cpu", "--voice-refs", "voice_refs", "--stop-at", "9"]
+mask_keys = ["generated_at"]
+
+[[check]]
+name = "produce-missing-sfx-source"
+args = ["produce", "--show", "mixshow", "--episode", "S01E08", "--gen-ambience", "--backend", "gtts"]
+env = { ELEVENLABS_API_KEY = "parity-fake-key" }
+
+[[check]]
+name = "produce-reconcile"
+args = ["produce", "--show", "mixshow", "--episode", "S01E13", "--reconcile"]
+
+[[check]]
+name = "produce-reconcile-apply"
+args = ["produce", "--show", "mixshow", "--episode", "S01E13", "--reconcile", "--apply"]
+
+[[check]]
+name = "produce-reconcile-no-manifest"
+args = ["produce", "--show", "mixshow", "--episode", "S01E12", "--reconcile"]
+
+[[check]]
+name = "produce-needs-key"
+args = ["produce", "--show", "mixshow", "--episode", "S01E12"]
+
+[[check]]
+name = "produce-no-cast"
+args = ["produce", "--show", "mixshow", "--episode", "S09E09", "--dry-run"]
+
+[[check]]
+name = "produce-bad-seq-list"
+args = ["produce", "--show", "mixshow", "--episode", "S01E12", "--seq-list", "1,x", "--dry-run"]

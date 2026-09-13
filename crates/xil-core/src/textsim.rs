@@ -6,8 +6,11 @@
 //! "a similarity measure". This is a direct transcription of
 //! `SequenceMatcher`, not an equivalent algorithm.
 //!
-//! Autojunk is deliberately absent: it only engages for sequences of 200+
-//! elements, and every string this serves is a short tag or line of text.
+//! Autojunk is on, as it is by default in CPython: once *b* reaches 200
+//! elements, any element occurring more than `len(b) // 100 + 1` times is
+//! dropped from the index. That rarely touches a scanner tag but decides
+//! the score of a long line of dialogue (0.295 with it, 0.873 without, for
+//! one pair of 220-character sentences).
 
 use std::collections::HashMap;
 
@@ -27,11 +30,17 @@ impl SequenceMatcher {
         for (j, c) in b.iter().enumerate() {
             b2j.entry(*c).or_default().push(j);
         }
+        let n = b.len();
+        if n >= 200 {
+            let ntest = n / 100 + 1;
+            b2j.retain(|_, idxs| idxs.len() <= ntest);
+        }
         SequenceMatcher { a, b, b2j }
     }
 
-    /// `find_longest_match(alo, ahi, blo, bhi)`. With no junk the two
-    /// junk-extension passes in CPython are no-ops, so they are omitted.
+    /// `find_longest_match(alo, ahi, blo, bhi)`. With no `isjunk` the
+    /// junk set is empty, so only CPython's first pair of extension passes
+    /// can move — and they do, over popular elements autojunk dropped.
     fn find_longest_match(
         &self,
         alo: usize,
@@ -167,6 +176,14 @@ mod tests {
             let got = SequenceMatcher::new(a, b).ratio();
             assert_eq!(got, want, "ratio({a:?}, {b:?}) = {got:.17} want {want:.17}");
         }
+    }
+
+    #[test]
+    fn autojunk_engages_at_two_hundred() {
+        let a = "the quick brown fox jumps over the lazy dog and then keeps running through the forest until it reaches the river where it stops to drink some water before heading back home to its den in the hills beyond the valley far away";
+        let b = "the quick brown fox jumped over a lazy dog and kept running through the forest till it reached the river where it stopped to drink water before heading home to its den in the hills past the valley very far away indeed";
+        assert_eq!(SequenceMatcher::new(a, b).ratio(), 0.29545454545454547);
+        assert_eq!(SequenceMatcher::new(b, a).ratio(), 0.4409090909090909);
     }
 
     #[test]

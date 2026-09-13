@@ -251,7 +251,7 @@
 
 <script>
   // ---- Edit this block as phases progress. Everything else renders from it.
-  const UPDATED = "2026-09-12";
+  const UPDATED = "2026-09-13";
   const PHASES = [
     { n: 0, title: "Toolchain, shim, harness, CI", weeks: 1, status: "done",
       scope: "rustup, Cargo workspace with the target dir on ext4, the 38-entry command table, Python hand-off with argv[0] aliases and XIL_FORCE_PY, the parity harness, GitHub repo with CI and branch protection.",
@@ -273,7 +273,7 @@
       scope: "mix_common (stem plans, layer builders, span treatments), timeline_viz, audio_fx filter graphs including the libgsm phone round trip, DAW export, assembly, master.",
       exit: "DAW layer WAVs and Audacity labels byte-identical; assembled and mastered MP3 within audio limits; cover art embedded.",
       cmds: ["daw", "assemble", "master"] },
-    { n: 5, title: "Network and ML workers", weeks: 3, status: "todo",
+    { n: 5, title: "Network and ML workers", weeks: 3, status: "active",
       scope: "ElevenLabs TTS/SFX streaming, quota, voices, Studio; Anthropic; gTTS; retry loop; JSON-over-stdio bridge to the worker venvs; remaining stages.",
       exit: "All --dry-run outputs byte-identical; worker protocol replayed against a mock; one real the413 episode produced end to end within limits.",
       cmds: ["produce", "sfx", "sample", "voices", "cues", "studio-onboard", "import", "stem-verify", "stem-compare", "publish"] },
@@ -290,9 +290,12 @@
                           "stem-log", "remove-show", "remove-episode", "migrate-workspace",
                           "scan", "parse", "regen", "splice", "migrate", "cleanup",
                           "db-profile", "csv-join", "sfx-hydrate", "sfx-restore", "sfx-impact", "sfx-lib", "sfx-match",
-                          "daw", "assemble", "master"]); // flipped to native
-  const PARITY = { passing: 146, total: 146 }; // entries in tools/parity/suite.toml
+                          "daw", "assemble", "master",
+                          "produce", "sfx", "sample", "voices", "cues", "studio-onboard", "import",
+                          "stem-verify", "stem-compare", "publish"]); // flipped to native
+  const PARITY = { passing: 242, total: 242 }; // entries in tools/parity/suite.toml
   const LOG = [
+    { date: "2026-09-13", text: "Phase 5 code complete. produce, sfx, sample, voices, cues, studio-onboard, import, stem-verify, stem-compare and publish are native, and sfx-lib --api no longer hands off (37 of 38 commands; only gui remains). A new xil-api crate speaks the same HTTP as the ElevenLabs, Anthropic and gTTS clients, and xil-workers drives the Whisper, MMAudio and Chatterbox workers over JSON lines. Every network check runs both implementations against a local mock server that records each request, so the suite proves the same calls with the same payloads, not only the same files. ID3 tags are now written by a port of mutagen\u2019s frame order and padding, so tagged MP3s are byte-identical. 242 suite checks, all green. Still open for the exit criterion: one real the413 episode produced end to end." },
     { date: "2026-09-12", text: "Phase 4 complete. daw, assemble and master are native (27 of 38 commands). xil-audio gained a line-by-line port of pydub\u2019s AudioSegment on top of CPython\u2019s audioop arithmetic (floored products, ratecv interpolation), checked against pydub on 33 operations with identical hashes \u2014 including its quirks, such as a fade longer than its clip growing the clip. Two last-bit traps surfaced: pydub\u2019s decibels use log(x)/log(10), not log10, and the math has to go through the C library at run time as Python\u2019s does. The ffmpeg treatment bridge reproduces phone (with the GSM round trip) and speakerphone byte for byte; film draws random grain in both languages. On the fixture episode all five DAW layers are PCM-identical across four sample rates, assemble\u2019s MP3 is byte-identical, and master\u2019s decoded audio is identical. On a synthetic 22-minute, 300-stem episode the layers again matched exactly and daw ran 2.4\u00d7 faster (1:32 vs 3:45). 146 suite checks, all green." },
     { date: "2026-09-12", text: "Phase 3 complete. All seven SFX utility commands are native: db-profile, csv-join, sfx-hydrate, sfx-restore, sfx-impact, sfx-lib and sfx-match (24 of 38 commands now). xil-audio gained a PCM layer with pydub\u2019s exact level math, an ffmpeg bridge that runs pydub\u2019s own decode command, ID3 read and retag, and a line-by-line port of mutagen\u2019s MP3 header reader \u2014 checked against mutagen on all 1,880 files of the real SFX library with zero differences (ffprobe disagrees on about one file in six). xil-core gained a reader with CPython\u2019s csv state machine and Python number formatting. 130 suite checks, all green. sfx-lib --api still hands off to Python until the network phase." },
     { date: "2026-09-12", text: "Phase 2 complete. The parser and scanner are native, along with the migrator, cleanup, regenerator and splice. Verified two ways: 83 suite checks, and a new sweep mode that runs both implementations over every production script in the workspace — 96 of 96 byte-identical for parse, and again for scan. xil-core gained a transcription of CPython\u2019s difflib (the scanner\u2019s 0.72 near-miss cutoff is a behaviour boundary, so the ratio has to agree to the last bit), the SFX edit journal, and the stem naming rules. The timeline renderer moved to phase 4: it is only ever called by daw, whose dry-run path needs mix_common, so there is no way to prove it correct before then." },

@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "text": "Beta line.",
+      "speaker": "guest",
+      "voice_id": "v-guest-002",
+      "speed": null,
+      "stability": null,
+      "similarity_boost": null,
+      "backend": "elevenlabs",
+      "model": "eleven_v3",
+      "sha256": "5fe7e0f7a8e4eb940abd2123b78368fa6a0480a86fcba5426be37c5996235b03",
+      "seq_at_generation": 0,
+      "stem_filename": "007_act1_guest.mp3",
+      "generated_at": ""
+    },
+    {
+      "text": "Gamma line.",
+      "speaker": "host",
+      "voice_id": "v-host-001",
+      "speed": 1.1,
+      "stability": 1.0,
+      "similarity_boost": 0.8,
+      "backend": "elevenlabs",
+      "model": "eleven_v3",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "seq_at_generation": 0,
+      "stem_filename": "003_old_host.mp3",
+      "generated_at": ""
+    },
+    {
+      "text": "Delta line.",
+      "speaker": "guest",
+      "voice_id": "v-guest-002",
+      "speed": null,
+      "stability": null,
+      "similarity_boost": null,
+      "backend": "elevenlabs",
+      "model": "eleven_v3",
+      "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "seq_at_generation": 0,
+      "stem_filename": "009_act1_guest.mp3",
+      "generated_at": ""
+    }
+  ]
+}

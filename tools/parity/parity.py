@@ -77,6 +77,12 @@ MASKS = [
     # audio URL with the file's mtime — layer WAVs written a moment apart.
     (re.compile(r"Generated \d{4}-\d{2}-\d{2} \d{2}:\d{2}"), "Generated <STAMP>"),
     (re.compile(r"\?v=\d+"), "?v=<MTIME>"),
+    # The publish stage's post header.
+    (re.compile(r"Generated: \d{4}-\d{2}-\d{2}"), "Generated: <DATE>"),
+    # Per-run snapshot files carry their start time in the name, dashed.
+    (re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}"), "<TS>"),
+    # Temporary-file names an error message may quote.
+    (re.compile(r"tmp[A-Za-z0-9_]{8}"), "tmp<RAND>"),
 ]
 
 
@@ -542,6 +548,7 @@ def cmd_record(_: argparse.Namespace) -> int:
     (ws / "docs").mkdir(exist_ok=True)
     (ws / "docs" / "claude-scriptwriter-reference.md").write_text("# Scriptwriter reference (fixture)\n", encoding="utf-8")
     _record_mix(ws)
+    _record_phase5(ws)
     _write_manifest()
     return 0
 
@@ -561,6 +568,543 @@ def cmd_record_mix(_: argparse.Namespace) -> int:
     _record_mix(WORKSPACE_FIXTURE)
     _write_manifest()
     return 0
+
+
+def cmd_record_phase5(_: argparse.Namespace) -> int:
+    """(Re)write only the phase-5 fixtures (fake workers, verify/compare reports)."""
+    _record_phase5(WORKSPACE_FIXTURE)
+    _write_manifest()
+    return 0
+
+
+FAKE_WHISPER = r'''#!/usr/bin/env python3
+"""A stand-in for venv-whisper's python running whisper_worker.py.
+
+Called as `fake-whisper-python <worker.py> <device> <model>`. Speaks the
+worker protocol with canned transcripts keyed on the stem's speaker, and
+covers every failure the client handles: an error reply, a reply missing a
+field, and an empty transcript.
+"""
+import json
+import os
+import sys
+
+device = sys.argv[2] if len(sys.argv) > 2 else "cuda"
+model = sys.argv[3] if len(sys.argv) > 3 else "large-v3-turbo"
+print(json.dumps({"ready": True, "model": model, "device": "cpu" if device == "cuda" else device}), flush=True)
+TEXT = {
+    "host": "Welcome to the mix where every layer lines up.",
+    "guest": "Hello from the fone lion.",
+    "old": "Back in my day we walked uphill both ways to the studio, through the snow and the rain and the wind, "
+           "carrying the tape machines on our backs while the producers shouted about levels and the engineers "
+           "argued about microphones until dawn.",
+}
+for raw in sys.stdin:
+    raw = raw.strip()
+    if not raw:
+        continue
+    req = json.loads(raw)
+    name = os.path.splitext(os.path.basename(req.get("audio_path", "")))[0]
+    speaker = name.rsplit("_", 1)[-1]
+    if speaker == "bot":
+        print(json.dumps({"error": "CUDA out of memory"}), flush=True)
+    elif speaker == "dez":
+        print(json.dumps({"done": True, "text": "raining", "language": "en"}), flush=True)
+    elif speaker == "caller":
+        print(json.dumps({"done": True, "text": "  ", "language": "en", "language_probability": 0.3127, "segments": []}), flush=True)
+    else:
+        text = TEXT.get(speaker, "SFX noise " + speaker)
+        seg = [{"start": 0.0, "end": 1.2345678901234567, "text": text}]
+        print(json.dumps({"done": True, "text": text, "language": req.get("language") or "en",
+                          "language_probability": 0.9876, "segments": seg}), flush=True)
+'''
+
+
+FAKE_MMAUDIO = r'''#!/usr/bin/env python3
+"""A stand-in for venv-mmaudio's python running mmaudio_worker.py.
+
+Prints model-loading noise before the ready line (the client must skip it),
+then renders each request as an ffmpeg tone of the requested length at
+out_path. A prompt containing "explode" gets an error reply.
+"""
+import json
+import subprocess
+import sys
+
+print("Loading MMAudio weights... 100%", flush=True)
+print("{not json", flush=True)
+print(json.dumps({"ready": True, "sr": 44100, "device": "cpu"}), flush=True)
+for raw in sys.stdin:
+    raw = raw.strip()
+    if not raw:
+        continue
+    req = json.loads(raw)
+    if "explode" in (req.get("prompt") or ""):
+        print(json.dumps({"error": "sampler diverged"}), flush=True)
+        continue
+    freq = 300 + len(req.get("prompt") or "") * 7
+    subprocess.run(["ffmpeg", "-v", "quiet", "-y", "-f", "lavfi", "-i",
+                    f"sine=frequency={freq}:duration={req['duration_seconds']}:sample_rate=44100",
+                    "-ac", "1", req["out_path"]], check=True)
+    print(json.dumps({"done": True, "seed": req.get("seed"), "steps": req.get("num_inference_steps")}), flush=True)
+'''
+
+
+def _record_sfx(ws: Path) -> None:
+    """S01E08 exercises every branch of `xil sfx`; S01E09 a source that cannot be found."""
+    import stat
+
+    py = PY_XIL.parent / "python"
+    fake = ws / "bin" / "fake-mmaudio-python"
+    fake.parent.mkdir(parents=True, exist_ok=True)
+    fake.write_text(FAKE_MMAUDIO)
+    fake.chmod(fake.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
+    cfg = ws / "configs" / "mixshow"
+    for tag in ("S01E08", "S01E09"):
+        cast = {"show": "Mix Show", "season": 1, "episode": int(tag[-2:]), "cast": {
+            "host": {"full_name": "Host", "voice_id": "v-host-001", "pan": 0.0, "filter": None, "role": "Host"}}}
+        (cfg / f"cast_{tag}.json").write_text(json.dumps(cast, indent=2) + "\n", encoding="utf-8")
+
+    effects = {
+        "SFX: DOOR SLAM": {"prompt": "a heavy wooden door slams", "duration_seconds": 1.5},
+        "BEAT": {"type": "silence", "duration_seconds": 0.5},
+        "MUSIC: THEME": {"source": "SFX/mixshow/theme_src.mp3"},
+        "AMBIENCE: RAIN": {"source": "SFX/mixshow/nope.mp3", "prompt": "steady rain on a tin roof",
+                           "duration_seconds": 2.0, "prompt_influence": 0.7},
+        "AMBIENCE: STOP": {"type": "silence", "duration_seconds": 0.0},
+        "SFX: CACHED": {"prompt": "already generated", "duration_seconds": 1.0},
+        "SFX: REJECTED": {"prompt": "graded out", "duration_seconds": 1.0},
+        "SFX: LONG": {"prompt": "a long rumble", "duration_seconds": 6.0},
+        "SFX: UNUSED": {"prompt": "never cued", "duration_seconds": 1.0},
+    }
+    (cfg / "sfx_S01E08.json").write_text(json.dumps(
+        {"show": "Mix Show", "season": 1, "episode": 8, "defaults": {"prompt_influence": 0.25}, "effects": effects},
+        indent=2) + "\n", encoding="utf-8")
+    (cfg / "sfx_S01E09.json").write_text(json.dumps(
+        {"show": "Mix Show", "season": 1, "episode": 9, "effects": {"SFX: GONE": {"source": "SFX/gone.mp3"}}},
+        indent=2) + "\n", encoding="utf-8")
+
+    def d(seq, text, dt, section="act1", scene="scene-1"):
+        return {"seq": seq, "type": "direction", "section": section, "scene": scene, "speaker": None,
+                "text": text, "direction_type": dt}
+
+    rows = [
+        d(-1, "MUSIC: THEME", "MUSIC", section="preamble", scene=None),
+        {"seq": 1, "type": "section_header", "section": "act1", "scene": None, "speaker": None, "text": "ACT ONE",
+         "direction_type": None},
+        d(2, "SFX: DOOR SLAM", "SFX"), d(3, "BEAT", "BEAT"), d(4, "AMBIENCE: RAIN", "AMBIENCE"),
+        d(5, "SFX: CACHED", "SFX", scene=None), d(6, "SFX: REJECTED", "SFX"), d(7, "SFX: LONG", "SFX"),
+        d(8, "AMBIENCE: STOP", "AMBIENCE"), d(9, "SFX: DOOR SLAM", "SFX"), d(10, "SFX: NOT CONFIGURED", "SFX"),
+        {"seq": 11, "type": "dialogue", "section": "act1", "scene": "scene-1", "speaker": "host", "text": "Hi.",
+         "direction_type": None},
+    ]
+    pdir = ws / "parsed" / "mixshow"
+    (pdir / "parsed_S01E08.json").write_text(json.dumps({"entries": rows}, indent=2), encoding="utf-8")
+    (pdir / "parsed_S01E09.json").write_text(json.dumps({"entries": [d(1, "SFX: GONE", "SFX")]}, indent=2),
+                                             encoding="utf-8")
+
+    def tone(out: Path, freq: int, secs: float) -> None:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        _run(["ffmpeg", "-v", "quiet", "-y", "-f", "lavfi", "-i",
+              f"sine=frequency={freq}:duration={secs}:sample_rate=22050", "-ac", "1", str(out)])
+
+    tone(ws / "SFX" / "mixshow" / "theme_src.mp3", 440, 1.0)
+    tone(ws / "SFX" / "sfx_cached.mp3", 550, 0.5)
+    tone(ws / "SFX" / "sfx_rejected.mp3", 660, 0.5)
+    _run([str(py), "-c",
+          "import sys; from mutagen.id3 import ID3, TXXX; t = ID3(sys.argv[1]); "
+          "t.add(TXXX(encoding=3, desc='XIL_GRADE', text='rejected')); t.save()",
+          str(ws / "SFX" / "sfx_rejected.mp3")])
+    # The rejected cue's stale stem from an earlier run, and a stem already placed.
+    stems = ws / "stems" / "mixshow" / "S01E08"
+    tone(stems / "006_act1-scene-1_sfx.mp3", 660, 0.5)
+    tone(stems / "005_act1_sfx.mp3", 550, 0.5)
+
+
+def _record_studio(ws: Path) -> None:
+    """S01E10: a Studio onboarding script — lines before the first section,
+    a narrator found by role, a speaker missing from the cast, accents."""
+    cfg = ws / "configs" / "mixshow"
+    cast = {"show": "Mix Show", "season": 1, "episode": 10, "cast": {
+        "guest": {"full_name": "Gäst Star", "voice_id": "v-guest-002", "pan": 0.0, "filter": None, "role": "Guest"},
+        "host": {"full_name": "Harper", "voice_id": "v-host-001", "pan": 0.0, "filter": None, "role": "Host/Narrator"},
+        "extra": {"full_name": "Extra", "voice_id": "v-extra-004", "pan": 0.0, "filter": None, "role": "Extra"},
+    }}
+    (cfg / "cast_S01E10.json").write_text(json.dumps(cast, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    def e(seq, kind, text, speaker=None):
+        return {"seq": seq, "type": kind, "section": "act1", "scene": None, "speaker": speaker, "text": text,
+                "direction_type": "SFX" if kind == "direction" else None}
+
+    entries = [
+        e(1, "dialogue", "Before any section — café talk.", "guest"),
+        e(2, "scene_header", "SCENE 0: COLD OPEN"),
+        e(3, "section_header", "ACT ONE"),
+        e(4, "scene_header", "SCENE 1: STUDIO"),
+        e(5, "dialogue", "Welcome back.", "host"),
+        e(6, "direction", "SFX: APPLAUSE"),
+        e(7, "dialogue", "Who am I?", "mystery"),
+        e(8, "dialogue", "The extra speaks.", "extra"),
+        e(9, "section_header", "ACT TWO"),
+        e(10, "section_header", "ACT THREE"),
+        e(11, "dialogue", "A" * 1200, "host"),
+    ]
+    (ws / "parsed" / "mixshow" / "parsed_S01E10.json").write_text(
+        json.dumps({"show": "Mix Show", "title": "Onboarding", "entries": entries}, indent=2, ensure_ascii=False),
+        encoding="utf-8")
+
+
+def _record_publish(ws: Path) -> None:
+    """pubshow: one full episode (cold open, cast, master for the runtime),
+    one with no cast config, and parsed_*.json files for --all."""
+    slug = "pubshow"
+    cfg = ws / "configs" / slug
+    cfg.mkdir(parents=True, exist_ok=True)
+    (cfg / "project.json").write_text(json.dumps({"show": "Pub Show"}) + "\n", encoding="utf-8")
+    cast = {"show": "Pub Show", "season": 2, "episode": 3, "cast": {
+        "nora": {"full_name": "Nora Walsh", "voice_id": "v1", "pan": 0, "filter": None,
+                 "role": "  Detective\nsecond line of notes"},
+        "tbone": {"full_name": "T-Bone", "voice_id": "v2", "pan": 0, "filter": None, "role": ""},
+        "adam": {"voice_id": "v3", "pan": 0, "filter": None, "role": "Host"},
+    }}
+    (cfg / "cast_S02E03.json").write_text(json.dumps(cast, indent=2) + "\n", encoding="utf-8")
+
+    def e(kind, section, text, speaker=None):
+        return {"type": kind, "section": section, "speaker": speaker, "text": text}
+
+    long_line = "It was the kind of night " * 12
+    entries = [
+        e("section_header", "preamble", "PREAMBLE"), e("dialogue", "preamble", "Intro.", "adam"),
+        e("section_header", "cold-open", "COLD OPEN"),
+        e("scene_header", "cold-open", "SCENE 1: THE DOCKS"),
+        e("dialogue", "cold-open", "Somebody call this in?", "nora"),
+        e("scene_header", "cold-open", "SCENE 2: NOT THIS ONE"),
+        e("dialogue", "cold-open", long_line, "tbone"),
+        e("dialogue", "cold-open", "Who's there?", "stranger"),
+        e("dialogue", "cold-open", "A fourth line never quoted.", "nora"),
+        e("section_header", "act1", "ACT ONE"), e("dialogue", "act1", "Case open.", "nora"),
+        e("section_header", "mid-break", "BREAK"), e("section_header", "act2b-reprise", "ACT TWO B"),
+        e("section_header", "postamble", "POSTAMBLE"),
+    ]
+    for i, en in enumerate(entries, 1):
+        en["seq"] = i
+    pdir = ws / "parsed" / slug
+    pdir.mkdir(parents=True, exist_ok=True)
+    doc = {"show": "Pub Show", "season": 2, "episode": 3, "title": "Dockside", "season_title": "Harbor Lights",
+           "entries": entries, "stats": {"speakers": ["adam", "nora", "stranger", "tbone"]}}
+    (pdir / "parsed_S02E03.json").write_text(json.dumps(doc, indent=2), encoding="utf-8")
+    doc2 = {"show": "Pub Show", "season": 2, "episode": 4, "title": "No Cast", "entries": entries[:3],
+            "stats": {"speakers": []}}
+    (pdir / "parsed_S02E04.json").write_text(json.dumps(doc2, indent=2), encoding="utf-8")
+    master = ws / "masters" / slug / "S02E03_master.mp3"
+    master.parent.mkdir(parents=True, exist_ok=True)
+    _run(["ffmpeg", "-v", "quiet", "-y", "-f", "lavfi", "-i", "anullsrc=r=8000:cl=mono:d=125",
+          "-b:a", "8k", str(master)])
+
+
+CUES_SHEET = """# Season 1, Episode 11 — Sound Cues & Music Prompts
+
+Intro text that belongs to no section.
+
+## **MUSIC CUES**
+
+### MUS-THEME-MAIN-01 (REUSE)
+**Prompt:** Eerie indie folk theme, fingerpicked guitar **Duration:** 60 seconds **Used:** Opening, closing
+
+### **MUS-STING-02 (NEW)**
+**Prompt:** A short ominous brass sting that rises and cuts off abruptly, recorded in a large reverberant hall with distant thunder rolling underneath it all **Duration:** 90 seconds **Used:** Act break
+
+### MUS-BED-03 NEW
+**Prompt:** Soft piano bed **Duration:** Loopable **Used:** Scene 2
+
+### MUS-NO-PROMPT-04 (NEW)
+Some notes without the data line.
+
+## Ambience
+
+### AMB-DINER-01 (NEW)
+**Prompt:** Busy diner, cutlery, low chatter **Duration:** 2 min **Used:** Scene 1
+
+### AMB-RAIN-02 (REUSE)
+*Prompt:* Rain on a tin roof *Duration:* 45s *Used:* Scene 3
+
+## SOUND EFFECTS
+
+### Scene 1: **The Diner**
+
+| Asset Name | Prompt | Notes |
+|---|---|---|
+| **SFX-DOOR-01 (NEW)** | A heavy diner door swings shut | loud |
+| SFX-BELL-02 (REUSE) | Counter bell ding | |
+| lowercase-row-03 (NEW) | skipped: no capitals | |
+| SFX-NO-MARK | missing the status marker | |
+
+### Street
+| SFX-CAR-04 (NEW) | Car passes on a wet street |
+
+## Credits
+
+### NOT-AN-ASSET-99 (NEW)
+**Prompt:** ignored **Duration:** 5s **Used:** nowhere
+"""
+
+
+def _record_cues(ws: Path) -> None:
+    """A cues sheet for S01E11 hitting every parsing branch, one library hit,
+    and an SFX config whose keys embed the asset IDs for enrichment."""
+    cues = ws / "cues" / "mixshow"
+    cues.mkdir(parents=True, exist_ok=True)
+    (cues / "cues_S01E11.md").write_text(CUES_SHEET, encoding="utf-8")
+    # A lone top-level sheet, found by the single-file fallback.
+    (ws / "cues" / "Pub Show Cues.md").write_text(CUES_SHEET.replace("MUS-", "PUB-"), encoding="utf-8")
+    _run(["ffmpeg", "-v", "quiet", "-y", "-f", "lavfi", "-i", "sine=frequency=500:duration=0.5:sample_rate=22050",
+          "-ac", "1", str(ws / "SFX" / "sfx-bell-02.mp3")])
+    effects = {
+        "MUSIC: MUS-THEME-MAIN-01 — EERIE INDIE FOLK, FADES UNDER": {"prompt": "old prompt", "duration_seconds": 60},
+        "MUSIC: mus-theme-main-01 — up briefly, then out": {"prompt": "Eerie indie folk theme, fingerpicked guitar",
+                                                          "duration_seconds": 29.8},
+        "MUSIC: MUS-STING-02": {"duration_seconds": 5.0},
+        "AMBIENCE: AMB-DINER-01 CAFÉ": {"prompt": None, "duration_seconds": 10.0, "loop": False},
+        "SFX: SFX-DOOR-01": {"prompt": "A heavy diner door swings shut", "duration_seconds": 5.2},
+        "SFX: UNRELATED": {"prompt": "x", "duration_seconds": 1.0},
+    }
+    (ws / "configs" / "mixshow" / "sfx_S01E11.json").write_text(
+        json.dumps({"show": "Mix Show", "season": 1, "episode": 11, "effects": effects}, indent=2,
+                   ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+FAKE_CHATTERBOX = r'''#!/usr/bin/env python3
+"""A stand-in for venv-chatterbox's python running chatterbox_turbo_worker.py.
+
+Reports it fell back to cpu when asked for cuda (the client warns), renders
+each line as a tone whose length follows the text, and errors on "[explode]".
+"""
+import json
+import subprocess
+import sys
+
+requested = sys.argv[2] if len(sys.argv) > 2 else "cuda"
+print("Loading Chatterbox Turbo...", flush=True)
+print(json.dumps({"ready": True, "sr": 24000, "device": "cpu"}), flush=True)
+for raw in sys.stdin:
+    raw = raw.strip()
+    if not raw:
+        continue
+    req = json.loads(raw)
+    if "[explode]" in req["text"]:
+        print(json.dumps({"error": "CUDA error: device-side assert"}), flush=True)
+        continue
+    secs = 0.2 + len(req["text"]) % 7 * 0.1
+    has_ref = "1" if req.get("ref_audio") else "0"
+    subprocess.run(["ffmpeg", "-v", "quiet", "-y", "-f", "lavfi", "-i",
+                    f"sine=frequency={200 + len(req['text'])}:duration={secs:.1f}:sample_rate=24000",
+                    "-ac", "1", "-f", "mp3", req["out_path"]], check=True)
+    if requested == "cpu":
+        print("S3 Token -> Mel Inference...", flush=True)
+    print(json.dumps({"done": True, "ref": has_ref}), flush=True)
+'''
+
+
+def _record_sample(ws: Path) -> None:
+    """Fixtures for `xil sample` and the producer's TTS backends."""
+    import stat
+
+    fake = ws / "bin" / "fake-chatterbox-python"
+    fake.write_text(FAKE_CHATTERBOX)
+    fake.chmod(fake.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    refs = ws / "voice_refs"
+    refs.mkdir(exist_ok=True)
+    _run(["ffmpeg", "-v", "quiet", "-y", "-f", "lavfi", "-i", "sine=frequency=210:duration=0.5:sample_rate=16000",
+          str(refs / "host.wav")])
+    _run(["ffmpeg", "-v", "quiet", "-y", "-f", "lavfi", "-i", "sine=frequency=310:duration=0.5:sample_rate=16000",
+          "-ac", "1", str(refs / "guest.mp3")])
+    existing = ws / "voice_samples" / "S01E10" / "elevenlabs" / "guest.mp3"
+    existing.parent.mkdir(parents=True, exist_ok=True)
+    _run(["ffmpeg", "-v", "quiet", "-y", "-f", "lavfi", "-i", "sine=frequency=330:duration=0.4:sample_rate=22050",
+          "-ac", "1", str(existing)])
+    bad = {"show": "Mix Show", "tag_override": "BAD01", "cast": {
+        "ok": {"full_name": "Okay Voice", "voice_id": "v-host-001", "pan": 0, "filter": None, "role": "r"},
+        "broken": {"full_name": "Broken Voice", "voice_id": "bad-voice", "pan": 0, "filter": None, "role": "r"},
+    }}
+    (ws / "configs" / "mixshow" / "cast_BAD01.json").write_text(json.dumps(bad, indent=2) + "\n", encoding="utf-8")
+
+
+def _record_produce(ws: Path) -> None:
+    """S01E12 for generation, S01E13 with a stem manifest for --reconcile."""
+    import hashlib
+
+    cfg = ws / "configs" / "mixshow"
+
+    def cast(ep):
+        return {"show": "Mix Show", "season": 1, "episode": ep,
+                "preamble": {"speaker": "host", "text": "Intro.", "speed": 0.9},
+                "cast": {
+                    "host": {"full_name": "Harper Host", "voice_id": "v-host-001", "pan": 0, "filter": None,
+                             "role": "Host", "stability": 1, "similarity_boost": 0.8, "style": 0,
+                             "use_speaker_boost": True, "language_code": "en", "speed": 1.1},
+                    "guest": {"full_name": "Gus Guest", "voice_id": "v-guest-002", "pan": 0, "filter": None,
+                              "role": "Guest"},
+                    "tbd": {"full_name": "To Be Decided", "voice_id": "TBD", "pan": 0, "filter": None, "role": "?"},
+                }}
+
+    for ep in (12, 13):
+        (cfg / f"cast_S01E{ep}.json").write_text(json.dumps(cast(ep), indent=2) + "\n", encoding="utf-8")
+    (cfg / "sfx_S01E12.json").write_text(json.dumps(
+        {"show": "Mix Show", "effects": {"SFX: DOOR SLAM": {"prompt": "door slams", "duration_seconds": 1.0}}},
+        indent=2) + "\n", encoding="utf-8")
+
+    def en(seq, kind, section, text, speaker=None, scene=None, direction=None, dt=None):
+        return {"seq": seq, "type": kind, "section": section, "scene": scene, "speaker": speaker,
+                "direction": direction, "text": text, "direction_type": dt}
+
+    long_line = ('Well, <break time="1s"/> this is a very long line that goes on and on past the seventy-five '
+                 'character preview limit.')
+    entries = [
+        en(1, "section_header", "preamble", "PREAMBLE"),
+        en(2, "dialogue", "preamble", "Welcome to Mix Show, episode twelve.", "host"),
+        en(3, "section_header", "act1", "ACT ONE"),
+        en(4, "scene_header", "act1", "SCENE 1", scene="scene-1"),
+        en(5, "dialogue", "act1", "Hello there, café lovers!", "guest", "scene-1", "cheerfully"),
+        en(6, "direction", "act1", "SFX: DOOR SLAM", scene="scene-1", dt="SFX"),
+        en(7, "dialogue", "act1", "[sigh] ... !!", "host", "scene-1"),
+        en(8, "dialogue", "act1", long_line, "guest", "scene-1"),
+        en(9, "dialogue", "act1", "Short.", "host", "scene-1"),
+        en(10, "dialogue", "act1", "I have no voice yet.", "tbd", "scene-1"),
+        en(11, "dialogue", "postamble", "Goodbye for now.", "host"),
+    ]
+    pdir = ws / "parsed" / "mixshow"
+    (pdir / "parsed_S01E12.json").write_text(json.dumps({"entries": entries}, indent=2, ensure_ascii=False),
+                                             encoding="utf-8")
+    stems = ws / "stems" / "mixshow" / "S01E12"
+    stems.mkdir(parents=True, exist_ok=True)
+    _run(["ffmpeg", "-v", "quiet", "-y", "-f", "lavfi", "-i", "sine=frequency=240:duration=0.3:sample_rate=22050",
+          "-ac", "1", str(stems / "005_act1-scene-1_guest.mp3")])
+    (stems / "009_act1-scene-1_host.mp3").write_bytes(b"")
+
+    r_entries = [
+        en(1, "dialogue", "act1", "Alpha line.", "host"),
+        en(2, "dialogue", "act1", "Beta line.", "guest"),
+        en(3, "dialogue", "act1", "Gamma line.", "host"),
+        en(4, "dialogue", "act1", "Delta line.", "guest"),
+        en(5, "dialogue", "act1", "Epsilon line.", "host"),
+    ]
+    (pdir / "parsed_S01E13.json").write_text(json.dumps({"entries": r_entries}, indent=2), encoding="utf-8")
+    rstems = ws / "stems" / "mixshow" / "S01E13"
+    rstems.mkdir(parents=True, exist_ok=True)
+    for name, freq in (("001_act1_host.mp3", 250), ("007_act1_guest.mp3", 260), ("009_act1_guest.mp3", 270)):
+        _run(["ffmpeg", "-v", "quiet", "-y", "-f", "lavfi", "-i", f"sine=frequency={freq}:duration=0.2",
+              "-ac", "1", str(rstems / name)])
+
+    def sha(p):
+        return hashlib.sha256(p.read_bytes()).hexdigest()
+
+    def m(text, speaker, fname, digest):
+        host = speaker == "host"
+        return {"text": text, "speaker": speaker, "voice_id": "v-host-001" if host else "v-guest-002",
+                "speed": 1.1 if host else None, "stability": 1.0 if host else None,
+                "similarity_boost": 0.8 if host else None, "backend": "elevenlabs", "model": "eleven_v3",
+                "sha256": digest, "seq_at_generation": 0, "stem_filename": fname, "generated_at": ""}
+
+    manifest = {"version": 1, "entries": [
+        m("Beta line.", "guest", "007_act1_guest.mp3", sha(rstems / "007_act1_guest.mp3")),
+        m("Gamma line.", "host", "003_old_host.mp3", "0" * 64),
+        m("Delta line.", "guest", "009_act1_guest.mp3", "f" * 64),
+    ]}
+    (rstems / "S01E13_stem_manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+
+
+def _record_phase5(ws: Path) -> None:
+    """Fixtures for the network/worker phase: fake workers and the reports they feed."""
+    import stat
+
+    _record_sfx(ws)
+    _record_studio(ws)
+    _record_publish(ws)
+    _record_cues(ws)
+    _record_sample(ws)
+    _record_produce(ws)
+
+    bindir = ws / "bin"
+    bindir.mkdir(parents=True, exist_ok=True)
+    fake = bindir / "fake-whisper-python"
+    fake.write_text(FAKE_WHISPER)
+    fake.chmod(fake.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
+    # A stem_verify report as the Python writes it, over the mixshow stems,
+    # so stem-compare has real input with every status in it.
+    env = dict(os.environ, XIL_PROJECTROOT=str(ws), XIL_CODEROOT=str(CODEROOT))
+    env.pop("XIL_FORCE_PY", None)
+    r = _run([str(PY_XIL), "stem-verify", "--show", "mixshow", "--episode", "S01E01",
+              "--whisper-python", str(fake), "--device", "cpu"], cwd=ws, env=env)
+    if r.returncode != 0:
+        print(f"stem-verify fixture failed:\n{r.stdout}\n{r.stderr}", file=sys.stderr)
+
+    # Long lines: past 200 characters difflib's autojunk changes the ratio.
+    long_text = ("Back in my day we walked uphill both ways to the studio, through the snow and the rain, "
+                 "carrying the tape machines on our backs while the producers shouted about levels and the "
+                 "engineers argued about which microphone sounded warmer until the sun came up again.")
+    entries = [
+        {"seq": 1, "type": "dialogue", "section": "act1", "scene": "scene-1", "speaker": "old",
+         "text": long_text, "direction_type": None},
+        {"seq": 2, "type": "dialogue", "section": "act1", "scene": None, "speaker": "a-very-long-speaker-name",
+         "text": "Short and sweet.", "direction_type": None},
+        {"seq": 3, "type": "dialogue", "section": "act1", "scene": None, "speaker": None,
+         "text": "Nobody said this.", "direction_type": None},
+        {"seq": 4, "type": "direction", "section": "act1", "scene": None, "speaker": None,
+         "text": "SFX: DOOR", "direction_type": "SFX"},
+        {"seq": 5, "type": "dialogue", "section": "act1", "scene": None, "speaker": "host",
+         "text": "Überraschung — café, naïve!", "direction_type": None},
+    ]
+    pdir = ws / "parsed" / "mixshow"
+    pdir.mkdir(parents=True, exist_ok=True)
+    (pdir / "compare_long.json").write_text(json.dumps({"entries": entries}, indent=2), encoding="utf-8")
+    files = [
+        {"filename": "001_act1_old.mp3", "seq": 1, "speaker": "old",
+         "transcript": {"text": TEXT_OLD_TRANSCRIPT, "language": "en"}},
+        {"filename": "002_act1_a-very-long-speaker-name.mp3", "seq": 2, "speaker": "a-very-long-speaker-name",
+         "transcript": {"text": "Short and sweat!"}},
+        {"filename": "004_act1_sfx.mp3", "seq": 4, "speaker": "sfx", "transcript": {"text": "bang"}},
+        {"filename": "005_act1_host.mp3", "seq": 5, "speaker": "host",
+         "transcript": {"text": "uberraschung cafe naive"}},
+        {"filename": "Chapter.mp3", "seq": None, "speaker": None, "transcript": None},
+    ]
+    (pdir / "stem_verify_long.json").write_text(json.dumps({"files": files}, indent=2), encoding="utf-8")
+
+    # A cast file for `voices --update-cast`: a TBD voice, an unknown one, a
+    # role still TBD, a language already set, and one needing both fields.
+    vcast = {"show": "Mix Show", "season": 1, "episode": 7, "cast": {
+        "host": {"full_name": "Host", "voice_id": "v-host-001", "pan": 0.0, "filter": None, "role": "TBD"},
+        "guest": {"full_name": "Gäst", "voice_id": "v-guest-002", "pan": 0.0, "filter": None, "role": "TBD",
+                  "language_code": None},
+        "clone": {"full_name": "Clone", "voice_id": "v-clone-003", "pan": 0.0, "filter": None, "role": "Villain",
+                  "language_code": "en"},
+        "nobody": {"full_name": "Nobody", "voice_id": "TBD", "pan": 0.0, "filter": None, "role": "TBD"},
+        "ghost": {"full_name": "Ghost", "voice_id": "v-missing", "pan": 0.0, "filter": None, "role": "TBD"},
+    }}
+    (ws / "configs" / "mixshow" / "cast_S01E07.json").write_text(json.dumps(vcast, indent=2, ensure_ascii=False) + "\n",
+                                                                encoding="utf-8")
+
+    # An ElevenLabs Studio export for `import`: one member per parsed entry
+    # (headers included), a nested member, a seq the script lacks, and
+    # members that are not stems at all. Fixed timestamps keep it stable.
+    import zipfile
+    exports = ws / "exports"
+    exports.mkdir(exist_ok=True)
+    with zipfile.ZipFile(exports / "studio_S01E01.zip", "w", zipfile.ZIP_DEFLATED) as zf:
+        def add(name, data):
+            zf.writestr(zipfile.ZipInfo(name, date_time=(2026, 1, 1, 0, 0, 0)), data)
+        for seq in range(1, 29):
+            add(f"{seq:03d}_Chapter {1 + seq // 10}.mp3", f"studio audio {seq}".encode())
+        add("export/040_Chapter 9.mp3", b"orphan")
+        add("Chapter.mp3", b"no seq")
+        add("031_Chapter 3.MP3", b"upper-case extension")
+        add("readme.txt", b"not audio")
+
+
+TEXT_OLD_TRANSCRIPT = ("back in my day we walked up hill both ways to the studio through the snow and rain "
+                       "carrying tape machines on our backs while producers shouted about the levels and "
+                       "engineers argued over which microphone sounded warmer till the sun came up again")
 
 
 def _record_mix(ws: Path) -> None:
@@ -735,13 +1279,40 @@ def _fresh_workspace(side: str) -> Path:
     return ws
 
 
-def _run_side(side: str, binary: Path, args: list[str], force_py: bool) -> tuple[Path, subprocess.CompletedProcess]:
+_MOCK = None  # the shared mockapi.MockApi, started on first use
+
+
+def _mock_api():
+    global _MOCK
+    if _MOCK is None:
+        sys.path.insert(0, str(HERE))
+        from mockapi import MockApi
+
+        _MOCK = MockApi().__enter__()
+    return _MOCK
+
+
+def _run_side(side: str, binary: Path, args: list[str], force_py: bool,
+              extra_env: dict | None = None) -> tuple[Path, subprocess.CompletedProcess]:
     ws = _fresh_workspace(side)
     env = dict(os.environ)
     env["XIL_PROJECTROOT"] = str(ws)
     env["XIL_CODEROOT"] = str(CODEROOT)
     env["XIL_TRACE_IMPL"] = "1"
-    env.pop("ELEVENLABS_API_KEY", None)  # never let a parity run spend credits
+    # Never let a parity run spend credits: real keys are dropped, and every
+    # API client — both implementations — is pointed at the local mock, which
+    # records each request into the workspace for comparison. A check that
+    # needs a key sets a fake one through its `env` table.
+    for key in ("ELEVENLABS_API_KEY", "ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN"):
+        env.pop(key, None)
+    mock = _mock_api()
+    mock.log_to(ws / "_api_requests.jsonl")
+    env["XIL_PARITY_MOCK_API"] = mock.url
+    env["XIL_ELEVENLABS_BASE_URL"] = mock.url
+    env["XIL_GTTS_BASE_URL"] = mock.url
+    env["ANTHROPIC_BASE_URL"] = mock.url
+    env["PYTHONPATH"] = str(HERE / "pyhooks")
+    env.update(extra_env or {})
     # `xil assemble` plays its master through mpg123 when it is done. A stub
     # keeps a parity run silent and the same on machines with and without it.
     stub = SCRATCH / "bin"
@@ -784,7 +1355,8 @@ def _native_commands() -> set[str]:
 
 
 def _snapshot(ws: Path) -> dict[str, Path]:
-    return {str(p.relative_to(ws)): p for p in ws.rglob("*") if p.is_file()}
+    # Names are masked too, so a timestamped snapshot pairs with its twin.
+    return {_mask(str(p.relative_to(ws))): p for p in ws.rglob("*") if p.is_file()}
 
 
 def _compare_json(a: Path, b: Path, mask_keys: set[str]) -> str | None:
@@ -958,8 +1530,12 @@ def run_check(entry: dict, native: set[str]) -> tuple[list[str], str]:
     mask_keys = set(entry.get("mask_keys", []))
     stdout_masks = [re.compile(p) for p in entry.get("stdout_masks", [])]
 
-    ws_py, py = _run_side("py", RUST_XIL if entry.get("via_rust_shim", True) else PY_XIL, args, force_py=True)
-    ws_rs, rs = _run_side("rs", RUST_XIL, args, force_py=False)
+    extra_env = {k: str(v) for k, v in entry.get("env", {}).items()}
+    ws_py, py = _run_side("py", RUST_XIL if entry.get("via_rust_shim", True) else PY_XIL, args, force_py=True,
+                          extra_env=extra_env)
+    _mock_api().log_to(None)
+    ws_rs, rs = _run_side("rs", RUST_XIL, args, force_py=False, extra_env=extra_env)
+    _mock_api().log_to(None)
 
     failures = []
     impl = _impl_of(rs)
@@ -1115,6 +1691,7 @@ def main() -> int:
     sub = p.add_subparsers(dest="cmd", required=True)
     sub.add_parser("record", help="seed fixtures/ from the Python repo").set_defaults(fn=cmd_record)
     sub.add_parser("record-mix", help="rewrite only the daw/assemble/master fixtures").set_defaults(fn=cmd_record_mix)
+    sub.add_parser("record-phase5", help="rewrite only the phase-5 fixtures").set_defaults(fn=cmd_record_phase5)
     c = sub.add_parser("check", help="run parity checks")
     c.add_argument("names", nargs="*", help="check names from suite.toml")
     c.add_argument("--suite", action="store_true", help="run every check")

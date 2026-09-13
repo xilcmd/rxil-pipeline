@@ -1,0 +1,115 @@
+{
+  "show": "Pub Show",
+  "season": 2,
+  "episode": 3,
+  "title": "Dockside",
+  "season_title": "Harbor Lights",
+  "entries": [
+    {
+      "type": "section_header",
+      "section": "preamble",
+      "speaker": null,
+      "text": "PREAMBLE",
+      "seq": 1
+    },
+    {
+      "type": "dialogue",
+      "section": "preamble",
+      "speaker": "adam",
+      "text": "Intro.",
+      "seq": 2
+    },
+    {
+      "type": "section_header",
+      "section": "cold-open",
+      "speaker": null,
+      "text": "COLD OPEN",
+      "seq": 3
+    },
+    {
+      "type": "scene_header",
+      "section": "cold-open",
+      "speaker": null,
+      "text": "SCENE 1: THE DOCKS",
+      "seq": 4
+    },
+    {
+      "type": "dialogue",
+      "section": "cold-open",
+      "speaker": "nora",
+      "text": "Somebody call this in?",
+      "seq": 5
+    },
+    {
+      "type": "scene_header",
+      "section": "cold-open",
+      "speaker": null,
+      "text": "SCENE 2: NOT THIS ONE",
+      "seq": 6
+    },
+    {
+      "type": "dialogue",
+      "section": "cold-open",
+      "speaker": "tbone",
+      "text": "It was the kind of night It was the kind of night It was the kind of night It was the kind of night It was the kind of night It was the kind of night It was the kind of night It was the kind of night It was the kind of night It was the kind of night It was the kind of night It was the kind of night ",
+      "seq": 7
+    },
+    {
+      "type": "dialogue",
+      "section": "cold-open",
+      "speaker": "stranger",
+      "text": "Who's there?",
+      "seq": 8
+    },
+    {
+      "type": "dialogue",
+      "section": "cold-open",
+      "speaker": "nora",
+      "text": "A fourth line never quoted.",
+      "seq": 9
+    },
+    {
+      "type": "section_header",
+      "section": "act1",
+      "speaker": null,
+      "text": "ACT ONE",
+      "seq": 10
+    },
+    {
+      "type": "dialogue",
+      "section": "act1",
+      "speaker": "nora",
+      "text": "Case open.",
+      "seq": 11
+    },
+    {
+      "type": "section_header",
+      "section": "mid-break",
+      "speaker": null,
+      "text": "BREAK",
+      "seq": 12
+    },
+    {
+      "type": "section_header",
+      "section": "act2b-reprise",
+      "speaker": null,
+      "text": "ACT TWO B",
+      "seq": 13
+    },
+    {
+      "type": "section_header",
+      "section": "postamble",
+      "speaker": null,
+      "text": "POSTAMBLE",
+      "seq": 14
+    }
+  ],
+  "stats": {
+    "speakers": [
+      "adam",
+      "nora",
+      "stranger",
+      "tbone"
+    ]
+  }
+}

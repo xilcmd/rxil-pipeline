@@ -47,6 +47,23 @@ pub fn head(s: &str, n: usize) -> String {
     s.chars().take(n).collect()
 }
 
+/// `f"{n:,}"` — thousands separators, sign kept in front.
+pub fn commas(n: i64) -> String {
+    let digits = n.unsigned_abs().to_string();
+    let mut out = String::new();
+    for (i, c) in digits.chars().enumerate() {
+        if i > 0 && (digits.len() - i) % 3 == 0 {
+            out.push(',');
+        }
+        out.push(c);
+    }
+    if n < 0 {
+        format!("-{out}")
+    } else {
+        out
+    }
+}
+
 /// `html.escape(s)` with `quote=True`.
 pub fn html_escape(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
@@ -89,6 +106,14 @@ mod tests {
         assert_eq!(pad_left("ab", 4), "  ab");
         assert_eq!(head("日本語テキスト", 3), "日本語");
         assert_eq!(head("ab", 5), "ab");
+    }
+
+    #[test]
+    fn commas_like_format_spec() {
+        assert_eq!(commas(0), "0");
+        assert_eq!(commas(1234567), "1,234,567");
+        assert_eq!(commas(-1234), "-1,234");
+        assert_eq!(commas(-123), "-123");
     }
 
     #[test]

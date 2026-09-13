@@ -9,3 +9,8 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+xil-core = { path = "../xil-core" }
+serde_json.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

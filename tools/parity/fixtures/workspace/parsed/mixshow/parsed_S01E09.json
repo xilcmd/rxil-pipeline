@@ -1,0 +1,13 @@
+{
+  "entries": [
+    {
+      "seq": 1,
+      "type": "direction",
+      "section": "act1",
+      "scene": "scene-1",
+      "speaker": null,
+      "text": "SFX: GONE",
+      "direction_type": "SFX"
+    }
+  ]
+}

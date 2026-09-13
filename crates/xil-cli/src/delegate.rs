@@ -56,6 +56,36 @@ pub fn find_python_xil() -> Result<PathBuf> {
     ))
 }
 
+/// The installed `xil_pipeline` package directory — where the ML worker
+/// scripts live, as Python's `os.path.dirname(__file__)` sees it.
+///
+/// `$XIL_CODEROOT/src/xil_pipeline` for a source checkout; otherwise the
+/// interpreter beside the Python `xil` is asked, which covers a pip install
+/// (CI, `pipx`, a venv elsewhere).
+pub fn python_package_dir() -> Option<PathBuf> {
+    static DIR: std::sync::OnceLock<Option<PathBuf>> = std::sync::OnceLock::new();
+    DIR.get_or_init(|| {
+        if let Some(root) = env::var_os("XIL_CODEROOT") {
+            let p = PathBuf::from(root).join("src").join("xil_pipeline");
+            if p.join("__init__.py").is_file() {
+                return Some(p);
+            }
+        }
+        let xil = find_python_xil().ok()?;
+        let python = xil.parent()?.join("python");
+        let out = Command::new(&python)
+            .args([
+                "-c",
+                "import os, xil_pipeline; print(os.path.dirname(xil_pipeline.__file__))",
+            ])
+            .output()
+            .ok()?;
+        let dir = String::from_utf8_lossy(&out.stdout).trim().to_string();
+        (out.status.success() && !dir.is_empty()).then(|| PathBuf::from(dir))
+    })
+    .clone()
+}
+
 fn which(name: &str) -> Option<PathBuf> {
     let path = env::var_os("PATH")?;
     env::split_paths(&path)

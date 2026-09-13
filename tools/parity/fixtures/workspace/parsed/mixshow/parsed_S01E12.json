@@ -1,0 +1,114 @@
+{
+  "entries": [
+    {
+      "seq": 1,
+      "type": "section_header",
+      "section": "preamble",
+      "scene": null,
+      "speaker": null,
+      "direction": null,
+      "text": "PREAMBLE",
+      "direction_type": null
+    },
+    {
+      "seq": 2,
+      "type": "dialogue",
+      "section": "preamble",
+      "scene": null,
+      "speaker": "host",
+      "direction": null,
+      "text": "Welcome to Mix Show, episode twelve.",
+      "direction_type": null
+    },
+    {
+      "seq": 3,
+      "type": "section_header",
+      "section": "act1",
+      "scene": null,
+      "speaker": null,
+      "direction": null,
+      "text": "ACT ONE",
+      "direction_type": null
+    },
+    {
+      "seq": 4,
+      "type": "scene_header",
+      "section": "act1",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "SCENE 1",
+      "direction_type": null
+    },
+    {
+      "seq": 5,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": "scene-1",
+      "speaker": "guest",
+      "direction": "cheerfully",
+      "text": "Hello there, café lovers!",
+      "direction_type": null
+    },
+    {
+      "seq": 6,
+      "type": "direction",
+      "section": "act1",
+      "scene": "scene-1",
+      "speaker": null,
+      "direction": null,
+      "text": "SFX: DOOR SLAM",
+      "direction_type": "SFX"
+    },
+    {
+      "seq": 7,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": "scene-1",
+      "speaker": "host",
+      "direction": null,
+      "text": "[sigh] ... !!",
+      "direction_type": null
+    },
+    {
+      "seq": 8,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": "scene-1",
+      "speaker": "guest",
+      "direction": null,
+      "text": "Well, <break time=\"1s\"/> this is a very long line that goes on and on past the seventy-five character preview limit.",
+      "direction_type": null
+    },
+    {
+      "seq": 9,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": "scene-1",
+      "speaker": "host",
+      "direction": null,
+      "text": "Short.",
+      "direction_type": null
+    },
+    {
+      "seq": 10,
+      "type": "dialogue",
+      "section": "act1",
+      "scene": "scene-1",
+      "speaker": "tbd",
+      "direction": null,
+      "text": "I have no voice yet.",
+      "direction_type": null
+    },
+    {
+      "seq": 11,
+      "type": "dialogue",
+      "section": "postamble",
+      "scene": null,
+      "speaker": "host",
+      "direction": null,
+      "text": "Goodbye for now.",
+      "direction_type": null
+    }
+  ]
+}

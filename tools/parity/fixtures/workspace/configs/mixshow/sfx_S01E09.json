@@ -1,0 +1,10 @@
+{
+  "show": "Mix Show",
+  "season": 1,
+  "episode": 9,
+  "effects": {
+    "SFX: GONE": {
+      "source": "SFX/gone.mp3"
+    }
+  }
+}

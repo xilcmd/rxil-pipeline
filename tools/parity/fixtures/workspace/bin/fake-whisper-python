@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+"""A stand-in for venv-whisper's python running whisper_worker.py.
+
+Called as `fake-whisper-python <worker.py> <device> <model>`. Speaks the
+worker protocol with canned transcripts keyed on the stem's speaker, and
+covers every failure the client handles: an error reply, a reply missing a
+field, and an empty transcript.
+"""
+import json
+import os
+import sys
+
+device = sys.argv[2] if len(sys.argv) > 2 else "cuda"
+model = sys.argv[3] if len(sys.argv) > 3 else "large-v3-turbo"
+print(json.dumps({"ready": True, "model": model, "device": "cpu" if device == "cuda" else device}), flush=True)
+TEXT = {
+    "host": "Welcome to the mix where every layer lines up.",
+    "guest": "Hello from the fone lion.",
+    "old": "Back in my day we walked uphill both ways to the studio, through the snow and the rain and the wind, "
+           "carrying the tape machines on our backs while the producers shouted about levels and the engineers "
+           "argued about microphones until dawn.",
+}
+for raw in sys.stdin:
+    raw = raw.strip()
+    if not raw:
+        continue
+    req = json.loads(raw)
+    name = os.path.splitext(os.path.basename(req.get("audio_path", "")))[0]
+    speaker = name.rsplit("_", 1)[-1]
+    if speaker == "bot":
+        print(json.dumps({"error": "CUDA out of memory"}), flush=True)
+    elif speaker == "dez":
+        print(json.dumps({"done": True, "text": "raining", "language": "en"}), flush=True)
+    elif speaker == "caller":
+        print(json.dumps({"done": True, "text": "  ", "language": "en", "language_probability": 0.3127, "segments": []}), flush=True)
+    else:
+        text = TEXT.get(speaker, "SFX noise " + speaker)
+        seg = [{"start": 0.0, "end": 1.2345678901234567, "text": text}]
+        print(json.dumps({"done": True, "text": text, "language": req.get("language") or "en",
+                          "language_probability": 0.9876, "segments": seg}), flush=True)

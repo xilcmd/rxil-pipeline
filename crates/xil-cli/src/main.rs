@@ -8,6 +8,8 @@ mod cmd;
 mod commands;
 mod delegate;
 mod mix;
+mod sfxgen;
+mod tts;
 
 use std::env;
 use std::ffi::OsString;

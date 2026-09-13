@@ -5,6 +5,7 @@
 pub mod audioop;
 pub mod ffmpeg;
 pub mod fx;
+pub mod id3w;
 pub mod mpeg;
 pub mod pcm;
 pub mod segment;

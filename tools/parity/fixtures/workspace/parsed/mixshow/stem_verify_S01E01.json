@@ -1,0 +1,512 @@
+{
+  "show": "mixshow",
+  "episode": "S01E01",
+  "generated": "2026-09-13T01:53:06",
+  "stems_dir": "/mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/stems/mixshow/S01E01",
+  "whisper_model": "large-v3-turbo",
+  "file_count": 23,
+  "total_duration_seconds": 14.99,
+  "files": [
+    {
+      "filename": "002_preamble_sfx.mp3",
+      "path": "/mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/stems/mixshow/S01E01/002_preamble_sfx.mp3",
+      "seq": 2,
+      "scene": "preamble",
+      "speaker": "sfx",
+      "size_bytes": 24911,
+      "duration_seconds": 1.541,
+      "bitrate_kbps": 127,
+      "sha256": "85e02d32f4c3fb424f2d383512e24d827dc4d00e667adc1ba9c87bbc05f160e3",
+      "transcript": {
+        "text": "SFX noise sfx",
+        "language": "en",
+        "language_probability": 0.9876,
+        "segments": [
+          {
+            "start": 0.0,
+            "end": 1.2345678901234567,
+            "text": "SFX noise sfx"
+          }
+        ]
+      }
+    },
+    {
+      "filename": "003_preamble_host.mp3",
+      "path": "/mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/stems/mixshow/S01E01/003_preamble_host.mp3",
+      "seq": 3,
+      "scene": "preamble",
+      "speaker": "host",
+      "size_bytes": 5119,
+      "duration_seconds": 0.96,
+      "bitrate_kbps": 32,
+      "sha256": "6855f54045ae7ffa3a162c1589de44402fcd7bcdcc0c52c32c959a4284f5a1e4",
+      "transcript": {
+        "text": "Welcome to the mix where every layer lines up.",
+        "language": "en",
+        "language_probability": 0.9876,
+        "segments": [
+          {
+            "start": 0.0,
+            "end": 1.2345678901234567,
+            "text": "Welcome to the mix where every layer lines up."
+          }
+        ]
+      }
+    },
+    {
+      "filename": "005_act1-scene-1_sfx.mp3",
+      "path": "/mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/stems/mixshow/S01E01/005_act1-scene-1_sfx.mp3",
+      "seq": 5,
+      "scene": "act1-scene-1",
+      "speaker": "sfx",
+      "size_bytes": 620,
+      "duration_seconds": 0.36,
+      "bitrate_kbps": 8,
+      "sha256": "40e25fb5e7d6ea93281144cd4f3f70bbb762d9694da6ada04f1e321890c97f54",
+      "transcript": {
+        "text": "SFX noise sfx",
+        "language": "en",
+        "language_probability": 0.9876,
+        "segments": [
+          {
+            "start": 0.0,
+            "end": 1.2345678901234567,
+            "text": "SFX noise sfx"
+          }
+        ]
+      }
+    },
+    {
+      "filename": "006_act1-scene-1_sfx.mp3",
+      "path": "/mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/stems/mixshow/S01E01/006_act1-scene-1_sfx.mp3",
+      "seq": 6,
+      "scene": "act1-scene-1",
+      "speaker": "sfx",
+      "size_bytes": 1898,
+      "duration_seconds": 0.418,
+      "bitrate_kbps": 32,
+      "sha256": "8d38312505e74472b99ec9d01f61132eb14ff6f8f354aa216f727eaac3f88bec",
+      "transcript": {
+        "text": "SFX noise sfx",
+        "language": "en",
+        "language_probability": 0.9876,
+        "segments": [
+          {
+            "start": 0.0,
+            "end": 1.2345678901234567,
+            "text": "SFX noise sfx"
+          }
+        ]
+      }
+    },
+    {
+      "filename": "007_act1-scene-1_guest.mp3",
+      "path": "/mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/stems/mixshow/S01E01/007_act1-scene-1_guest.mp3",
+      "seq": 7,
+      "scene": "act1-scene-1",
+      "speaker": "guest",
+      "size_bytes": 13626,
+      "duration_seconds": 0.836,
+      "bitrate_kbps": 127,
+      "sha256": "36ceab79fdd5b7e91c7be021cbcf55fde6f7e24a0ca95e0f75f2bf69b2a003bf",
+      "transcript": {
+        "text": "Hello from the fone lion.",
+        "language": "en",
+        "language_probability": 0.9876,
+        "segments": [
+          {
+            "start": 0.0,
+            "end": 1.2345678901234567,
+            "text": "Hello from the fone lion."
+          }
+        ]
+      }
+    },
+    {
+      "filename": "007_act1-scene-1_host.mp3",
+      "path": "/mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/stems/mixshow/S01E01/007_act1-scene-1_host.mp3",
+      "seq": 7,
+      "scene": "act1-scene-1",
+      "speaker": "host",
+      "size_bytes": 2942,
+      "duration_seconds": 0.34,
+      "bitrate_kbps": 63,
+      "sha256": "b00803d054a97393d63026b4310679bee1605f7dfd06e498e10914bfb500de38",
+      "transcript": {
+        "text": "Welcome to the mix where every layer lines up.",
+        "language": "en",
+        "language_probability": 0.9876,
+        "segments": [
+          {
+            "start": 0.0,
+            "end": 1.2345678901234567,
+            "text": "Welcome to the mix where every layer lines up."
+          }
+        ]
+      }
+    },
+    {
+      "filename": "008_act1-scene-1_sfx.mp3",
+      "path": "/mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/stems/mixshow/S01E01/008_act1-scene-1_sfx.mp3",
+      "seq": 8,
+      "scene": "act1-scene-1",
+      "speaker": "sfx",
+      "size_bytes": 3692,
+      "duration_seconds": 0.432,
+      "bitrate_kbps": 64,
+      "sha256": "63a16f9578ead50e1fa673345fd0e382a14731435114079f7c585b540780e54a",
+      "transcript": {
+        "text": "SFX noise sfx",
+        "language": "en",
+        "language_probability": 0.9876,
+        "segments": [
+          {
+            "start": 0.0,
+            "end": 1.2345678901234567,
+            "text": "SFX noise sfx"
+          }
+        ]
+      }
+    },
+    {
+      "filename": "008_act1_sfx.mp3",
+      "path": "/mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/stems/mixshow/S01E01/008_act1_sfx.mp3",
+      "seq": 8,
+      "scene": "act1",
+      "speaker": "sfx",
+      "size_bytes": 3692,
+      "duration_seconds": 0.432,
+      "bitrate_kbps": 64,
+      "sha256": "235ec08fe1705a61ff4f6320b7b5fb6d195e10e2e3fc2761f18a79cb64862b9e",
+      "transcript": {
+        "text": "SFX noise sfx",
+        "language": "en",
+        "language_probability": 0.9876,
+        "segments": [
+          {
+            "start": 0.0,
+            "end": 1.2345678901234567,
+            "text": "SFX noise sfx"
+          }
+        ]
+      }
+    },
+    {
+      "filename": "009_act1-scene-1_sfx.mp3",
+      "path": "/mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/stems/mixshow/S01E01/009_act1-scene-1_sfx.mp3",
+      "seq": 9,
+      "scene": "act1-scene-1",
+      "speaker": "sfx",
+      "size_bytes": 4614,
+      "duration_seconds": 0.549,
+      "bitrate_kbps": 63,
+      "sha256": "71ce5419d8672a914db5cada644236d6ad1ba22ce009acf4e497c300a57254c5",
+      "transcript": {
+        "text": "SFX noise sfx",
+        "language": "en",
+        "language_probability": 0.9876,
+        "segments": [
+          {
+            "start": 0.0,
+            "end": 1.2345678901234567,
+            "text": "SFX noise sfx"
+          }
+        ]
+      }
+    },
+    {
+      "filename": "010_act1-scene-1_host.mp3",
+      "path": "/mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/stems/mixshow/S01E01/010_act1-scene-1_host.mp3",
+      "seq": 10,
+      "scene": "act1-scene-1",
+      "speaker": "host",
+      "size_bytes": 3308,
+      "duration_seconds": 0.768,
+      "bitrate_kbps": 32,
+      "sha256": "b86d12319f143ec2b8e2b944508a68c44f9e86210276cfe8e3208dba8311d5fe",
+      "transcript": {
+        "text": "Welcome to the mix where every layer lines up.",
+        "language": "en",
+        "language_probability": 0.9876,
+        "segments": [
+          {
+            "start": 0.0,
+            "end": 1.2345678901234567,
+            "text": "Welcome to the mix where every layer lines up."
+          }
+        ]
+      }
+    },
+    {
+      "filename": "011_act1-scene-1_sfx.mp3",
+      "path": "/mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/stems/mixshow/S01E01/011_act1-scene-1_sfx.mp3",
+      "seq": 11,
+      "scene": "act1-scene-1",
+      "speaker": "sfx",
+      "size_bytes": 4614,
+      "duration_seconds": 0.549,
+      "bitrate_kbps": 63,
+      "sha256": "ac306bd2ed42e8f3c32e2c361dc63d58b05111fe33dac0e6cfae60c16af254bd",
+      "transcript": {
+        "text": "SFX noise sfx",
+        "language": "en",
+        "language_probability": 0.9876,
+        "segments": [
+          {
+            "start": 0.0,
+            "end": 1.2345678901234567,
+            "text": "SFX noise sfx"
+          }
+        ]
+      }
+    },
+    {
+      "filename": "014_act1-scene-1_caller.mp3",
+      "path": "/mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/stems/mixshow/S01E01/014_act1-scene-1_caller.mp3",
+      "seq": 14,
+      "scene": "act1-scene-1",
+      "speaker": "caller",
+      "size_bytes": 2838,
+      "duration_seconds": 0.653,
+      "bitrate_kbps": 31,
+      "sha256": "f8c611a1080f791c7308469dcd5c589e447f1608674e891c37c1da07debeb6c3",
+      "transcript": {
+        "text": "  ",
+        "language": "en",
+        "language_probability": 0.3127,
+        "segments": []
+      }
+    },
+    {
+      "filename": "017_act1-scene-2_sfx.mp3",
+      "path": "/mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/stems/mixshow/S01E01/017_act1-scene-2_sfx.mp3",
+      "seq": 17,
+      "scene": "act1-scene-2",
+      "speaker": "sfx",
+      "size_bytes": 2133,
+      "duration_seconds": 0.94,
+      "bitrate_kbps": 16,
+      "sha256": "5ec41d548664246a433bbdbd6f4713cef635cc623c9e03386cd9f32a0401e3b3",
+      "transcript": {
+        "text": "SFX noise sfx",
+        "language": "en",
+        "language_probability": 0.9876,
+        "segments": [
+          {
+            "start": 0.0,
+            "end": 1.2345678901234567,
+            "text": "SFX noise sfx"
+          }
+        ]
+      }
+    },
+    {
+      "filename": "019_act1-scene-2_dez.mp3",
+      "path": "/mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/stems/mixshow/S01E01/019_act1-scene-2_dez.mp3",
+      "seq": 19,
+      "scene": "act1-scene-2",
+      "speaker": "dez",
+      "size_bytes": 2276,
+      "duration_seconds": 0.684,
+      "bitrate_kbps": 24,
+      "sha256": "2bbb7b314cdc4bbee718a9848b022bb9a438bb77d91122f42603c57fea281e6a",
+      "transcript": null
+    },
+    {
+      "filename": "020_act1-scene-2_guest.mp3",
+      "path": "/mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/stems/mixshow/S01E01/020_act1-scene-2_guest.mp3",
+      "seq": 20,
+      "scene": "act1-scene-2",
+      "speaker": "guest",
+      "size_bytes": 9029,
+      "duration_seconds": 0.549,
+      "bitrate_kbps": 127,
+      "sha256": "cf4ac8ba211eee8c364eddbe9549f01b62f0929a1201a497cd6c9484a2030d54",
+      "transcript": {
+        "text": "Hello from the fone lion.",
+        "language": "en",
+        "language_probability": 0.9876,
+        "segments": [
+          {
+            "start": 0.0,
+            "end": 1.2345678901234567,
+            "text": "Hello from the fone lion."
+          }
+        ]
+      }
+    },
+    {
+      "filename": "022_act1-scene-2_sfx.mp3",
+      "path": "/mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/stems/mixshow/S01E01/022_act1-scene-2_sfx.mp3",
+      "seq": 22,
+      "scene": "act1-scene-2",
+      "speaker": "sfx",
+      "size_bytes": 1412,
+      "duration_seconds": 0.396,
+      "bitrate_kbps": 24,
+      "sha256": "24af32db2331d598ce326bd03955a85f7555dd6aa2ab9fc5ee658185e749e73a",
+      "transcript": {
+        "text": "SFX noise sfx",
+        "language": "en",
+        "language_probability": 0.9876,
+        "segments": [
+          {
+            "start": 0.0,
+            "end": 1.2345678901234567,
+            "text": "SFX noise sfx"
+          }
+        ]
+      }
+    },
+    {
+      "filename": "023_act1-scene-2_old.mp3",
+      "path": "/mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/stems/mixshow/S01E01/023_act1-scene-2_old.mp3",
+      "seq": 23,
+      "scene": "act1-scene-2",
+      "speaker": "old",
+      "size_bytes": 6077,
+      "duration_seconds": 0.731,
+      "bitrate_kbps": 63,
+      "sha256": "dba6e8f96e6ad1e83c91c864747c79e811109b63135385999805be669ef4390b",
+      "transcript": {
+        "text": "Back in my day we walked uphill both ways to the studio, through the snow and the rain and the wind, carrying the tape machines on our backs while the producers shouted about levels and the engineers argued about microphones until dawn.",
+        "language": "en",
+        "language_probability": 0.9876,
+        "segments": [
+          {
+            "start": 0.0,
+            "end": 1.2345678901234567,
+            "text": "Back in my day we walked uphill both ways to the studio, through the snow and the rain and the wind, carrying the tape machines on our backs while the producers shouted about levels and the engineers argued about microphones until dawn."
+          }
+        ]
+      }
+    },
+    {
+      "filename": "024_act1-scene-2_bot.mp3",
+      "path": "/mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/stems/mixshow/S01E01/024_act1-scene-2_bot.mp3",
+      "seq": 24,
+      "scene": "act1-scene-2",
+      "speaker": "bot",
+      "size_bytes": 3032,
+      "duration_seconds": 0.468,
+      "bitrate_kbps": 48,
+      "sha256": "637b6cefdeed956b1ac46e406e33ac2bc7eeba310a6e6746f6f3cc07adbbb1b7",
+      "transcript": null
+    },
+    {
+      "filename": "026_act1-scene-2_sfx.mp3",
+      "path": "/mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/stems/mixshow/S01E01/026_act1-scene-2_sfx.mp3",
+      "seq": 26,
+      "scene": "act1-scene-2",
+      "speaker": "sfx",
+      "size_bytes": 1340,
+      "duration_seconds": 1.08,
+      "bitrate_kbps": 8,
+      "sha256": "aefcdc6dc4f6b06e50ccf6986ee6565f2b80435f15f68f87b236c59d967b08b0",
+      "transcript": {
+        "text": "SFX noise sfx",
+        "language": "en",
+        "language_probability": 0.9876,
+        "segments": [
+          {
+            "start": 0.0,
+            "end": 1.2345678901234567,
+            "text": "SFX noise sfx"
+          }
+        ]
+      }
+    },
+    {
+      "filename": "027_postamble_host.mp3",
+      "path": "/mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/stems/mixshow/S01E01/027_postamble_host.mp3",
+      "seq": 27,
+      "scene": "postamble",
+      "speaker": "host",
+      "size_bytes": 2444,
+      "duration_seconds": 0.552,
+      "bitrate_kbps": 32,
+      "sha256": "946186ae7d0b5cf2e48494dcf3df28359bf84194697b9033a264491db84ebc55",
+      "transcript": {
+        "text": "Welcome to the mix where every layer lines up.",
+        "language": "en",
+        "language_probability": 0.9876,
+        "segments": [
+          {
+            "start": 0.0,
+            "end": 1.2345678901234567,
+            "text": "Welcome to the mix where every layer lines up."
+          }
+        ]
+      }
+    },
+    {
+      "filename": "028_postamble_sfx.mp3",
+      "path": "/mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/stems/mixshow/S01E01/028_postamble_sfx.mp3",
+      "seq": 28,
+      "scene": "postamble",
+      "speaker": "sfx",
+      "size_bytes": 16748,
+      "duration_seconds": 1.032,
+      "bitrate_kbps": 128,
+      "sha256": "214eedcfa1b5e441f45593408c36f4d148dc5d406df742a5a40fbe3168d5142b",
+      "transcript": {
+        "text": "SFX noise sfx",
+        "language": "en",
+        "language_probability": 0.9876,
+        "segments": [
+          {
+            "start": 0.0,
+            "end": 1.2345678901234567,
+            "text": "SFX noise sfx"
+          }
+        ]
+      }
+    },
+    {
+      "filename": "099_act1_host.mp3",
+      "path": "/mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/stems/mixshow/S01E01/099_act1_host.mp3",
+      "seq": 99,
+      "scene": "act1",
+      "speaker": "host",
+      "size_bytes": 620,
+      "duration_seconds": 0.36,
+      "bitrate_kbps": 8,
+      "sha256": "40e25fb5e7d6ea93281144cd4f3f70bbb762d9694da6ada04f1e321890c97f54",
+      "transcript": {
+        "text": "Welcome to the mix where every layer lines up.",
+        "language": "en",
+        "language_probability": 0.9876,
+        "segments": [
+          {
+            "start": 0.0,
+            "end": 1.2345678901234567,
+            "text": "Welcome to the mix where every layer lines up."
+          }
+        ]
+      }
+    },
+    {
+      "filename": "preamble_intro.mp3",
+      "path": "/mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/stems/mixshow/S01E01/preamble_intro.mp3",
+      "seq": null,
+      "scene": null,
+      "speaker": null,
+      "size_bytes": 620,
+      "duration_seconds": 0.36,
+      "bitrate_kbps": 8,
+      "sha256": "40e25fb5e7d6ea93281144cd4f3f70bbb762d9694da6ada04f1e321890c97f54",
+      "transcript": {
+        "text": "SFX noise intro",
+        "language": "en",
+        "language_probability": 0.9876,
+        "segments": [
+          {
+            "start": 0.0,
+            "end": 1.2345678901234567,
+            "text": "SFX noise intro"
+          }
+        ]
+      }
+    }
+  ]
+}

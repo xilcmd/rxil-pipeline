@@ -1,0 +1,32 @@
+2026-09-12T23:55:18-0400|RUN|hibirdy|stem-verify|BEGIN argv="xil stem-verify --show mixshow --episode S01E01 --whisper-python /mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/bin/fake-whisper-python --device cpu" pid=217691 ver=0.3.2 cwd=/mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|Found 23 MP3 files in /mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/stems/mixshow/S01E01
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|Whisper worker ready — model=large-v3-turbo device=cpu
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|[1/23] 002_preamble_sfx.mp3
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|[2/23] 003_preamble_host.mp3
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|[3/23] 005_act1-scene-1_sfx.mp3
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|[4/23] 006_act1-scene-1_sfx.mp3
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|[5/23] 007_act1-scene-1_guest.mp3
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|[6/23] 007_act1-scene-1_host.mp3
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|[7/23] 008_act1-scene-1_sfx.mp3
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|[8/23] 008_act1_sfx.mp3
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|[9/23] 009_act1-scene-1_sfx.mp3
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|[10/23] 010_act1-scene-1_host.mp3
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|[11/23] 011_act1-scene-1_sfx.mp3
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|[12/23] 014_act1-scene-1_caller.mp3
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|[13/23] 017_act1-scene-2_sfx.mp3
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|[14/23] 019_act1-scene-2_dez.mp3
+2026-09-12T23:55:18-0400|WARNING|hibirdy|stem-verify|Transcription failed for 019_act1-scene-2_dez.mp3: 'language_probability'
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|[15/23] 020_act1-scene-2_guest.mp3
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|[16/23] 022_act1-scene-2_sfx.mp3
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|[17/23] 023_act1-scene-2_old.mp3
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|[18/23] 024_act1-scene-2_bot.mp3
+2026-09-12T23:55:18-0400|WARNING|hibirdy|stem-verify|Transcription failed for 024_act1-scene-2_bot.mp3: Whisper error on 024_act1-scene-2_bot.mp3: CUDA out of memory
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|[19/23] 026_act1-scene-2_sfx.mp3
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|[20/23] 027_postamble_host.mp3
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|[21/23] 028_postamble_sfx.mp3
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|[22/23] 099_act1_host.mp3
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|[23/23] preamble_intro.mp3
+2026-09-12T23:55:18-0400|WARNING|hibirdy|stem-verify|Unexpected filename format (skipping seq/scene/speaker parse): preamble_intro.mp3
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|Written: /mnt/c/Users/shaba/src/rust/rxil-pipeline/tools/parity/fixtures/workspace/parsed/mixshow/stem_verify_S01E01.json
+2026-09-12T23:55:18-0400|INFO|hibirdy|stem-verify|Total stems: 23  Total duration: 15.0s
+2026-09-12T23:55:18-0400|RUN|hibirdy|stem-verify|END elapsed=0.3s

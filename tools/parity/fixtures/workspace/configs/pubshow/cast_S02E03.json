@@ -1,0 +1,27 @@
+{
+  "show": "Pub Show",
+  "season": 2,
+  "episode": 3,
+  "cast": {
+    "nora": {
+      "full_name": "Nora Walsh",
+      "voice_id": "v1",
+      "pan": 0,
+      "filter": null,
+      "role": "  Detective\nsecond line of notes"
+    },
+    "tbone": {
+      "full_name": "T-Bone",
+      "voice_id": "v2",
+      "pan": 0,
+      "filter": null,
+      "role": ""
+    },
+    "adam": {
+      "voice_id": "v3",
+      "pan": 0,
+      "filter": null,
+      "role": "Host"
+    }
+  }
+}
