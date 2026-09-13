@@ -62,7 +62,7 @@ jobs:
         run: |
           python -m venv /tmp/xil-py
           /tmp/xil-py/bin/pip install --quiet \
-            "xil-pipeline @ git+https://github.com/xilcmd/xil-pipeline@${XIL_PY_REF}" numpy
+            "xil-pipeline[tts-alt,publish] @ git+https://github.com/xilcmd/xil-pipeline@${XIL_PY_REF}" numpy
           /tmp/xil-py/bin/xil --version
       - name: Parity suite
         env:
