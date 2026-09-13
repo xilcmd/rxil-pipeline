@@ -1,0 +1,50 @@
+{
+  "show": "Mix Show",
+  "season": 1,
+  "episode": 1,
+  "defaults": {
+    "music_volume_percentage": 80,
+    "ambience_ramp_in_seconds": 0.5,
+    "sfx_volume_percentage": 90.0,
+    "ramp_out_seconds": 0.2
+  },
+  "effects": {
+    "MUSIC: INTRO THEME": {
+      "source": "SFX/mixshow/theme.mp3",
+      "play_duration": 60,
+      "ramp_out_seconds": 0.3
+    },
+    "AMBIENCE: DINER": {
+      "source": "SFX/mixshow/diner.mp3",
+      "loop": true,
+      "volume_percentage": 70
+    },
+    "AMBIENCE: RAIN": {
+      "source": "SFX/mixshow/rain.mp3",
+      "duration_seconds": 0.4
+    },
+    "SFX: DOOR — SLAM": {
+      "source": "SFX/mixshow/door.mp3",
+      "duration_seconds": 0
+    },
+    "SFX: PHONE BUZZ": {
+      "source": "SFX/mixshow/buzz.mp3",
+      "duration_seconds": 0.3
+    },
+    "BEAT": {
+      "type": "silence",
+      "duration_seconds": 0.5
+    },
+    "VINTAGE FILTER ENGAGES": {
+      "source": "SFX/mixshow/crackle.mp3",
+      "loop": true
+    },
+    "MUSIC: OUTRO": {
+      "source": "SFX/mixshow/outro.mp3",
+      "ramp_in_seconds": 0.25
+    }
+  },
+  "vintage_scenes": [
+    "scene-9"
+  ]
+}

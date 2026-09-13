@@ -73,6 +73,10 @@ MASKS = [
     (re.compile(r"ver=\S+"), "ver=<VER>"),
     # sfx-impact's HTML page stamps the minute and zone it was written.
     (re.compile(r"generated \d{4}-\d{2}-\d{2} \d{2}:\d{2} \S+"), "generated <STAMP>"),
+    # The DAW timeline page stamps its render minute, and cache-busts each
+    # audio URL with the file's mtime — layer WAVs written a moment apart.
+    (re.compile(r"Generated \d{4}-\d{2}-\d{2} \d{2}:\d{2}"), "Generated <STAMP>"),
+    (re.compile(r"\?v=\d+"), "?v=<MTIME>"),
 ]
 
 
@@ -537,6 +541,12 @@ def cmd_record(_: argparse.Namespace) -> int:
     # package copy is absent, which it is for both implementations.
     (ws / "docs").mkdir(exist_ok=True)
     (ws / "docs" / "claude-scriptwriter-reference.md").write_text("# Scriptwriter reference (fixture)\n", encoding="utf-8")
+    _record_mix(ws)
+    _write_manifest()
+    return 0
+
+
+def _write_manifest() -> None:
     manifest = {
         "python_git_sha": _git_sha(CODEROOT),
         "python_version": _run([str(PY_XIL), "--version"]).stdout.strip(),
@@ -544,7 +554,165 @@ def cmd_record(_: argparse.Namespace) -> int:
     }
     (FIXTURES / "MANIFEST.json").write_text(json.dumps(manifest, indent=2) + "\n")
     print(f"recorded {len(manifest['files'])} files into {WORKSPACE_FIXTURE}")
+
+
+def cmd_record_mix(_: argparse.Namespace) -> int:
+    """(Re)write only the mixing fixtures, leaving every other fixture as recorded."""
+    _record_mix(WORKSPACE_FIXTURE)
+    _write_manifest()
     return 0
+
+
+def _record_mix(ws: Path) -> None:
+    """A small episode that drives every path through daw, assemble and master.
+
+    Stems are short ffmpeg tones at deliberately mixed rates and channel
+    counts, so every layer build crosses pydub's sync/resample paths. The
+    parsed script opens and closes each span type (a scoped PHONE FILTER
+    included), loops ambience up to a STOP marker, carries preamble and
+    postamble music, and leaves stale, duplicate and wrong-speaker stems on
+    disk for collect_stem_plans to reject.
+    """
+    for rel in ("configs/mixshow", "parsed/mixshow", "stems/mixshow", "SFX/mixshow", "daw/mixshow"):
+        shutil.rmtree(ws / rel, ignore_errors=True)
+    py = PY_XIL.parent / "python"
+    cfg = ws / "configs" / "mixshow"
+    cfg.mkdir(parents=True)
+    (cfg / "project.json").write_text(json.dumps({"show": "Mix Show"}, indent=2) + "\n", encoding="utf-8")
+
+    def member(name, pan, flt):
+        return {"full_name": name, "voice_id": "TBD", "pan": pan, "filter": flt, "role": "fixture"}
+
+    cast = {
+        "show": "Mix Show", "season": 1, "episode": 1, "title": "Every Layer", "season_title": "The Mix",
+        "cast": {
+            "host": member("Host", -0.3, None),
+            "guest": member("Guest", 0.4, "phone"),
+            "caller": member("Caller", 0.0, "speakerphone"),
+            "old": member("Old Timer", 0.0, "vintage"),
+            "dez": member("Dez", 0.2, False),
+            "bot": member("Bot", 1.0, "Robot, vintage"),
+        },
+    }
+    (cfg / "cast_S01E01.json").write_text(json.dumps(cast, indent=2) + "\n", encoding="utf-8")
+    seq_cast = dict(cast, episode=2, title=None)
+    (cfg / "cast_S01E02.json").write_text(json.dumps(seq_cast, indent=2) + "\n", encoding="utf-8")
+    (cfg / "cast_S01E03.json").write_text(json.dumps(dict(cast, episode=3, title="Mastered"), indent=2) + "\n", encoding="utf-8")
+
+    sfx = {
+        "show": "Mix Show", "season": 1, "episode": 1,
+        "defaults": {"music_volume_percentage": 80, "ambience_ramp_in_seconds": 0.5,
+                     "sfx_volume_percentage": 90.0, "ramp_out_seconds": 0.2},
+        "effects": {
+            "MUSIC: INTRO THEME": {"source": "SFX/mixshow/theme.mp3", "play_duration": 60, "ramp_out_seconds": 0.3},
+            "AMBIENCE: DINER": {"source": "SFX/mixshow/diner.mp3", "loop": True, "volume_percentage": 70},
+            "AMBIENCE: RAIN": {"source": "SFX/mixshow/rain.mp3", "duration_seconds": 0.4},
+            "SFX: DOOR \u2014 SLAM": {"source": "SFX/mixshow/door.mp3", "duration_seconds": 0},
+            "SFX: PHONE BUZZ": {"source": "SFX/mixshow/buzz.mp3", "duration_seconds": 0.3},
+            "BEAT": {"type": "silence", "duration_seconds": 0.5},
+            "VINTAGE FILTER ENGAGES": {"source": "SFX/mixshow/crackle.mp3", "loop": True},
+            "MUSIC: OUTRO": {"source": "SFX/mixshow/outro.mp3", "ramp_in_seconds": 0.25},
+        },
+        "vintage_scenes": ["scene-9"],
+    }
+    (cfg / "sfx_S01E01.json").write_text(json.dumps(sfx, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    rows = [
+        # seq, type, section, scene, speaker, direction_type, text
+        (1, "section_header", "preamble", None, None, None, "PREAMBLE"),
+        (2, "direction", "preamble", None, None, "MUSIC", "MUSIC: INTRO THEME"),
+        (3, "dialogue", "preamble", None, "host", None, "Welcome to the mix, where every layer lines up."),
+        (4, "section_header", "act1", None, None, None, "ACT ONE"),
+        (5, "scene_header", "act1", "scene-1", None, None, "SCENE 1: DINER"),
+        (6, "direction", "act1", "scene-1", None, "AMBIENCE", "AMBIENCE: DINER"),
+        (7, "dialogue", "act1", "scene-1", "guest", None, "Hello from the phone line."),
+        (8, "direction", "act1", "scene-1", None, "SFX", "SFX: DOOR - SLAM"),
+        (9, "direction", "act1", "scene-1", None, "MUSIC", "MUSIC: STING"),
+        (10, "dialogue", "act1", "scene-1", "host", None, "That door again."),
+        (11, "direction", "act1", "scene-1", None, "BEAT", "BEAT"),
+        (12, "direction", "act1", "scene-1", None, "AMBIENCE", "AMBIENCE: STOP"),
+        (13, "direction", "act1", "scene-1", None, "SPEAKERPHONE", "SPEAKERPHONE: ENGAGES"),
+        (14, "dialogue", "act1", "scene-1", "caller", None, "Can everyone hear me?"),
+        (15, "direction", "act1", "scene-1", None, "SPEAKERPHONE", "SPEAKERPHONE: DISENGAGES"),
+        (16, "scene_header", "act1", "scene-2", None, None, "SCENE 2: STREET"),
+        (17, "direction", "act1", "scene-2", None, "AMBIENCE", "AMBIENCE: RAIN"),
+        (18, "direction", "act1", "scene-2", None, "PHONE FILTER", "PHONE FILTER: ENGAGES DEZ"),
+        (19, "dialogue", "act1", "scene-2", "dez", None, "It is raining here."),
+        (20, "dialogue", "act1", "scene-2", "guest", None, "Here too."),
+        (21, "direction", "act1", "scene-2", None, "PHONE FILTER", "PHONE FILTER: DISENGAGES"),
+        (22, "direction", "act1", "scene-2", None, "VINTAGE FILTER", "VINTAGE FILTER ENGAGES"),
+        (23, "dialogue", "act1", "scene-2", "old", None, "Back in my day."),
+        (24, "dialogue", "act1", "scene-2", "bot", None, "Beep."),
+        (25, "direction", "act1", "scene-2", None, "VINTAGE FILTER", "VINTAGE FILTER DISENGAGES"),
+        (26, "direction", "act1", "scene-2", None, "SFX", "SFX: PHONE BUZZ"),
+        (27, "dialogue", "postamble", None, "host", None, "Thanks for listening."),
+        (28, "direction", "postamble", None, None, "MUSIC", "MUSIC: OUTRO"),
+    ]
+    entries = [{"seq": q, "type": t, "section": sec, "scene": sc, "speaker": sp, "direction": None,
+                "text": txt, "direction_type": dt, "sfx_source": None, "sfx_overrides": None}
+               for q, t, sec, sc, sp, dt, txt in rows]
+    pdir = ws / "parsed" / "mixshow"
+    pdir.mkdir(parents=True)
+    (pdir / "parsed_S01E01.json").write_text(
+        json.dumps({"show": "Mix Show", "season": 1, "episode": 1, "title": "Every Layer", "entries": entries}, indent=2) + "\n",
+        encoding="utf-8")
+
+    def tone(out: Path, filt: str, extra: list[str]) -> None:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        r = _run(["ffmpeg", "-v", "quiet", "-y", "-f", "lavfi", "-i", filt, *extra, str(out)])
+        if r.returncode != 0:
+            print(f"ffmpeg failed for {out}:\n{r.stderr}", file=sys.stderr)
+
+    stems = ws / "stems" / "mixshow" / "S01E01"
+    sine = "sine=frequency={f}:duration={d}:sample_rate={r}"
+    plan = {
+        "002_preamble_sfx.mp3": (sine.format(f=330, d=1.5, r=44100), ["-ac", "2"]),
+        "003_preamble_host.mp3": (sine.format(f=220, d=0.9, r=24000), ["-ac", "1", "-af", "volume=2.5"]),
+        "006_act1-scene-1_sfx.mp3": (sine.format(f=110, d=0.35, r=22050), ["-ac", "1"]),
+        "007_act1-scene-1_guest.mp3": (sine.format(f=440, d=0.8, r=44100), ["-ac", "2"]),
+        "007_act1-scene-1_host.mp3": (sine.format(f=445, d=0.3, r=44100), ["-ac", "1"]),
+        "008_act1-scene-1_sfx.mp3": (sine.format(f=880, d=0.4, r=48000), ["-ac", "1", "-af", "volume=3"]),
+        "008_act1_sfx.mp3": (sine.format(f=890, d=0.4, r=48000), ["-ac", "1"]),
+        "009_act1-scene-1_sfx.mp3": (sine.format(f=660, d=0.5, r=44100), ["-ac", "1"]),
+        "010_act1-scene-1_host.mp3": (sine.format(f=250, d=0.7, r=24000), ["-ac", "1"]),
+        "011_act1-scene-1_sfx.mp3": ("anullsrc=r=44100:cl=mono:d=0.5", []),
+        "014_act1-scene-1_caller.mp3": (sine.format(f=500, d=0.6, r=22050), ["-ac", "1"]),
+        "017_act1-scene-2_sfx.mp3": ("anoisesrc=d=0.8:c=brown:r=11025:a=0.4:seed=5", ["-ac", "1"]),
+        "019_act1-scene-2_dez.mp3": (sine.format(f=300, d=0.6, r=16000), ["-ac", "1"]),
+        "020_act1-scene-2_guest.mp3": (sine.format(f=350, d=0.5, r=44100), ["-ac", "2"]),
+        "022_act1-scene-2_sfx.mp3": ("anoisesrc=d=0.3:c=white:r=16000:a=0.2:seed=3", ["-ac", "1"]),
+        "023_act1-scene-2_old.mp3": (sine.format(f=180, d=0.7, r=44100), ["-ac", "1"]),
+        "024_act1-scene-2_bot.mp3": (sine.format(f=900, d=0.4, r=32000), ["-ac", "1"]),
+        "026_act1-scene-2_sfx.mp3": (sine.format(f=700, d=0.9, r=8000), ["-ac", "1"]),
+        "027_postamble_host.mp3": (sine.format(f=210, d=0.5, r=24000), ["-ac", "1"]),
+        "028_postamble_sfx.mp3": (sine.format(f=520, d=1.0, r=48000), ["-ac", "2"]),
+        "099_act1_host.mp3": (sine.format(f=100, d=0.2, r=8000), ["-ac", "1"]),
+        "005_act1-scene-1_sfx.mp3": (sine.format(f=100, d=0.2, r=8000), ["-ac", "1"]),
+        "preamble_intro.mp3": (sine.format(f=100, d=0.2, r=8000), ["-ac", "1"]),
+    }
+    for name, (filt, extra) in plan.items():
+        tone(stems / name, filt, extra)
+    (stems / "notes.txt").write_text("not a stem\n")
+    # A TTS model note in COMM, as the producer writes it, for the timeline tooltip.
+    r = _run([str(py), "-c",
+              "import sys; from mutagen.id3 import ID3, COMM; t = ID3(sys.argv[1]); "
+              "t.add(COMM(encoding=3, lang='eng', desc='', text='eleven_v3')); t.save()",
+              str(stems / "003_preamble_host.mp3")])
+    if r.returncode != 0:
+        print(f"COMM tagging failed:\n{r.stderr}", file=sys.stderr)
+
+    # S01E02: stems but no parsed script — assemble's sequential fallback.
+    seq_stems = ws / "stems" / "mixshow" / "S01E02"
+    tone(seq_stems / "001_act1_host.mp3", sine.format(f=260, d=0.4, r=22050), ["-ac", "1"])
+    tone(seq_stems / "002_act1_guest.mp3", sine.format(f=390, d=0.3, r=44100), ["-ac", "2"])
+    tone(seq_stems / "003_act1_sfx.mp3", sine.format(f=990, d=0.2, r=48000), ["-ac", "1"])
+
+    # S01E03: small layer WAVs of mixed formats for master, plus cover art.
+    daw3 = ws / "daw" / "mixshow" / "S01E03"
+    tone(daw3 / "S01E03_layer_dialogue.wav", sine.format(f=300, d=2.0, r=44100), ["-ac", "2", "-c:a", "pcm_s16le"])
+    tone(daw3 / "S01E03_layer_music.wav", sine.format(f=500, d=2.0, r=22050), ["-ac", "1", "-c:a", "pcm_s16le"])
+    tone(daw3 / "S01E03_layer_vintage_filter.wav", "anullsrc=r=11025:cl=mono:d=2", ["-c:a", "pcm_s16le"])
+    tone(cfg / "cover_art.png", "color=c=teal:s=16x16:d=1", ["-frames:v", "1"])
 
 
 def _git_sha(repo: Path) -> str:
@@ -574,6 +742,13 @@ def _run_side(side: str, binary: Path, args: list[str], force_py: bool) -> tuple
     env["XIL_CODEROOT"] = str(CODEROOT)
     env["XIL_TRACE_IMPL"] = "1"
     env.pop("ELEVENLABS_API_KEY", None)  # never let a parity run spend credits
+    # `xil assemble` plays its master through mpg123 when it is done. A stub
+    # keeps a parity run silent and the same on machines with and without it.
+    stub = SCRATCH / "bin"
+    stub.mkdir(parents=True, exist_ok=True)
+    (stub / "mpg123").write_text("#!/bin/sh\nexit 0\n")
+    (stub / "mpg123").chmod(0o755)
+    env["PATH"] = f"{stub}{os.pathsep}{env.get('PATH', '')}"
     if force_py:
         env["XIL_FORCE_PY"] = "all"
     else:
@@ -652,13 +827,66 @@ def _compare_log(a: Path, b: Path) -> str | None:
     return None if ma == mb else _first_diff("\n".join(ma), "\n".join(mb))
 
 
-def _compare_wav(a: Path, b: Path) -> str | None:
-    def body(p: Path) -> bytes:
-        data = p.read_bytes()
-        i = data.find(b"data")
-        return data[i + 8 :] if i >= 0 else data
+def _id3_frames(p: Path) -> dict[str, list[str]] | None:
+    """Every ID3 frame as text, keyed by mutagen's HashKey; None without mutagen.
 
-    return None if body(a) == body(b) else "PCM payload differs"
+    Compared as content, not bytes: mutagen and the Rust id3 crate pad and
+    order a tag differently, and neither is part of what a player reads.
+    """
+    try:
+        from mutagen.id3 import ID3, ID3NoHeaderError
+        from mutagen.wave import WAVE
+    except ImportError:
+        return None
+    try:
+        tags = WAVE(p).tags if p.suffix.lower() == ".wav" else ID3(p)
+    except (ID3NoHeaderError, Exception):
+        return {}
+    if tags is None:
+        return {}
+    out = {}
+    for key, frame in tags.items():
+        if hasattr(frame, "data"):
+            out[key] = [getattr(frame, "mime", ""), str(len(frame.data)), __import__("hashlib").sha256(frame.data).hexdigest()]
+        else:
+            out[key] = [str(t) for t in getattr(frame, "text", [str(frame)])]
+    return out
+
+
+def _compare_tags(a: Path, b: Path) -> str | None:
+    fa, fb = _id3_frames(a), _id3_frames(b)
+    if fa is None or fa == fb:
+        return None
+    keys = sorted(set(fa) | set(fb))
+    diff = [k for k in keys if fa.get(k) != fb.get(k)]
+    return "ID3 frames differ: " + ", ".join(f"{k} py={fa.get(k)} rs={fb.get(k)}" for k in diff[:4])
+
+
+def _compare_wav(a: Path, b: Path) -> str | None:
+    def pcm(p: Path) -> tuple[bytes, bytes]:
+        """(fmt chunk, data chunk) by declared size — the tag chunk after them is compared separately."""
+        data = p.read_bytes()
+        fmt = b""
+        pos = 12
+        while pos + 8 <= len(data):
+            cid, size = data[pos:pos + 4], int.from_bytes(data[pos + 4:pos + 8], "little")
+            if cid == b"fmt ":
+                fmt = data[pos + 8:pos + 8 + size]
+            if cid == b"data":
+                return fmt, data[pos + 8:pos + 8 + size]
+            pos += 8 + size + (size & 1)
+        return fmt, data
+
+    fa, da = pcm(a)
+    fb, db = pcm(b)
+    if fa != fb:
+        return "WAV format differs"
+    if da != db:
+        if len(da) != len(db):
+            return f"PCM payload differs: {len(da)} vs {len(db)} bytes"
+        first = next(i for i in range(len(da)) if da[i] != db[i])
+        return f"PCM payload differs from byte {first} of {len(da)}"
+    return _compare_tags(a, b)
 
 
 def _compare_mp3(a: Path, b: Path) -> str | None:
@@ -693,7 +921,7 @@ def _compare_mp3(a: Path, b: Path) -> str | None:
         corr = np.corrcoef(env_a, env_b)[0, 1]
         if corr < 0.999:
             return f"envelope correlation {corr:.4f}"
-    return None
+    return _compare_tags(a, b)
 
 
 def _compare_file(rel: str, a: Path, b: Path, mask_keys: set[str]) -> str | None:
@@ -886,6 +1114,7 @@ def main() -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="cmd", required=True)
     sub.add_parser("record", help="seed fixtures/ from the Python repo").set_defaults(fn=cmd_record)
+    sub.add_parser("record-mix", help="rewrite only the daw/assemble/master fixtures").set_defaults(fn=cmd_record_mix)
     c = sub.add_parser("check", help="run parity checks")
     c.add_argument("names", nargs="*", help="check names from suite.toml")
     c.add_argument("--suite", action="store_true", help="run every check")

@@ -9,8 +9,13 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+xil-core = { path = "../xil-core" }
+chrono.workspace = true
 id3.workspace = true
+indexmap.workspace = true
+sha2.workspace = true
 thiserror.workspace = true
+tempfile.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true

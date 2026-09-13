@@ -1,0 +1,119 @@
+#!/usr/bin/env python3
+"""Open @@XIL_SHOW_LABEL@@ @@XIL_TAG@@ DAW layers in Audacity.
+
+Run this script while Audacity is open.  If mod-script-pipe is
+enabled the layer WAVs are imported automatically.  Otherwise the
+file paths and manual import instructions are printed below.
+
+Enable mod-script-pipe in Audacity 3:
+  Edit > Preferences > Modules > mod-script-pipe → Enabled
+  (restart Audacity after enabling)
+
+Audacity 4 ships no modules directory and has no scripting pipe, so
+the import there is always manual — the instructions below are the
+whole story.
+"""
+import os
+import sys
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+LAYERS = @@XIL_LAYERS_REPR@@
+
+
+def try_pipe_import(layers):
+    """Attempt Audacity import via mod-script-pipe named pipe."""
+    import platform
+    import subprocess
+    # On WSL, Audacity's pipe is a Windows kernel object unreachable from Linux
+    # Python.  Re-invoke this script via Windows python.exe so it uses the
+    # Windows pipe paths.
+    if platform.system() != "Windows" and "WSL_DISTRO_NAME" in os.environ:
+        try:
+            win_script = subprocess.check_output(
+                ["wslpath", "-w", os.path.abspath(__file__)]
+            ).decode().strip()
+            result = subprocess.run(["python.exe", win_script])
+            return result.returncode == 0
+        except (subprocess.CalledProcessError, FileNotFoundError, OSError) as exc:
+            print(f"[!] WSL re-invoke failed: {exc}")
+            return False
+    if platform.system() == "Windows":
+        tofile = r"\\.\pipe\ToSrvPipe"
+        fromfile = r"\\.\pipe\FromSrvPipe"
+    else:
+        tofile = "/tmp/audacity_script_pipe.to.app"
+        fromfile = "/tmp/audacity_script_pipe.from.app"
+
+    try:
+        pipe_to = open(tofile, "wb", buffering=0)
+        pipe_from = open(fromfile, "rb", buffering=0)
+        try:
+            def send(cmd):
+                pipe_to.write((cmd + "\n").encode("utf-8"))
+                lines = []
+                while True:
+                    line = pipe_from.readline().decode("utf-8")
+                    if line in ("", "\n"):
+                        break
+                    lines.append(line.rstrip())
+                return lines
+
+            send("New:")
+            wav_count = 0
+            for name, filename in layers:
+                if not filename.endswith(".wav"):
+                    continue
+                full_path = os.path.join(BASE_DIR, filename)
+                send(f"Import2: Filename={full_path}")
+                send(f"SetTrackStatus: Name={name}")
+                wav_count += 1
+            print(f"[✓] Imported {wav_count} WAV tracks into Audacity.")
+        finally:
+            pipe_to.close()
+            pipe_from.close()
+        return True
+    except OSError as exc:
+        print(f"[!] Pipe import failed: {exc}")
+        return False
+
+
+def print_instructions(layers):
+    """Print manual import instructions."""
+    wavs = [(n, f) for n, f in layers if f.endswith(".wav")]
+    labels = [(n, f) for n, f in layers if f.endswith(".txt")]
+    print()
+    print(f"@@XIL_SHOW_LABEL@@ @@XIL_TAG@@ — Audacity Layer Import")
+    print("=" * 45)
+    print()
+    print(f"Import these {len(wavs)} WAV files into Audacity:")
+    print("  File > Import > Audio...  (Ctrl+Shift+I on Windows/Linux)")
+    print()
+    for i, (name, filename) in enumerate(wavs, 1):
+        full = os.path.join(BASE_DIR, filename)
+        print(f"  {i}. {name:<12}  {full}")
+    if labels:
+        print()
+        print("Optional label tracks (File > Import > Labels...):")
+        for i, (name, filename) in enumerate(labels, 1):
+            full = os.path.join(BASE_DIR, filename)
+            print(f"  {i}. {name:<20}  {full}")
+        print()
+        print("  Audacity 4 does not name an imported label track after")
+        print("  its file, so import them in the order above and rename")
+        print("  each track to the name shown — they are otherwise")
+        print("  indistinguishable.")
+    print()
+    print("After importing, all tracks are pre-aligned at t=0.")
+    print("No repositioning needed — just mix levels and export.")
+    print()
+    print("Suggested track order (top to bottom in Audacity):")
+    print("  1. Dialogue  — speaking parts (phone filter already applied)")
+    print("  2. Music     — stings and themes")
+    print("  3. SFX       — one-shot effects")
+    print("  4. Ambience  — background loops")
+    print()
+
+
+if __name__ == "__main__":
+    if not try_pipe_import(LAYERS):
+        print_instructions(LAYERS)
