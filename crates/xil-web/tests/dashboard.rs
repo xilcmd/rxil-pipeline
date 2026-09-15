@@ -542,6 +542,10 @@ async fn run_stage_validates_then_streams_the_process() {
     assert!(
         body.contains("$ /bin/echo daw --episode S01E01 --dry-run --gap-ms 400 --timeline-html")
     );
+    if cfg!(windows) {
+        // The stand-in executable is /bin/echo; Windows has none to stream.
+        return;
+    }
     let (code, stream) =
         tokio::time::timeout(Duration::from_secs(10), get(st.clone(), "/jobs/1/stream"))
             .await
@@ -619,7 +623,13 @@ async fn project_tab_follows_the_active_show() {
     ));
     ws.write(".active_show", "night");
     let (_, panel) = get(state(), "/project").await;
-    assert!(panel.contains("configs/night/project.json"));
+    assert!(panel.contains(
+        &Path::new("configs")
+            .join("night")
+            .join("project.json")
+            .to_string_lossy()
+            .into_owned()
+    ));
     let (_, saved) = post_form(
         state(),
         "/project/save",
