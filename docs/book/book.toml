@@ -1,0 +1,10 @@
+[book]
+title = "xil-pipeline User Guide"
+authors = ["John Brissette"]
+language = "en"
+src = "src"
+
+[output.html]
+git-repository-url = "https://github.com/xilcmd/rxil-pipeline"
+edit-url-template = "https://github.com/xilcmd/rxil-pipeline/edit/main/docs/book/{path}"
+additional-js = ["mermaid-init.js"]

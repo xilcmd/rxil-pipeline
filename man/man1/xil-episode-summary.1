@@ -1,0 +1,22 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-episode-summary 1  "xil-episode-summary " 
+.SH NAME
+xil\-episode\-summary \- Write a one\-row\-per\-episode summary CSV from all parsed_<tag>.json files.
+.SH SYNOPSIS
+\fBxil\-episode\-summary\fR [\fB\-o\fR|\fB\-\-output\fR] [\fB\-\-show\fR] [\fB\-\-stdout\fR] [\fB\-h\fR|\fB\-\-help\fR] 
+.SH DESCRIPTION
+Write a one\-row\-per\-episode summary CSV from all parsed_<tag>.json files.
+.SH OPTIONS
+.TP
+\fB\-o\fR, \fB\-\-output\fR \fI<FILE>\fR
+Output CSV path (default: <workspace>/episode_summary.csv)
+.TP
+\fB\-\-show\fR \fI<NAME>\fR
+Filter to a single show name, e.g. \*(AqTHE 413\*(Aq (case\-insensitive)
+.TP
+\fB\-\-stdout\fR
+Write CSV to stdout — no banner, safe to pipe
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help

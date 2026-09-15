@@ -1,0 +1,180 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil 1  "xil 0.1.0" 
+.SH NAME
+xil \- Unified command\-line interface for the xil podcast pipeline
+.SH SYNOPSIS
+\fBxil\fR [\fB\-h\fR|\fB\-\-help\fR] [\fB\-V\fR|\fB\-\-version\fR] [\fIcommand\fR]
+.SH DESCRIPTION
+Usage: xil <command> [args...]
+.PP
+Pipeline Stages (recommended order):
+  init                        workspace scaffolding
+  scan               XILP000  pre\-flight script scanner
+  parse              XILP001  script parser
+  cues               XILP006  cues sheet ingestion
+  produce            XILP002  voice stem generation
+  assemble           XILP003  master audio assembly
+  studio\-onboard     XILP004  ElevenLabs Studio project onboarding
+  daw                XILP005  DAW layer export
+  migrate            XILP007  stem migration
+  cleanup            XILP008  stale stem cleanup
+  import             XILP010  Studio export import
+  regen              XILP009  script regeneration
+  master             XILP011  final master MP3 export
+  publish            XILP012  social media post draft generator
+.PP
+Utilities:
+  use                         set / show the active show context  (multi\-show workspaces)
+  voices             XILU001  voice discovery  (before parse/produce)
+  csv\-join           XILU003  CSV + SFX/cast annotation join  (after parse)
+  sfx                XILU002  standalone SFX generation  (after cues/parse)
+  sample             XILU004  voice sample generation  (after voices/cast config)
+  sfx\-lib            XILU005  SFX library discovery  (any time)
+  splice             XILU006  parsed JSON splice utility  (advanced)
+  mp3\-hash           XILU007  recursive MP3 SHA\-256 hash log  (integrity / audit)
+  stem\-log           XILU008  parse daily logs → chronological stem generation CSV  (integrity / audit)
+  gui                         web dashboard (requires [gui] extra)  (pip install xil\-pipeline[gui])
+  migrate\-workspace  XILU009  migrate pre\-0.1.8 workspace to normalized layout  (run once per workspace)
+  db\-profile         XILU010  profile MP3 loudness: peak, average, and minimum dBFS  (audio level analysis)
+  sfx\-csv            XILU011  flatten sfx_<tag>.json configs to CSV — one row per effect  (debug / audit)
+  parsed\-csv         XILU012  export parsed_<tag>.json entries to CSV — one row per entry  (debug / audit)
+  sfx\-hydrate        XILU013  write pipe\-hint source fields from parsed JSON into the SFX config  (after parse, before produce)
+  sfx\-restore        XILU020  reapply journaled timeline sound edits onto the SFX config  (recover timeline sound edits)
+  sfx\-impact         XILU021  report which source\-backed cues duration_seconds is clipping short  (before changing clip durations)
+  sfx\-match          XILU022  find existing library assets for cues whose source file is missing  (when produce reports missing SFX sources)
+  episode\-summary    XILU014  write one\-row\-per\-episode summary CSV (lines, words, TTS chars)  (any time)
+  stem\-verify        XILU015  scan stems folder → JSON report with file attributes and optional Whisper transcripts  (after produce / import)
+  stem\-compare       XILU016  cross\-reference a stem\-verify transcript report against the parsed script  (after stem\-verify)
+  remove\-show        XILU017  remove all workspace files for a show (\-\-dry\-run safe)  (workspace management)
+  remove\-episode     XILU018  remove workspace files for one episode, preserving the source script (\-\-dry\-run safe)  (workspace management)
+  status             XILU019  make\-style staleness check of an episode\*(Aqs pipeline artifacts (report only)  (workspace management)
+.PP
+Run \*(Aqxil <command> \-\-help\*(Aq for command\-specific options.
+.SH OPTIONS
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help (see a summary with \*(Aq\-h\*(Aq)
+.TP
+\fB\-V\fR, \fB\-\-version\fR
+Print version
+.SH SUBCOMMANDS
+.TP
+xil\-init(1)
+workspace scaffolding
+.TP
+xil\-use(1)
+set / show the active show context
+.TP
+xil\-scan(1)
+pre\-flight script scanner
+.TP
+xil\-parse(1)
+script parser
+.TP
+xil\-cues(1)
+cues sheet ingestion
+.TP
+xil\-produce(1)
+voice stem generation
+.TP
+xil\-assemble(1)
+master audio assembly
+.TP
+xil\-studio\-onboard(1)
+ElevenLabs Studio project onboarding
+.TP
+xil\-daw(1)
+DAW layer export
+.TP
+xil\-migrate(1)
+stem migration
+.TP
+xil\-cleanup(1)
+stale stem cleanup
+.TP
+xil\-import(1)
+Studio export import
+.TP
+xil\-regen(1)
+script regeneration
+.TP
+xil\-master(1)
+final master MP3 export
+.TP
+xil\-publish(1)
+social media post draft generator
+.TP
+xil\-voices(1)
+voice discovery
+.TP
+xil\-csv\-join(1)
+CSV + SFX/cast annotation join
+.TP
+xil\-sfx(1)
+standalone SFX generation
+.TP
+xil\-sample(1)
+voice sample generation
+.TP
+xil\-sfx\-lib(1)
+SFX library discovery
+.TP
+xil\-splice(1)
+parsed JSON splice utility
+.TP
+xil\-mp3\-hash(1)
+recursive MP3 SHA\-256 hash log
+.TP
+xil\-stem\-log(1)
+parse daily logs → chronological stem generation CSV
+.TP
+xil\-gui(1)
+web dashboard (requires [gui] extra)
+.TP
+xil\-migrate\-workspace(1)
+migrate pre\-0.1.8 workspace to normalized layout
+.TP
+xil\-db\-profile(1)
+profile MP3 loudness: peak, average, and minimum dBFS
+.TP
+xil\-sfx\-csv(1)
+flatten sfx_<tag>.json configs to CSV — one row per effect
+.TP
+xil\-parsed\-csv(1)
+export parsed_<tag>.json entries to CSV — one row per entry
+.TP
+xil\-sfx\-hydrate(1)
+write pipe\-hint source fields from parsed JSON into the SFX config
+.TP
+xil\-sfx\-restore(1)
+reapply journaled timeline sound edits onto the SFX config
+.TP
+xil\-sfx\-impact(1)
+report which source\-backed cues duration_seconds is clipping short
+.TP
+xil\-sfx\-match(1)
+find existing library assets for cues whose source file is missing
+.TP
+xil\-episode\-summary(1)
+write one\-row\-per\-episode summary CSV (lines, words, TTS chars)
+.TP
+xil\-stem\-verify(1)
+scan stems folder → JSON report with file attributes and optional Whisper transcripts
+.TP
+xil\-stem\-compare(1)
+cross\-reference a stem\-verify transcript report against the parsed script
+.TP
+xil\-remove\-show(1)
+remove all workspace files for a show (\-\-dry\-run safe)
+.TP
+xil\-remove\-episode(1)
+remove workspace files for one episode, preserving the source script (\-\-dry\-run safe)
+.TP
+xil\-status(1)
+make\-style staleness check of an episode\*(Aqs pipeline artifacts (report only)
+.TP
+xil\-help(1)
+Print this message or the help of the given subcommand(s)
+.SH VERSION
+v0.1.0

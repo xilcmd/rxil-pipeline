@@ -1,0 +1,31 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-master 1  "xil-master " 
+.SH NAME
+xil\-master \- Final Master MP3 Export — mix DAW layers into a single podcast\-ready MP3
+.SH SYNOPSIS
+\fBxil\-master\fR [\fB\-\-episode\fR] [\fB\-\-tag\fR] [\fB\-\-show\fR] [\fB\-\-daw\-dir\fR] [\fB\-\-output\fR] [\fB\-\-dry\-run\fR] [\fB\-h\fR|\fB\-\-help\fR] 
+.SH DESCRIPTION
+Final Master MP3 Export — mix DAW layers into a single podcast\-ready MP3
+.SH OPTIONS
+.TP
+\fB\-\-episode\fR \fI<EPISODE>\fR
+Episode tag (e.g. S02E03) — derives DAW layer paths
+.TP
+\fB\-\-tag\fR \fI<TAG>\fR
+Raw tag for non\-episodic content (e.g. V01C03, D01)
+.TP
+\fB\-\-show\fR \fI<SHOW>\fR
+Show name override (default: from project.json)
+.TP
+\fB\-\-daw\-dir\fR \fI<DAW_DIR>\fR
+DAW layer directory (default: daw/<TAG>/)
+.TP
+\fB\-\-output\fR \fI<OUTPUT>\fR
+Output MP3 path (default: masters/<TAG>_<slug>_<date>.mp3)
+.TP
+\fB\-\-dry\-run\fR
+Show what would be exported without writing files
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help

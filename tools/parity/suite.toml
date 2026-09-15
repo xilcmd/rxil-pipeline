@@ -1,8 +1,7 @@
-# Parity checks. A command may flip to native in crates/xil-cli/src/commands.rs
-# only when every entry that exercises it passes.
+# Parity checks: every command is native, and every entry must keep passing.
 #
-# Each entry runs `xil <args>` in a fresh copy of fixtures/workspace under
-# Python (XIL_FORCE_PY=all) and under Rust, then diffs everything.
+# Each entry runs `xil <args>` in a fresh copy of fixtures/workspace with the
+# Python xil and with the Rust xil, then diffs everything.
 #
 #   name          unique label
 #   args          argv after `xil`
@@ -16,6 +15,10 @@
 [[check]]
 name = "help"
 args = ["--help"]
+
+[[check]]
+name = "unknown-command"
+args = ["no-such-command"]
 
 [[check]]
 name = "use-list"

@@ -226,3 +226,8 @@ fn execute(a: &Args) -> anyhow::Result<()> {
     log::info("--- Done! ---");
     Ok(())
 }
+
+/// The clap definition behind `--help`, for man pages.
+pub fn command() -> clap::Command {
+    <Args as clap::CommandFactory>::command()
+}

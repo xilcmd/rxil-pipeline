@@ -1,0 +1,25 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-mp3-hash 1  "xil-mp3-hash " 
+.SH NAME
+xil\-mp3\-hash \- Recursively hash MP3 files and log <path> : <sha256>
+.SH SYNOPSIS
+\fBxil\-mp3\-hash\fR [\fB\-o\fR|\fB\-\-output\fR] [\fB\-\-absolute\fR] [\fB\-\-json\fR] [\fB\-h\fR|\fB\-\-help\fR] [\fIPATH\fR] 
+.SH DESCRIPTION
+Recursively hash MP3 files and log <path> : <sha256>
+.SH OPTIONS
+.TP
+\fB\-o\fR, \fB\-\-output\fR \fI<FILE>\fR
+Write results to FILE in addition to logging
+.TP
+\fB\-\-absolute\fR
+Print absolute paths (default: paths relative to scan root)
+.TP
+\fB\-\-json\fR
+Output a JSON array of {"path": ..., "sha256": ...} to stdout (no banner)
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help
+.TP
+[\fIPATH\fR] [default: .]
+File to hash or directory to scan recursively (default: current directory)

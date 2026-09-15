@@ -1,0 +1,49 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-import 1  "xil-import " 
+.SH NAME
+xil\-import \- Import ElevenLabs Studio export ZIP into pipeline stems.
+.SH SYNOPSIS
+\fBxil\-import\fR [\fB\-\-episode\fR] [\fB\-\-tag\fR] [\fB\-\-show\fR] <\fB\-\-zip\fR> [\fB\-\-parsed\fR] [\fB\-\-stems\-dir\fR] [\fB\-\-dry\-run\fR] [\fB\-\-force\fR] [\fB\-\-gen\-sfx\fR] [\fB\-\-gen\-music\fR] [\fB\-\-gen\-beats\fR] [\fB\-\-all\fR] [\fB\-h\fR|\fB\-\-help\fR] 
+.SH DESCRIPTION
+Import ElevenLabs Studio export ZIP into pipeline stems.
+.SH OPTIONS
+.TP
+\fB\-\-episode\fR \fI<EPISODE>\fR
+Episode tag (e.g. S02E02) — derives parsed JSON and stems dir
+.TP
+\fB\-\-tag\fR \fI<TAG>\fR
+Raw tag for non\-episodic content (e.g. V01C03, D01)
+.TP
+\fB\-\-show\fR \fI<SHOW>\fR
+Show name override (default: from project.json)
+.TP
+\fB\-\-zip\fR \fI<ZIP_PATH>\fR
+Path to the ElevenLabs Studio export ZIP file
+.TP
+\fB\-\-parsed\fR \fI<PARSED>\fR
+Override parsed JSON path (default: parsed/parsed_<slug>_{TAG}.json)
+.TP
+\fB\-\-stems\-dir\fR \fI<STEMS_DIR>\fR
+Override stems output directory (default: stems/{TAG})
+.TP
+\fB\-\-dry\-run\fR
+Show extraction plan without writing files
+.TP
+\fB\-\-force\fR
+Overwrite existing stems on disk
+.TP
+\fB\-\-gen\-sfx\fR
+Include SFX direction entries
+.TP
+\fB\-\-gen\-music\fR
+Include MUSIC direction entries
+.TP
+\fB\-\-gen\-beats\fR
+Include BEAT direction entries
+.TP
+\fB\-\-all\fR
+Include all direction types (SFX, MUSIC, BEAT, AMBIENCE)
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help

@@ -1,8 +1,8 @@
 //! `xil gui` — the web dashboard. Port of `xil_gui.py`'s entry point; the
 //! dashboard itself lives in the `xil-web` crate.
 //!
-//! `--share` is Gradio's public tunnel, which has no Rust counterpart, so a
-//! `--share` run hands the whole command to the Python dashboard.
+//! Gradio's `--share` tunnel has no counterpart here; share the dashboard
+//! through an SSH or Tailscale tunnel instead.
 
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
@@ -17,8 +17,8 @@ use super::status::evaluate_episode;
 #[derive(Parser)]
 #[command(
     name = "xil-gui",
-    about = "Launch the xil-pipeline web dashboard (Gradio). Opens a browser UI with nine tabs: Setup (initialize a workspace / select the active show), Project (edit project.json), Episodes (workspace overview with parse/stems/DAW/master status), Run Stage (launch pipeline stages with live log streaming; dry-run on by default), Speakers, Cast Config and SFX Config (edit the respective JSON configs), Audio Preview (browse and play stems in the browser), and Timeline (interactive HTML timeline).",
-    after_help = "Requires the [gui] extra:\n  pip install 'xil-pipeline[gui]'\n\nPartner sharing (temporary 72h public URL, open access, no auth —\nshare only with trusted collaborators):\n  xil-gui --share"
+    about = "Launch the xil-pipeline web dashboard. Opens a browser UI with ten tabs: Setup (initialize a workspace / select the active show), Project (edit project.json), Episodes (workspace overview with parse/stems/DAW/master status), Run Stage (launch pipeline stages with live log streaming; dry-run on by default), Speakers, Cast Config and SFX Config (edit the respective JSON configs), Audio Preview (browse and play stems in the browser), Audio Grading (mark SFX library files accurate or rejected), and Timeline (interactive HTML timeline).",
+    after_help = "Remote access: the server binds 127.0.0.1 by default. To reach it from\nanother machine, forward the port, e.g.:\n  ssh -L 7860:127.0.0.1:7860 <this-host>"
 )]
 struct Args {
     /// Port to listen on (default: 7860)
@@ -27,9 +27,6 @@ struct Args {
     /// Host address to bind (default: 127.0.0.1)
     #[arg(long, default_value = "127.0.0.1")]
     host: String,
-    /// Generate a public ngrok URL for partner access (open, no auth)
-    #[arg(long)]
-    share: bool,
     /// Append a timestamped session activity log to FILE
     #[arg(long, short = 'o', value_name = "FILE")]
     output: Option<PathBuf>,
@@ -81,7 +78,11 @@ pub fn stage_cells(slug: &str, tag: &str) -> StageCells {
 
 pub fn run(args: &[OsString]) -> anyhow::Result<i32> {
     if args.iter().any(|a| a == "--share") {
-        return crate::delegate::run("gui", args);
+        eprintln!(
+            "xil gui: --share was removed with the Python dashboard. \
+             Forward the port instead, e.g. ssh -L 7860:127.0.0.1:7860 <this-host>"
+        );
+        return Ok(2);
     }
     let a: Args = match super::parse_or_exit("xil-gui", args) {
         Ok(a) => a,
@@ -102,6 +103,11 @@ pub fn run(args: &[OsString]) -> anyhow::Result<i32> {
         .build()?;
     runtime.block_on(xil_web::serve(&a.host, a.port, state))?;
     Ok(0)
+}
+
+/// The clap definition behind `--help`, for man pages.
+pub fn command() -> clap::Command {
+    <Args as clap::CommandFactory>::command()
 }
 
 #[cfg(test)]

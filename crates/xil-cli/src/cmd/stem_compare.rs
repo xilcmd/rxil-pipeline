@@ -395,6 +395,11 @@ fn execute(a: &Args) -> anyhow::Result<i32> {
     Ok(0)
 }
 
+/// The clap definition behind `--help`, for man pages.
+pub fn command() -> clap::Command {
+    <Args as clap::CommandFactory>::command()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

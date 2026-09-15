@@ -1,0 +1,45 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-studio-onboard 1  "xil-studio-onboard " 
+.SH NAME
+xil\-studio\-onboard \- Onboard an episode to an ElevenLabs Studio project.
+.SH SYNOPSIS
+\fBxil\-studio\-onboard\fR [\fB\-\-episode\fR] [\fB\-\-tag\fR] [\fB\-\-show\fR] [\fB\-\-dry\-run\fR] [\fB\-\-quality\fR] [\fB\-\-model\fR] [\fB\-h\fR|\fB\-\-help\fR] 
+.SH DESCRIPTION
+Onboard an episode to an ElevenLabs Studio project.
+.SH OPTIONS
+.TP
+\fB\-\-episode\fR \fI<EPISODE>\fR
+Episode tag (e.g. S01E02)
+.TP
+\fB\-\-tag\fR \fI<TAG>\fR
+Raw tag for non\-episodic content (e.g. V01C03, D01)
+.TP
+\fB\-\-show\fR \fI<SHOW>\fR
+Show name override (default: from project.json)
+.TP
+\fB\-\-dry\-run\fR
+Build and display content JSON without calling the API
+.TP
+\fB\-\-quality\fR \fI<QUALITY>\fR [default: standard]
+Quality preset (default: standard)
+.br
+
+.br
+\fIPossible values:\fR
+.RS 14
+.IP \(bu 2
+standard
+.IP \(bu 2
+high
+.IP \(bu 2
+ultra
+.IP \(bu 2
+ultra_lossless
+.RE
+.TP
+\fB\-\-model\fR \fI<MODEL>\fR [default: eleven_v3]
+TTS model ID (default: eleven_v3)
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help

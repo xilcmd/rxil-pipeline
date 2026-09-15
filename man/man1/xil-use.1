@@ -1,0 +1,18 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-use 1  "xil-use " 
+.SH NAME
+xil\-use \- Set or display the active show context. Without arguments, lists all shows discovered in the workspace (each configs/<slug>/project.json) and marks the currently active show with an asterisk. With a show name or slug, switches the active show; subsequent commands that auto\-detect the show (parse, produce, status, ...) use it until changed again.
+.SH SYNOPSIS
+\fBxil\-use\fR [\fB\-h\fR|\fB\-\-help\fR] [\fISHOW\fR] 
+.SH DESCRIPTION
+Set or display the active show context. Without arguments, lists all shows discovered in the workspace (each configs/<slug>/project.json) and marks the currently active show with an asterisk. With a show name or slug, switches the active show; subsequent commands that auto\-detect the show (parse, produce, status, ...) use it until changed again.
+.SH OPTIONS
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help
+.TP
+[\fISHOW\fR]
+show name or slug to activate (omit to list available shows)
+.SH EXTRA
+The active show is stored in <workspace>/.active_show. A multi\-word show name may be given unquoted; all arguments are joined with spaces.

@@ -1,0 +1,31 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-assemble 1  "xil-assemble " 
+.SH NAME
+xil\-assemble \- Audio Assembly — assemble voice stems into master MP3
+.SH SYNOPSIS
+\fBxil\-assemble\fR [\fB\-\-episode\fR] [\fB\-\-tag\fR] [\fB\-\-show\fR] [\fB\-\-output\fR] [\fB\-\-parsed\fR] [\fB\-\-gap\-ms\fR] [\fB\-h\fR|\fB\-\-help\fR] 
+.SH DESCRIPTION
+Audio Assembly — assemble voice stems into master MP3
+.SH OPTIONS
+.TP
+\fB\-\-episode\fR \fI<EPISODE>\fR
+Episode tag (e.g. S01E01) — derives cast config path
+.TP
+\fB\-\-tag\fR \fI<TAG>\fR
+Raw tag for non\-episodic content (e.g. V01C03, D01)
+.TP
+\fB\-\-show\fR \fI<SHOW>\fR
+Show name override (default: from project.json)
+.TP
+\fB\-\-output\fR \fI<OUTPUT>\fR
+Output master MP3 path (default: <slug>_<TAG>_master.mp3)
+.TP
+\fB\-\-parsed\fR \fI<PARSED>\fR
+Path to parsed script JSON (default: parsed/parsed_<slug>_<TAG>.json)
+.TP
+\fB\-\-gap\-ms\fR \fI<GAP_MS>\fR [default: 600]
+Silence gap between foreground stems in ms (default: 600)
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help

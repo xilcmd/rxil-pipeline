@@ -46,7 +46,7 @@ impl Chatterbox {
     }
 
     fn start(&mut self) -> anyhow::Result<()> {
-        let script = crate::delegate::python_package_dir()
+        let script = crate::workers::python_package_dir()
             .map(|d| xil_workers::worker_script(&d, "chatterbox_turbo_worker.py"))
             .ok_or_else(|| {
                 anyhow::anyhow!(

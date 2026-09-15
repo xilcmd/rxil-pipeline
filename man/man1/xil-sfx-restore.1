@@ -1,0 +1,28 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-sfx-restore 1  "xil-sfx-restore " 
+.SH NAME
+xil\-sfx\-restore \- Reapply journaled timeline sound edits (sfx_<tag>_edits.jsonl) onto the episode\*(Aqs SFX config — recovery for a cleared or regenerated sfx_<tag>.json.
+.SH SYNOPSIS
+\fBxil\-sfx\-restore\fR [\fB\-\-episode\fR] [\fB\-\-tag\fR] [\fB\-\-show\fR] [\fB\-\-sfx\fR] [\fB\-\-dry\-run\fR] [\fB\-h\fR|\fB\-\-help\fR] 
+.SH DESCRIPTION
+Reapply journaled timeline sound edits (sfx_<tag>_edits.jsonl) onto the episode\*(Aqs SFX config — recovery for a cleared or regenerated sfx_<tag>.json.
+.SH OPTIONS
+.TP
+\fB\-\-episode\fR \fI<EPISODE>\fR
+Episode tag (e.g. S04E04)
+.TP
+\fB\-\-tag\fR \fI<TAG>\fR
+Raw non\-episodic tag (e.g. V01C03)
+.TP
+\fB\-\-show\fR \fI<SHOW>\fR
+Show name override (default: from project.json)
+.TP
+\fB\-\-sfx\fR \fI<SFX>\fR
+Override SFX config path
+.TP
+\fB\-\-dry\-run\fR
+Report what would be reapplied without writing
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help

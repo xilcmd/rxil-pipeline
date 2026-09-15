@@ -1,0 +1,46 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-scan 1  "xil-scan " 
+.SH NAME
+xil\-scan \- Pre\-flight scanner: check a production script for unknown speakers/sections.
+.SH SYNOPSIS
+\fBxil\-scan\fR [\fB\-\-json\fR] [\fB\-\-speakers\fR] [\fB\-\-show\fR] [\fB\-\-sfx\fR] [\fB\-\-episode\fR] [\fB\-\-harvest\-cast\fR] [\fB\-\-backfill\-cast\fR] [\fB\-\-scripts\-dir\fR] [\fB\-y\fR|\fB\-\-yes\fR] [\fB\-\-dry\-run\fR] [\fB\-h\fR|\fB\-\-help\fR] [\fIPATH\fR] 
+.SH DESCRIPTION
+Pre\-flight scanner: check a production script for unknown speakers/sections.
+.SH OPTIONS
+.TP
+\fB\-\-json\fR
+Output machine\-readable JSON instead of the human report
+.TP
+\fB\-\-speakers\fR \fI<SPEAKERS>\fR
+Path to speakers.json (default: auto\-detect from CWD, then built\-in)
+.TP
+\fB\-\-show\fR \fI<NAME>\fR
+Show name override — selects configs/{slug}/speakers.json (default: from project.json)
+.TP
+\fB\-\-sfx\fR \fI<PATH>\fR
+Path to sfx_<TAG>.json — enables direction\-text audit against existing config
+.TP
+\fB\-\-episode\fR \fI<TAG>\fR
+Episode tag (e.g. S04E04) — auto\-discovers sfx config when \-\-sfx is omitted
+.TP
+\fB\-\-harvest\-cast\fR
+Scan all scripts in scripts/ for CAST: blocks and report speakers missing from speakers.json
+.TP
+\fB\-\-backfill\-cast\fR
+Add CAST: blocks to scripts that don\*(Aqt have one, inferring speakers from parsed JSON or body scan
+.TP
+\fB\-\-scripts\-dir\fR \fI<DIR>\fR
+Scripts directory for \-\-harvest\-cast / \-\-backfill\-cast (default: scripts/ under workspace root)
+.TP
+\fB\-y\fR, \fB\-\-yes\fR
+Apply changes without confirmation (for \-\-harvest\-cast and \-\-backfill\-cast)
+.TP
+\fB\-\-dry\-run\fR
+Preview backfill changes without writing files (implied when \-\-yes is absent for \-\-backfill\-cast)
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help
+.TP
+[\fIPATH\fR]
+Path to the markdown production script (required unless \-\-harvest\-cast or \-\-backfill\-cast)

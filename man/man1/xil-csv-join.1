@@ -1,0 +1,34 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-csv-join 1  "xil-csv-join " 
+.SH NAME
+xil\-csv\-join \- Annotate a parsed episode CSV with SFX and cast config data.
+.SH SYNOPSIS
+\fBxil\-csv\-join\fR [\fB\-\-episode\fR] [\fB\-\-tag\fR] [\fB\-\-show\fR] [\fB\-\-csv\fR] [\fB\-\-sfx\fR] [\fB\-\-cast\fR] [\fB\-\-output\fR] [\fB\-h\fR|\fB\-\-help\fR] 
+.SH DESCRIPTION
+Annotate a parsed episode CSV with SFX and cast config data.
+.SH OPTIONS
+.TP
+\fB\-\-episode\fR \fI<EPISODE>\fR
+Episode tag (e.g. S02E03) — derives default input/output paths
+.TP
+\fB\-\-tag\fR \fI<TAG>\fR
+Raw tag for non\-episodic content (e.g. V01C03, D01)
+.TP
+\fB\-\-show\fR \fI<SHOW>\fR
+Show name override (default: from project.json)
+.TP
+\fB\-\-csv\fR \fI<CSV_PATH>\fR
+Override input CSV path
+.TP
+\fB\-\-sfx\fR \fI<SFX_PATH>\fR
+Override SFX JSON path
+.TP
+\fB\-\-cast\fR \fI<CAST_PATH>\fR
+Override cast JSON path
+.TP
+\fB\-\-output\fR \fI<OUT_PATH>\fR
+Override output CSV path
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help

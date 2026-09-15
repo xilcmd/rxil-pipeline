@@ -597,6 +597,11 @@ This has been {show}. Thank you for listening.
 END OF EPISODE
 "#;
 
+/// The clap definition behind `--help`, for man pages.
+pub fn command() -> clap::Command {
+    <Args as clap::CommandFactory>::command()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

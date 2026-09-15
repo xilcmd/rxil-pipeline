@@ -1,0 +1,48 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-init 1  "xil-init " 
+.SH NAME
+xil\-init \- Scaffold a new xil\-pipeline project workspace
+.SH SYNOPSIS
+\fBxil\-init\fR [\fB\-\-show\fR] [\fB\-\-type\fR] [\fB\-\-season\fR] [\fB\-\-season\-title\fR] [\fB\-\-flat\fR] [\fB\-\-no\-flat\fR] [\fB\-h\fR|\fB\-\-help\fR] [\fIDIRECTORY\fR] 
+.SH DESCRIPTION
+Scaffold a new xil\-pipeline project workspace
+.SH OPTIONS
+.TP
+\fB\-\-show\fR \fI<SHOW>\fR [default: Sample Show]
+Show name for project.json (default: "Sample Show")
+.TP
+\fB\-\-type\fR \fI<CONTENT_TYPE>\fR [default: podcast]
+Content type: podcast (default), audiobook, drama, special
+.br
+
+.br
+\fIPossible values:\fR
+.RS 14
+.IP \(bu 2
+podcast
+.IP \(bu 2
+audiobook
+.IP \(bu 2
+drama
+.IP \(bu 2
+special
+.RE
+.TP
+\fB\-\-season\fR \fI<SEASON>\fR
+Season number for project.json and the sample script header
+.TP
+\fB\-\-season\-title\fR \fI<TITLE>\fR
+Season/arc title for project.json and the sample script header
+.TP
+\fB\-\-flat\fR
+Use multi\-show flat layout: project.json in configs/{slug}/, per\-show category subdirs (default)
+.TP
+\fB\-\-no\-flat\fR
+Use legacy single\-show layout: all dirs at workspace root
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help
+.TP
+[\fIDIRECTORY\fR]
+Target directory (default: XIL_PROJECTROOT if set, else current directory)

@@ -3,13 +3,13 @@
 Rust port of [xil-pipeline](https://github.com/xilcmd/xil-pipeline), the
 show-agnostic audio production pipeline (markdown script → podcast MP3).
 
-The reference is that repository's **main branch**, not its PyPI release:
-its version string has read `0.3.2` for many commits past the tag of the
-same name. CI pins the exact reference commit.
+All 38 `xil` commands are implemented in Rust. The only Python left at run
+time is the three ML workers (Chatterbox Turbo, Whisper, MMAudio), each in
+its own venv; `xil` talks to them over JSON lines.
 
-The port is a **strangler**: the Rust `xil` binary ships from day one and
-hands any command it does not yet implement to the Python package. A command
-switches to Rust only when `tools/parity/` proves the output matches.
+The port was checked against that repository's **main branch**, not its PyPI
+release: its version string has read `0.3.2` for many commits past the tag of
+the same name. CI pins the exact reference commit.
 
 ## Layout
 
@@ -19,7 +19,10 @@ switches to Rust only when `tools/parity/` proves the output matches.
 | `crates/xil-audio` | PCM math matching pydub/audioop, ffmpeg bridge, ID3/WAV tags |
 | `crates/xil-api` | ElevenLabs / Anthropic / gTTS clients |
 | `crates/xil-workers` | JSON-over-stdio client for the Python ML workers |
-| `crates/xil-cli` | the `xil` binary: command table, delegation, stages |
+| `crates/xil-web` | `xil gui`: the axum + htmx dashboard |
+| `crates/xil-cli` | the `xil` binary: command table and one module per stage |
+| `man/man1` | man pages, generated from the clap definitions |
+| `docs/book` | the user guide (mdBook) |
 | `tools/parity` | Python-vs-Rust output comparison harness |
 
 ## Build
@@ -35,25 +38,36 @@ The source tree may live on `/mnt/c` (drvfs); object files must not.
 ## Run
 
 ```bash
-export XIL_CODEROOT=/path/to/xil-pipeline   # where the Python venv lives
-~/.cargo-target/rxil/debug/xil --help
-~/.cargo-target/rxil/debug/xil status --toolchain   # shows which Python it delegates to
+export XIL_PROJECTROOT=/path/to/workspace    # scripts, configs, stems, SFX
+export XIL_CODEROOT=/path/to/xil-pipeline    # worker scripts and their venvs
+~/.cargo-target/rxil/release/xil --help
+~/.cargo-target/rxil/release/xil status --toolchain   # worker scripts and venvs found
 ```
 
-Environment knobs:
+`XIL_CODEROOT` is only needed by the stages that start an ML worker
+(`produce`/`sample` with Chatterbox, `stem-verify`, `sfx`/`produce` with
+MMAudio).
 
-- `XIL_PY_BIN` — explicit path to the Python `xil` (beats `$XIL_CODEROOT/venv/bin/xil`).
-- `XIL_FORCE_PY=cmd1,cmd2` or `all` — run those commands through Python even
-  when a Rust implementation exists. The parity harness uses this.
+## Man pages and guide
+
+```bash
+xil --generate-man man/man1      # regenerate after changing any command's options
+man -l man/man1/xil-parse.1
+mdbook build docs/book           # writes docs/book/book/
+```
+
+CI fails when the committed man pages are out of date.
 
 ## Parity
 
+The harness runs each check with the Python `xil` and with the Rust `xil` on
+twin copies of a fixture workspace, then diffs exit codes, output and every
+file written. Python is a test-only dependency.
+
 ```bash
-python3 tools/parity/parity.py record          # seed fixtures from the Python repo once
-python3 tools/parity/parity.py check --suite   # run every check in suite.toml
-python3 tools/parity/parity.py check parse-sample
+export XIL_PY_BIN=/path/to/xil-pipeline/venv/bin/xil
+python tools/parity/parity.py check --suite    # run every check in suite.toml
+python tools/parity/parity.py check parse-sample
 ```
 
-## Status
-
-All 38 commands delegate to Python. See `crates/xil-cli/src/commands.rs`.
+Use a Python with numpy (the xil-pipeline venv): the audio comparisons need it.

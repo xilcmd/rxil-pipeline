@@ -15,8 +15,9 @@ of the code as it stands, not of the last release. CI pins the matching
 commit; see .github/workflows/ci.yml.
 
 Each check copies fixtures/workspace/ twice into a scratch dir on the local
-disk, runs `xil <args>` once under Python (XIL_FORCE_PY=all) and once under
-Rust, then compares exit code, stdout, and every file the command wrote:
+disk, runs `xil <args>` once with the Python `xil` ($XIL_PY_BIN) and once with
+the Rust one ($XIL_RS_BIN), then compares exit code, stdout, and every file
+the command wrote:
 
   *.json            re-serialised with indent=2 and compared byte for byte
                     (key order and float formatting must match)
@@ -1034,7 +1035,6 @@ def _record_phase5(ws: Path) -> None:
     # A stem_verify report as the Python writes it, over the mixshow stems,
     # so stem-compare has real input with every status in it.
     env = dict(os.environ, XIL_PROJECTROOT=str(ws), XIL_CODEROOT=str(CODEROOT))
-    env.pop("XIL_FORCE_PY", None)
     r = _run([str(PY_XIL), "stem-verify", "--show", "mixshow", "--episode", "S01E01",
               "--whisper-python", str(fake), "--device", "cpu"], cwd=ws, env=env)
     if r.returncode != 0:
@@ -1292,13 +1292,12 @@ def _mock_api():
     return _MOCK
 
 
-def _run_side(side: str, binary: Path, args: list[str], force_py: bool,
+def _run_side(side: str, binary: Path, args: list[str],
               extra_env: dict | None = None) -> tuple[Path, subprocess.CompletedProcess]:
     ws = _fresh_workspace(side)
     env = dict(os.environ)
     env["XIL_PROJECTROOT"] = str(ws)
     env["XIL_CODEROOT"] = str(CODEROOT)
-    env["XIL_TRACE_IMPL"] = "1"
     # Never let a parity run spend credits: real keys are dropped, and every
     # API client — both implementations — is pointed at the local mock, which
     # records each request into the workspace for comparison. A check that
@@ -1320,38 +1319,16 @@ def _run_side(side: str, binary: Path, args: list[str], force_py: bool,
     (stub / "mpg123").write_text("#!/bin/sh\nexit 0\n")
     (stub / "mpg123").chmod(0o755)
     env["PATH"] = f"{stub}{os.pathsep}{env.get('PATH', '')}"
-    if force_py:
-        env["XIL_FORCE_PY"] = "all"
-    else:
-        env.pop("XIL_FORCE_PY", None)
     proc = _run([str(binary), *args], cwd=ws, env=env)
     return ws, proc
 
 
-def _impl_of(proc: subprocess.CompletedProcess) -> str:
-    """Which implementation the Rust binary reported for this run."""
-    for line in proc.stderr.splitlines():
-        if line.startswith("rxil-impl: "):
-            return line.split(": ", 1)[1].strip()
-    return "unknown"
-
-
-def _native_commands() -> set[str]:
-    """Commands the Rust binary claims to implement natively.
-
-    Raises when the binary is missing or too old to answer, so a stale or
-    unbuilt binary fails the run instead of quietly making every native
-    assertion vacuous.
-    """
+def _require_binaries() -> None:
+    """Fail the run up front when either implementation is missing."""
     if not RUST_XIL.is_file():
         raise SystemExit(f"Rust binary not found at {RUST_XIL} — run: cargo build --workspace")
-    r = _run([str(RUST_XIL), "--native-list"])
-    if r.returncode != 0:
-        raise SystemExit(
-            f"{RUST_XIL} does not support --native-list (exit {r.returncode}).\n"
-            "The binary is stale. Rebuild it: cargo build --workspace"
-        )
-    return {line.strip() for line in r.stdout.splitlines() if line.strip()}
+    if not PY_XIL.is_file():
+        raise SystemExit(f"Python xil not found at {PY_XIL} — set XIL_PY_BIN or XIL_CODEROOT")
 
 
 def _snapshot(ws: Path) -> dict[str, Path]:
@@ -1524,30 +1501,19 @@ def _first_diff(a: str, b: str) -> str:
     return f"line count {len(la)} vs {len(lb)}"
 
 
-def run_check(entry: dict, native: set[str]) -> tuple[list[str], str]:
-    """Run one suite entry; return (failures, implementation that served the Rust side)."""
+def run_check(entry: dict) -> list[str]:
+    """Run one suite entry; return its failures."""
     args = entry["args"]
     mask_keys = set(entry.get("mask_keys", []))
     stdout_masks = [re.compile(p) for p in entry.get("stdout_masks", [])]
 
     extra_env = {k: str(v) for k, v in entry.get("env", {}).items()}
-    ws_py, py = _run_side("py", RUST_XIL if entry.get("via_rust_shim", True) else PY_XIL, args, force_py=True,
-                          extra_env=extra_env)
+    ws_py, py = _run_side("py", PY_XIL, args, extra_env=extra_env)
     _mock_api().log_to(None)
-    ws_rs, rs = _run_side("rs", RUST_XIL, args, force_py=False, extra_env=extra_env)
+    ws_rs, rs = _run_side("rs", RUST_XIL, args, extra_env=extra_env)
     _mock_api().log_to(None)
 
     failures = []
-    impl = _impl_of(rs)
-    # args[0] is the subcommand, unless the invocation is a bare flag like
-    # `--help`, which the dispatcher answers itself and never routes.
-    command = args[0] if args and not args[0].startswith("-") else ""
-    # A check on a native command that silently fell back to Python proves
-    # nothing — a stale binary or a failed build must not read as a pass.
-    if command and impl == "unknown":
-        failures.append("the Rust binary did not report which implementation ran (stale binary — rebuild)")
-    elif command in native and impl != "native":
-        failures.append(f"expected the native implementation of '{command}', but the Rust side ran: {impl}")
     if py.returncode != rs.returncode:
         failures.append(f"exit code: py={py.returncode} rs={rs.returncode}")
 
@@ -1569,7 +1535,7 @@ def run_check(entry: dict, native: set[str]) -> tuple[list[str], str]:
         why = _compare_file(rel, files_py[rel], files_rs[rel], mask_keys)
         if why:
             failures.append(f"{rel}: {why}")
-    return failures, impl
+    return failures
 
 
 def cmd_check(ns: argparse.Namespace) -> int:
@@ -1583,23 +1549,19 @@ def cmd_check(ns: argparse.Namespace) -> int:
         if missing:
             print(f"unknown check(s): {', '.join(sorted(missing))}", file=sys.stderr)
             return 2
-    native = _native_commands()
-    failed = 0
-    counts = {"native": 0, "delegated": 0, "unknown": 0}
+    _require_binaries()
+    failed = ran = 0
     for entry in suite:
         if wanted is not None and entry["name"] not in wanted:
             continue
-        failures, impl = run_check(entry, native)
-        if not (entry["args"] and not entry["args"][0].startswith("-")):
-            impl = "dispatcher"  # a bare flag, answered before any command runs
-        counts[impl] = counts.get(impl, 0) + 1
+        failures = run_check(entry)
+        ran += 1
         status = "PASS" if not failures else "FAIL"
-        print(f"[{status}] {entry['name']} ({impl}): xil {' '.join(entry['args'])}")
+        print(f"[{status}] {entry['name']}: xil {' '.join(entry['args'])}")
         for f in failures:
             print(f"        {f}")
         failed += bool(failures)
-    tally = ", ".join(f"{n} {k}" for k, n in counts.items() if n)
-    print(f"Rust side: {tally}")
+    print(f"{ran - failed}/{ran} checks passed")
     return 1 if failed else 0
 
 
@@ -1621,35 +1583,29 @@ def cmd_sweep(ns: argparse.Namespace) -> int:
         print(f"no .md scripts under {src_root}", file=sys.stderr)
         return 2
 
-    _native_commands()  # fail fast on a stale binary
+    _require_binaries()
     print(f"sweeping `xil {ns.command}` over {len(scripts)} script(s) from {src_root}")
     failed = 0
     for script in scripts:
         rel = script.relative_to(src_root)
         results = {}
-        for side, force_py in (("py", True), ("rs", False)):
+        for side, binary in (("py", PY_XIL), ("rs", RUST_XIL)):
             ws = SCRATCH / f"sweep-{side}"
             if ws.exists():
                 shutil.rmtree(ws)
             (ws / "scripts").mkdir(parents=True)
             target = ws / "scripts" / script.name
             shutil.copy2(script, target)
-            env = dict(os.environ, XIL_PROJECTROOT=str(ws), XIL_TRACE_IMPL="1")
+            env = dict(os.environ, XIL_PROJECTROOT=str(ws))
             env.pop("ELEVENLABS_API_KEY", None)
-            if force_py:
-                env["XIL_FORCE_PY"] = "all"
-            else:
-                env.pop("XIL_FORCE_PY", None)
-            proc = _run([str(RUST_XIL), *ns.command.split(), f"scripts/{script.name}", *ns.args], cwd=ws, env=env)
+            proc = _run([str(binary), *ns.command.split(), f"scripts/{script.name}", *ns.args], cwd=ws, env=env)
             out = sorted((ws / "parsed").rglob("*.json"))
             written = out[0].read_text(encoding="utf-8") if out else None
-            results[side] = (proc, written, _impl_of(proc))
+            results[side] = (proc, written)
 
-        py_proc, py_json, _ = results["py"]
-        rs_proc, rs_json, rs_impl = results["rs"]
+        py_proc, py_json = results["py"]
+        rs_proc, rs_json = results["rs"]
         problems = []
-        if rs_impl != "native":
-            problems.append(f"the Rust side ran: {rs_impl}")
         if py_proc.returncode != rs_proc.returncode:
             problems.append(f"exit code: py={py_proc.returncode} rs={rs_proc.returncode}")
         if py_json != rs_json:
@@ -1657,8 +1613,7 @@ def cmd_sweep(ns: argparse.Namespace) -> int:
                 problems.append(f"output written by py={py_json is not None} rs={rs_json is not None}")
             else:
                 problems.append("parsed JSON differs: " + _first_diff(py_json, rs_json))
-        # The impl trace is on stderr and differs by design; drop it first.
-        py_err, rs_err = norm_err(py_proc.stderr), norm_err(rs_proc.stderr)
+        py_err, rs_err = norm_out(py_proc.stderr), norm_out(rs_proc.stderr)
         if py_err != rs_err:
             problems.append("stderr differs: " + _first_diff(py_err, rs_err))
         if norm_out(py_proc.stdout) != norm_out(rs_proc.stdout):
@@ -1679,11 +1634,6 @@ def norm_out(text: str) -> str:
     for side in ("py", "rs"):
         text = text.replace(str(SCRATCH / f"sweep-{side}"), "<WS>")
     return _mask(text)
-
-
-def norm_err(text: str) -> str:
-    """stderr, minus the implementation trace the harness itself asked for."""
-    return norm_out("\n".join(ln for ln in text.splitlines() if not ln.startswith("rxil-impl: ")))
 
 
 def main() -> int:

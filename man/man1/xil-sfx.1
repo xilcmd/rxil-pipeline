@@ -1,0 +1,80 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-sfx 1  "xil-sfx " 
+.SH NAME
+xil\-sfx \- Generate SFX stems from an SFX config (standalone utility)
+.SH SYNOPSIS
+\fBxil\-sfx\fR [\fB\-\-episode\fR] [\fB\-\-tag\fR] [\fB\-\-show\fR] [\fB\-\-script\fR] [\fB\-\-dry\-run\fR] [\fB\-\-max\-duration\fR] [\fB\-\-gen\-sfx\fR] [\fB\-\-gen\-music\fR] [\fB\-\-gen\-ambience\fR] [\fB\-\-sfx\-music\fR] [\fB\-\-local\-only\fR] [\fB\-\-sfx\-backend\fR] [\fB\-\-mmaudio\-python\fR] [\fB\-\-mmaudio\-duration\fR] [\fB\-\-mmaudio\-cfg\fR] [\fB\-\-mmaudio\-steps\fR] [\fB\-\-mmaudio\-negative\-prompt\fR] [\fB\-\-mmaudio\-seed\fR] [\fB\-\-mmaudio\-accept\-noncommercial\fR] [\fB\-h\fR|\fB\-\-help\fR] 
+.SH DESCRIPTION
+Generate SFX stems from an SFX config (standalone utility)
+.SH OPTIONS
+.TP
+\fB\-\-episode\fR \fI<EPISODE>\fR
+Episode tag (e.g. S01E01) — derives cast and SFX config paths
+.TP
+\fB\-\-tag\fR \fI<TAG>\fR
+Raw tag for non\-episodic content (e.g. V01C03, D01)
+.TP
+\fB\-\-show\fR \fI<SHOW>\fR
+Show name override (default: from project.json)
+.TP
+\fB\-\-script\fR \fI<SCRIPT>\fR
+Path to parsed script JSON (default: derived from cast config)
+.TP
+\fB\-\-dry\-run\fR
+Preview existing vs. new stems and estimated credit cost
+.TP
+\fB\-\-max\-duration\fR \fI<MAX_DURATION>\fR
+Only process effects with duration_seconds <= this value
+.TP
+\fB\-\-gen\-sfx\fR
+Limit to SFX and BEAT entries only
+.TP
+\fB\-\-gen\-music\fR
+Limit to MUSIC entries only
+.TP
+\fB\-\-gen\-ambience\fR
+Limit to AMBIENCE entries only
+.TP
+\fB\-\-sfx\-music\fR
+(deprecated) shorthand for \-\-gen\-sfx \-\-gen\-music \-\-gen\-ambience
+.TP
+\fB\-\-local\-only\fR
+Only place stems for effects already present in SFX/; skip API generation
+.TP
+\fB\-\-sfx\-backend\fR \fI<BACKEND>\fR [default: elevenlabs]
+Backend for SFX/music/ambience generation, independent of the dialogue \-\-backend. \*(Aqelevenlabs\*(Aq (default) calls the ElevenLabs Sound Effects API. \*(Aqmmaudio\*(Aq runs MMAudio locally in venv\-mmaudio — free and GPU\-accelerated, writes backend\-tagged assets to SFX/<slug>.mmaudio.mp3. MMAudio\*(Aqs weights are CC BY\-NC 4.0 (non\-commercial only) and require \-\-mmaudio\-accept\-noncommercial
+.br
+
+.br
+\fIPossible values:\fR
+.RS 14
+.IP \(bu 2
+elevenlabs
+.IP \(bu 2
+mmaudio
+.RE
+.TP
+\fB\-\-mmaudio\-python\fR \fI<PATH>\fR
+Path to the Python executable in the MMAudio venv (default: auto\-detect ./venv\-mmaudio/bin/python3). Used only with \-\-sfx\-backend mmaudio
+.TP
+\fB\-\-mmaudio\-duration\fR \fI<FLOAT>\fR [default: 8]
+Generation length in seconds before trimming (default: 8.0, MMAudio\*(Aqs training duration). The result is trimmed to each cue\*(Aqs duration_seconds; generating at the native length and trimming gives better audio than asking for a short clip
+.TP
+\fB\-\-mmaudio\-cfg\fR \fI<FLOAT>\fR [default: 4.5]
+MMAudio classifier\-free guidance strength (default: 4.5)
+.TP
+\fB\-\-mmaudio\-steps\fR \fI<INT>\fR [default: 25]
+MMAudio flow\-matching sampling steps (default: 25)
+.TP
+\fB\-\-mmaudio\-negative\-prompt\fR \fI<STR>\fR [default: ]
+Optional MMAudio negative prompt (default: none)
+.TP
+\fB\-\-mmaudio\-seed\fR \fI<INT>\fR
+MMAudio reproducibility seed (default: nondeterministic)
+.TP
+\fB\-\-mmaudio\-accept\-noncommercial\fR
+Acknowledge that MMAudio\*(Aqs weights are CC BY\-NC 4.0 (NON\-COMMERCIAL USE ONLY) and that generated audio must not appear in a monetised production. Required for \-\-sfx\-backend mmaudio
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help

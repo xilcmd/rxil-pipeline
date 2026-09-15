@@ -248,3 +248,8 @@ pub fn run(args: &[OsString]) -> anyhow::Result<i32> {
     let _banner = banner::begin(SCRIPT_NAME, &super::argv_line(args));
     execute(&a, &tag)
 }
+
+/// The clap definition behind `--help`, for man pages.
+pub fn command() -> clap::Command {
+    <Args as clap::CommandFactory>::command()
+}

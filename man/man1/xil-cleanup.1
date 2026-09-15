@@ -1,0 +1,31 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-cleanup 1  "xil-cleanup " 
+.SH NAME
+xil\-cleanup \- Remove stale stems that no longer match the current parsed script.  Use \-\-dry\-run first to review what would be deleted.
+.SH SYNOPSIS
+\fBxil\-cleanup\fR [\fB\-\-episode\fR] [\fB\-\-tag\fR] [\fB\-\-show\fR] [\fB\-\-parsed\fR] [\fB\-\-stems\fR] [\fB\-\-dry\-run\fR] [\fB\-h\fR|\fB\-\-help\fR] 
+.SH DESCRIPTION
+Remove stale stems that no longer match the current parsed script.  Use \-\-dry\-run first to review what would be deleted.
+.SH OPTIONS
+.TP
+\fB\-\-episode\fR \fI<TAG>\fR
+Episode tag (e.g. S02E03); derives \-\-parsed and \-\-stems
+.TP
+\fB\-\-tag\fR \fI<TAG>\fR
+Raw tag for non\-episodic content (e.g. V01C03, D01); same as \-\-episode
+.TP
+\fB\-\-show\fR \fI<SHOW>\fR
+Show name override (default: from project.json)
+.TP
+\fB\-\-parsed\fR \fI<PATH>\fR
+Parsed script JSON (overrides \-\-episode)
+.TP
+\fB\-\-stems\fR \fI<DIR>\fR
+Stems directory (overrides \-\-episode)
+.TP
+\fB\-\-dry\-run\fR
+List stale stems without deleting them
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help

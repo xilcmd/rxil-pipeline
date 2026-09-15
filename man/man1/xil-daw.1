@@ -1,0 +1,46 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-daw 1  "xil-daw " 
+.SH NAME
+xil\-daw \- DAW Export — export episode as layered WAV files for Audacity
+.SH SYNOPSIS
+\fBxil\-daw\fR [\fB\-\-episode\fR] [\fB\-\-tag\fR] [\fB\-\-show\fR] [\fB\-\-parsed\fR] [\fB\-\-output\-dir\fR] [\fB\-\-dry\-run\fR] [\fB\-\-save\-aup3\fR] [\fB\-\-macro\fR] [\fB\-\-timeline\fR] [\fB\-\-timeline\-html\fR] [\fB\-\-gap\-ms\fR] [\fB\-h\fR|\fB\-\-help\fR] 
+.SH DESCRIPTION
+DAW Export — export episode as layered WAV files for Audacity
+.SH OPTIONS
+.TP
+\fB\-\-episode\fR \fI<EPISODE>\fR
+Episode tag (e.g. S01E02) — derives cast config, stems, and parsed JSON paths
+.TP
+\fB\-\-tag\fR \fI<TAG>\fR
+Raw tag for non\-episodic content (e.g. V01C03, D01)
+.TP
+\fB\-\-show\fR \fI<SHOW>\fR
+Show name override (default: from project.json)
+.TP
+\fB\-\-parsed\fR \fI<PARSED>\fR
+Path to parsed script JSON (default: parsed/parsed_<slug>_<TAG>.json)
+.TP
+\fB\-\-output\-dir\fR \fI<OUTPUT_DIR>\fR
+Output directory for layer WAVs (default: daw/<TAG>/)
+.TP
+\fB\-\-dry\-run\fR
+Show export summary without writing files
+.TP
+\fB\-\-save\-aup3\fR
+Include SaveProject2 step in the Audacity helper script (requires mod\-script\-pipe; Audacity 3 only)
+.TP
+\fB\-\-macro\fR
+Write an Audacity macro to %APPDATA%\\audacity\\Macros\\ for one\-click import (Audacity 3 only — Audacity 4 has no Macro Manager)
+.TP
+\fB\-\-timeline\fR
+Print an ASCII timeline visualization of asset placement to stdout
+.TP
+\fB\-\-timeline\-html\fR
+Write an interactive HTML timeline to daw/<TAG>/<TAG>_timeline.html
+.TP
+\fB\-\-gap\-ms\fR \fI<GAP_MS>\fR [default: 600]
+Silence gap between foreground stems in ms (default: 600)
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help

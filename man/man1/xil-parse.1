@@ -1,0 +1,43 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-parse 1  "xil-parse " 
+.SH NAME
+xil\-parse \- Parse production script markdown into structured JSON
+.SH SYNOPSIS
+\fBxil\-parse\fR [\fB\-\-episode\fR] [\fB\-\-tag\fR] [\fB\-\-show\fR] [\fB\-o\fR|\fB\-\-output\fR] [\fB\-\-preview\fR] [\fB\-\-quiet\fR] [\fB\-\-debug\fR] [\fB\-\-stats\fR] [\fB\-\-speakers\fR] [\fB\-h\fR|\fB\-\-help\fR] <\fISCRIPT\fR> 
+.SH DESCRIPTION
+Parse production script markdown into structured JSON
+.SH OPTIONS
+.TP
+\fB\-\-episode\fR \fI<EPISODE>\fR
+Episode tag (e.g. S01E01) — validates header and auto\-generates absent cast/sfx configs
+.TP
+\fB\-\-tag\fR \fI<TAG>\fR
+Raw tag for non\-episodic content (e.g. V01C03, D01, CH003) — skips season/episode header validation
+.TP
+\fB\-\-show\fR \fI<SHOW>\fR
+Show name override (default: from project.json)
+.TP
+\fB\-o\fR, \fB\-\-output\fR \fI<OUTPUT>\fR
+Output JSON path (default: parsed/parsed_<slug>_<TAG>.json)
+.TP
+\fB\-\-preview\fR \fI<PREVIEW>\fR
+Show first N dialogue lines (default: show all)
+.TP
+\fB\-\-quiet\fR
+Only output JSON, skip summary/preview
+.TP
+\fB\-\-debug\fR
+Write diagnostic CSV alongside JSON output
+.TP
+\fB\-\-stats\fR
+Print per\-speaker dialogue distribution (lines, words, chars, %)
+.TP
+\fB\-\-speakers\fR \fI<SPEAKERS>\fR
+Path to speakers.json (default: auto\-detect from CWD, then built\-in)
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help
+.TP
+<\fISCRIPT\fR>
+Path to the production script markdown file

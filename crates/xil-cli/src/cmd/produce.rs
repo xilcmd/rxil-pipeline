@@ -1313,7 +1313,7 @@ fn execute(args: &[OsString]) -> anyhow::Result<i32> {
     }
     let mut chatterbox = None;
     if a.backend == "chatterbox-turbo" {
-        let package_dir = crate::delegate::python_package_dir();
+        let package_dir = crate::workers::python_package_dir();
         let Some(python) = resolve_venv_python(
             "venv-chatterbox",
             a.chatterbox_python.as_deref(),
@@ -1390,6 +1390,11 @@ fn execute(args: &[OsString]) -> anyhow::Result<i32> {
     }
     result?;
     Ok(0)
+}
+
+/// The clap definition behind `--help`, for man pages.
+pub fn command() -> clap::Command {
+    <Args as clap::CommandFactory>::command()
 }
 
 #[cfg(test)]
