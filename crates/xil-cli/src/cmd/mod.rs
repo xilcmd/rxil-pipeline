@@ -21,6 +21,7 @@ pub mod cues;
 pub mod daw;
 pub mod db_profile;
 pub mod episode_summary;
+pub mod gui;
 pub mod import;
 pub mod init;
 pub mod master;

@@ -1,0 +1,30 @@
+[package]
+name = "xil-web"
+description = "The `xil gui` web dashboard: axum + htmx, and the timeline editor's /xil/* routes"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+xil-core = { path = "../xil-core" }
+xil-audio = { path = "../xil-audio" }
+anyhow.workspace = true
+axum.workspace = true
+chrono.workspace = true
+filetime.workspace = true
+regex.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+shlex.workspace = true
+tokio.workspace = true
+tokio-stream.workspace = true
+tower-http.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+tower.workspace = true
+xil-audio = { path = "../xil-audio" }

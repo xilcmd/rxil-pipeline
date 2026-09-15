@@ -5,6 +5,7 @@ members = [
     "crates/xil-audio",
     "crates/xil-api",
     "crates/xil-workers",
+    "crates/xil-web",
     "crates/xil-cli",
 ]
 
@@ -35,6 +36,13 @@ indexmap = { version = "2", features = ["serde"] }
 unicode-normalization = "0.1"
 ureq = { version = "2", default-features = false, features = ["tls"] }
 zip = { version = "2", default-features = false, features = ["deflate"] }
+filetime = "0.2"
+axum = "0.8"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "process", "io-util", "sync", "time", "net"] }
+tokio-stream = "0.1"
+tower = { version = "0.5", features = ["util"] }
+tower-http = { version = "0.6", features = ["fs"] }
+shlex = "1"
 
 [profile.release]
 lto = "thin"
