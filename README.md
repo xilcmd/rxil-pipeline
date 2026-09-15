@@ -28,20 +28,21 @@ the same name. CI pins the exact reference commit.
 ## Build
 
 ```bash
-cargo build                      # target dir is pinned to ~/.cargo-target/rxil (ext4)
+cargo build                      # binaries land in target/
 cargo nextest run --workspace    # unit tests
 ```
 
-The source tree may live on `/mnt/c` (drvfs); object files must not.
-`.cargo/config.toml` takes care of that.
+On WSL, keep the clone in the Linux filesystem (for example
+`~/src/rust/rxil-pipeline`), not under `/mnt/c`. Every file the build and the
+parity suite touch on drvfs is a round trip to Windows.
 
 ## Run
 
 ```bash
 export XIL_PROJECTROOT=/path/to/workspace    # scripts, configs, stems, SFX
 export XIL_CODEROOT=/path/to/xil-pipeline    # worker scripts and their venvs
-~/.cargo-target/rxil/release/xil --help
-~/.cargo-target/rxil/release/xil status --toolchain   # worker scripts and venvs found
+target/release/xil --help
+target/release/xil status --toolchain   # worker scripts and venvs found
 ```
 
 `XIL_CODEROOT` is only needed by the stages that start an ML worker

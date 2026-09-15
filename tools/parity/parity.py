@@ -54,7 +54,7 @@ SCRATCH = Path(os.environ.get("XIL_PARITY_SCRATCH", HERE / "scratch"))
 CODEROOT = Path(os.environ.get("XIL_CODEROOT", "/mnt/c/Users/shaba/src/python/xil-pipeline"))
 PY_XIL = Path(os.environ.get("XIL_PY_BIN", CODEROOT / "venv" / "bin" / "xil"))
 RUST_XIL = Path(
-    os.environ.get("XIL_RS_BIN", Path.home() / ".cargo-target" / "rxil" / "debug" / "xil")
+    os.environ.get("XIL_RS_BIN", HERE.parent.parent / "target" / "debug" / "xil")
 )
 
 MASKS = [

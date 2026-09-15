@@ -19,10 +19,11 @@ workers (Chatterbox Turbo, Whisper, MMAudio), each in its own venv.
 ```bash
 git clone https://github.com/xilcmd/rxil-pipeline
 cd rxil-pipeline
-cargo build --release
-# the binary: target/release/xil (or ~/.cargo-target/rxil/release/xil with
-# the repository's .cargo/config.toml)
+cargo build --release            # the binary: target/release/xil
 ```
+
+On WSL, clone into the Linux filesystem (for example `~/src/rust/`), not
+under `/mnt/c`: builds and tests there are many times slower.
 
 Requirements:
 
