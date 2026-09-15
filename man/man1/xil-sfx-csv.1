@@ -1,0 +1,22 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-sfx-csv 1  "xil-sfx-csv " 
+.SH NAME
+xil\-sfx\-csv \- Flatten sfx_<tag>.json configs to CSV — one row per effect
+.SH SYNOPSIS
+\fBxil\-sfx\-csv\fR [\fB\-o\fR|\fB\-\-output\fR] [\fB\-\-json\fR] [\fB\-h\fR|\fB\-\-help\fR] [\fIPATH\fR] 
+.SH DESCRIPTION
+Flatten sfx_<tag>.json configs to CSV — one row per effect
+.SH OPTIONS
+.TP
+\fB\-o\fR, \fB\-\-output\fR \fI<FILE>\fR
+Write CSV to FILE (default: stdout)
+.TP
+\fB\-\-json\fR
+Output a JSON array to stdout — no banner, safe to pipe to jq
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help
+.TP
+[\fIPATH\fR] [default: __configs_default__]
+sfx JSON file, or directory containing sfx_*.json files (default: workspace configs/)

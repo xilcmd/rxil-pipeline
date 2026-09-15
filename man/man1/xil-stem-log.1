@@ -1,0 +1,37 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-stem-log 1  "xil-stem-log " 
+.SH NAME
+xil\-stem\-log \- Parse xil\-pipeline logs into a stem generation chronology CSV.
+.SH SYNOPSIS
+\fBxil\-stem\-log\fR [\fB\-\-logs\-dir\fR] [\fB\-o\fR|\fB\-\-output\fR] [\fB\-\-since\fR] [\fB\-\-episode\fR] [\fB\-\-slug\fR] [\fB\-\-show\fR] [\fB\-\-audit\fR] [\fB\-\-audit\-threshold\fR] [\fB\-h\fR|\fB\-\-help\fR] 
+.SH DESCRIPTION
+Parse xil\-pipeline logs into a stem generation chronology CSV.
+.SH OPTIONS
+.TP
+\fB\-\-logs\-dir\fR \fI<DIR>\fR
+Directory containing xil_YYYY\-MM\-DD.log files (default: <workspace>/logs/)
+.TP
+\fB\-o\fR, \fB\-\-output\fR \fI<PATH>\fR [default: stem_log_report.csv]
+Output CSV path (default: stem_log_report.csv); use \- for stdout
+.TP
+\fB\-\-since\fR \fI<YYYY\-MM\-DD>\fR
+Only include log files on or after this date
+.TP
+\fB\-\-episode\fR \fI<TAG>\fR
+Filter records to a specific episode tag (e.g. S03E03)
+.TP
+\fB\-\-slug\fR \fI<SLUG>\fR
+Filter records to a specific show slug (e.g. the413)
+.TP
+\fB\-\-show\fR
+Print CSV to stdout (equivalent to \-\-output \-)
+.TP
+\fB\-\-audit\fR \fI<PARSED_JSON>\fR
+Instead of writing CSV: compare logged char_counts against the given parsed script JSON and flag stems whose audio may not match current text
+.TP
+\fB\-\-audit\-threshold\fR \fI<N>\fR [default: 20]
+Char\-count delta threshold for \-\-audit flagging (default: 20)
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help

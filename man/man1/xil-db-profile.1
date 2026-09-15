@@ -1,0 +1,25 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-db-profile 1  "xil-db-profile " 
+.SH NAME
+xil\-db\-profile \- Profile MP3 audio levels: peak, average, and minimum dBFS
+.SH SYNOPSIS
+\fBxil\-db\-profile\fR [\fB\-o\fR|\fB\-\-output\fR] [\fB\-\-absolute\fR] [\fB\-\-json\fR] [\fB\-h\fR|\fB\-\-help\fR] [\fIPATH\fR] 
+.SH DESCRIPTION
+Profile MP3 audio levels: peak, average, and minimum dBFS
+.SH OPTIONS
+.TP
+\fB\-o\fR, \fB\-\-output\fR \fI<FILE>\fR
+Write results to FILE as CSV in addition to logging
+.TP
+\fB\-\-absolute\fR
+Print absolute paths (default: relative to scan root)
+.TP
+\fB\-\-json\fR
+Output a JSON array to stdout — no banner, safe to pipe to jq
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help
+.TP
+[\fIPATH\fR] [default: __sfx_default__]
+MP3 file or directory to scan recursively (default: workspace SFX/ folder)

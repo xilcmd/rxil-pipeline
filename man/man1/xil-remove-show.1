@@ -1,0 +1,31 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-remove-show 1  "xil-remove-show " 
+.SH NAME
+xil\-remove\-show \- Remove all workspace files for a given show. Shared assets (SFX/, logs/) are never touched.
+.SH SYNOPSIS
+\fBxil\-remove\-show\fR [\fB\-n\fR|\fB\-\-dry\-run\fR] [\fB\-y\fR|\fB\-\-yes\fR] [\fB\-\-include\-scripts\fR] [\fB\-h\fR|\fB\-\-help\fR] <\fISHOW\fR> 
+.SH DESCRIPTION
+Remove all workspace files for a given show. Shared assets (SFX/, logs/) are never touched.
+.SH OPTIONS
+.TP
+\fB\-n\fR, \fB\-\-dry\-run\fR
+Show what would be removed without deleting anything
+.TP
+\fB\-y\fR, \fB\-\-yes\fR
+Skip the confirmation prompt
+.TP
+\fB\-\-include\-scripts\fR
+Also remove scripts/*_{slug}_*.md files whose filename contains the show slug (caution: source material)
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help
+.TP
+<\fISHOW\fR>
+Show name or slug to remove (e.g. mypodcast or \*(AqMy Podcast\*(Aq)
+.SH EXTRA
+Examples:
+  xil remove\-show mypodcast \-\-dry\-run
+  xil remove\-show mypodcast \-\-yes
+  xil remove\-show "My Podcast" \-\-dry\-run
+  xil remove\-show mypodcast \-\-include\-scripts \-\-yes

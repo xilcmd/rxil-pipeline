@@ -1,0 +1,43 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-migrate 1  "xil-migrate " 
+.SH NAME
+xil\-migrate \- Migrate episode stems from an old parsed JSON to a revised one. Copies unchanged stems to their new seq\-numbered filenames; reports what still needs TTS/SFX generation. Run XILP002 afterwards to fill the gaps.
+.SH SYNOPSIS
+\fBxil\-migrate\fR [\fB\-\-episode\fR] [\fB\-\-tag\fR] [\fB\-\-show\fR] [\fB\-\-old\fR] [\fB\-\-new\fR] [\fB\-\-stems\fR] [\fB\-\-orig\-prefix\fR] [\fB\-\-dry\-run\fR] [\fB\-\-strict\fR] [\fB\-\-quiet\fR] [\fB\-h\fR|\fB\-\-help\fR] 
+.SH DESCRIPTION
+Migrate episode stems from an old parsed JSON to a revised one. Copies unchanged stems to their new seq\-numbered filenames; reports what still needs TTS/SFX generation. Run XILP002 afterwards to fill the gaps.
+.SH OPTIONS
+.TP
+\fB\-\-episode\fR \fI<TAG>\fR
+Episode tag (e.g. S02E03); derives \-\-old, \-\-new, and \-\-stems paths automatically
+.TP
+\fB\-\-tag\fR \fI<TAG>\fR
+Raw tag for non\-episodic content (e.g. V01C03, D01); same as \-\-episode but skips format validation
+.TP
+\fB\-\-show\fR \fI<SHOW>\fR
+Show name override (default: from project.json)
+.TP
+\fB\-\-old\fR \fI<PATH>\fR
+Old parsed JSON (overrides \-\-episode)
+.TP
+\fB\-\-new\fR \fI<PATH>\fR
+New parsed JSON (overrides \-\-episode)
+.TP
+\fB\-\-stems\fR \fI<DIR>\fR
+Stems directory (overrides \-\-episode)
+.TP
+\fB\-\-orig\-prefix\fR \fI<ORIG_PREFIX>\fR [default: orig_]
+Filename prefix for the old parsed JSON (default: orig_)
+.TP
+\fB\-\-dry\-run\fR
+Show plan without copying any files
+.TP
+\fB\-\-strict\fR
+Exact text match only. Default is fuzzy: ignores em\-dash/ellipsis variants so punctuation\-only edits don\*(Aqt force unnecessary regen
+.TP
+\fB\-\-quiet\fR
+Print only the summary, not per\-stem details
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help

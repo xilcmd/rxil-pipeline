@@ -1,0 +1,43 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-sfx-match 1  "xil-sfx-match " 
+.SH NAME
+xil\-sfx\-match \- Find existing SFX library assets for cues whose declared source is not on disk — the cues that make \*(Aqxil produce\*(Aq refuse to start. Reports by default; \-\-apply copies the match into the show\*(Aqs pool and journals the new source.
+.SH SYNOPSIS
+\fBxil\-sfx\-match\fR [\fB\-\-show\fR] [\fB\-\-episode\fR] [\fB\-\-top\fR] [\fB\-\-min\-coverage\fR] [\fB\-\-output\fR] [\fB\-\-emit\-hints\fR] [\fB\-\-apply\fR] [\fB\-\-accept\-review\fR] [\fB\-\-dry\-run\fR] [\fB\-\-quiet\fR] [\fB\-h\fR|\fB\-\-help\fR] 
+.SH DESCRIPTION
+Find existing SFX library assets for cues whose declared source is not on disk — the cues that make \*(Aqxil produce\*(Aq refuse to start. Reports by default; \-\-apply copies the match into the show\*(Aqs pool and journals the new source.
+.SH OPTIONS
+.TP
+\fB\-\-show\fR \fI<SHOW>\fR
+Restrict to one show slug (default: every show in the workspace)
+.TP
+\fB\-\-episode\fR \fI<EPISODE>\fR
+Restrict to one episode tag (e.g. S01E01)
+.TP
+\fB\-\-top\fR \fI<TOP>\fR [default: 3]
+Candidates to report per cue (default: 3)
+.TP
+\fB\-\-min\-coverage\fR \fI<MIN_COVERAGE>\fR [default: 0.5]
+Coverage a candidate must reach to be reported (default: 0.5)
+.TP
+\fB\-\-output\fR \fI<OUTPUT>\fR
+CSV output path, or \*(Aq\-\*(Aq for stdout (default: reports/sfx_match_<date>.csv)
+.TP
+\fB\-\-emit\-hints\fR [\fI<PATH>\fR]
+Also write a paste\-ready pipe\-hint block (default path: reports/sfx_match_hints_<date>.md)
+.TP
+\fB\-\-apply\fR
+Copy each accepted match into the show\*(Aqs SFX pool under the cue\*(Aqs own slug, retitle the copy, and journal the new source. Acts on EXACT and STRONG only unless \-\-accept\-review is given
+.TP
+\fB\-\-accept\-review\fR
+Widen \-\-apply to REVIEW matches. Read the CSV first — a REVIEW tier means the top candidate had no clear margin over its runners\-up
+.TP
+\fB\-\-dry\-run\fR
+With \-\-apply, report every copy and journal record without writing
+.TP
+\fB\-\-quiet\fR
+Suppress the console summary (CSV only)
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help

@@ -1,0 +1,34 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-stem-compare 1  "xil-stem-compare " 
+.SH NAME
+xil\-stem\-compare \- Cross\-reference Whisper transcripts against parsed script dialogue to flag garbled stems.
+.SH SYNOPSIS
+\fBxil\-stem\-compare\fR [\fB\-s\fR|\fB\-\-show\fR] [\fB\-e\fR|\fB\-\-episode\fR] [\fB\-\-stem\-verify\fR] [\fB\-\-parsed\fR] [\fB\-\-threshold\fR] [\fB\-o\fR|\fB\-\-output\fR] [\fB\-\-csv\fR] [\fB\-h\fR|\fB\-\-help\fR] 
+.SH DESCRIPTION
+Cross\-reference Whisper transcripts against parsed script dialogue to flag garbled stems.
+.SH OPTIONS
+.TP
+\fB\-s\fR, \fB\-\-show\fR \fI<SLUG>\fR
+Show slug (default: resolved from project.json)
+.TP
+\fB\-e\fR, \fB\-\-episode\fR \fI<TAG>\fR
+Episode tag, e.g. S01E01 (derives both JSON paths if not overridden)
+.TP
+\fB\-\-stem\-verify\fR \fI<FILE>\fR
+Path to stem_verify JSON (default: <workspace>/parsed/<slug>/stem_verify_<episode>.json)
+.TP
+\fB\-\-parsed\fR \fI<FILE>\fR
+Path to parsed script JSON (default: <workspace>/parsed/<slug>/parsed_<episode>.json)
+.TP
+\fB\-\-threshold\fR \fI<FLOAT>\fR [default: 0.75]
+Similarity below this marks a stem as garbled (default: 0.75)
+.TP
+\fB\-o\fR, \fB\-\-output\fR \fI<FILE>\fR
+Write full JSON report to this file (in addition to terminal output)
+.TP
+\fB\-\-csv\fR
+Print flagged entries as CSV to stdout instead of the banner summary
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help

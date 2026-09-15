@@ -217,3 +217,8 @@ fn execute(args: &[OsString]) -> anyhow::Result<i32> {
     result?;
     Ok(0)
 }
+
+/// The clap definition behind `--help`, for man pages.
+pub fn command() -> clap::Command {
+    <Args as clap::CommandFactory>::command()
+}

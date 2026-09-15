@@ -224,3 +224,8 @@ fn execute(a: &Args) -> anyhow::Result<()> {
         assemble_audio(&cast.cast, &stems_dir, &output, a.gap_ms)
     }
 }
+
+/// The clap definition behind `--help`, for man pages.
+pub fn command() -> clap::Command {
+    <Args as clap::CommandFactory>::command()
+}

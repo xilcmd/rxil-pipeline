@@ -44,9 +44,21 @@ jobs:
         run: cargo nextest run --workspace
       - name: Build binary for parity
         run: cargo build --workspace
+      # Man pages are generated from the clap definitions and committed; a
+      # changed option without a regenerated page fails here.
+      - name: Man pages are current
+        run: |
+          target/debug/xil --generate-man /tmp/man1
+          diff -r man/man1 /tmp/man1
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: mdbook
+      - name: User guide builds
+        run: mdbook build docs/book
 
-      # Parity needs the Python the port is actually reproducing. That is
-      # NOT the PyPI release: xil-pipeline's main is many commits past the
+      # Parity compares against the Python the port reproduces (a test-only
+      # dependency; running xil never needs it). The reference is NOT the
+      # PyPI release: xil-pipeline's main is many commits past the
       # 0.3.2 tag while still reporting "0.3.2", and those commits include
       # behaviour the port implements (the play_duration_pct pipe-hint, the
       # PHONE FILTER span). Pin the commit, not the version string, and

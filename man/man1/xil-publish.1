@@ -1,0 +1,46 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-publish 1  "xil-publish " 
+.SH NAME
+xil\-publish \- Generate social media post drafts from parsed episode data. Reads a parsed episode JSON and calls the Claude API to draft three ready\-to\-edit post variants (Hype, Quote, Spotlight) for Facebook or Instagram, written to posts/<slug>/<tag>_posts.md.
+.SH SYNOPSIS
+\fBxil\-publish\fR [\fB\-\-episode\fR] [\fB\-\-tag\fR] [\fB\-\-all\fR] [\fB\-\-show\fR] [\fB\-\-platform\fR] [\fB\-\-dry\-run\fR] [\fB\-\-model\fR] [\fB\-h\fR|\fB\-\-help\fR] 
+.SH DESCRIPTION
+Generate social media post drafts from parsed episode data. Reads a parsed episode JSON and calls the Claude API to draft three ready\-to\-edit post variants (Hype, Quote, Spotlight) for Facebook or Instagram, written to posts/<slug>/<tag>_posts.md.
+.SH OPTIONS
+.TP
+\fB\-\-episode\fR \fI<EPISODE>\fR
+Episode tag (e.g. S04E01)
+.TP
+\fB\-\-tag\fR \fI<TAG>\fR
+Raw content tag (e.g. V01C03)
+.TP
+\fB\-\-all\fR
+Generate posts for every parsed episode under the current show slug
+.TP
+\fB\-\-show\fR \fI<SHOW>\fR
+Show name override (default: from project.json)
+.TP
+\fB\-\-platform\fR \fI<PLATFORM>\fR [default: facebook]
+Target platform — affects post length/style guidance (default: facebook)
+.br
+
+.br
+\fIPossible values:\fR
+.RS 14
+.IP \(bu 2
+facebook
+.IP \(bu 2
+instagram
+.RE
+.TP
+\fB\-\-dry\-run\fR
+Print prompt and token estimate without making an API call or writing files
+.TP
+\fB\-\-model\fR \fI<MODEL>\fR [default: claude\-haiku\-4\-5\-20251001]
+Claude model ID (default: claude\-haiku\-4\-5\-20251001)
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help
+.SH EXTRA
+Requires the ANTHROPIC_API_KEY environment variable (except with \-\-dry\-run) and the [publish] extra: pip install \*(Aqxil\-pipeline[publish]\*(Aq.

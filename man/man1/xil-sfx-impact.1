@@ -1,0 +1,43 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-sfx-impact 1  "xil-sfx-impact " 
+.SH NAME
+xil\-sfx\-impact \- Report which source\-backed SFX cues are clipped by duration_seconds, how much audio each loses, and the config change that would restore it. Read\-only — no config is ever modified.
+.SH SYNOPSIS
+\fBxil\-sfx\-impact\fR [\fB\-\-show\fR] [\fB\-\-episode\fR] [\fB\-\-output\fR] [\fB\-\-html\fR] [\fB\-\-tier\fR] [\fB\-\-quiet\fR] [\fB\-h\fR|\fB\-\-help\fR] 
+.SH DESCRIPTION
+Report which source\-backed SFX cues are clipped by duration_seconds, how much audio each loses, and the config change that would restore it. Read\-only — no config is ever modified.
+.SH OPTIONS
+.TP
+\fB\-\-show\fR \fI<SHOW>\fR
+Restrict to one show slug (default: every show in the workspace)
+.TP
+\fB\-\-episode\fR \fI<EPISODE>\fR
+Restrict to one episode tag (e.g. S01E01)
+.TP
+\fB\-\-output\fR \fI<OUTPUT>\fR
+CSV output path, or \*(Aq\-\*(Aq for stdout (default: reports/sfx_impact_<date>.csv)
+.TP
+\fB\-\-html\fR [\fI<HTML>\fR]
+Also write a standalone HTML review page (default path: reports/sfx_impact_<date>.html)
+.TP
+\fB\-\-tier\fR \fI<TIER>\fR
+Only report cues at this tier (\*(Aqactionable\*(Aq = tiers 2 and 3)
+.br
+
+.br
+\fIPossible values:\fR
+.RS 14
+.IP \(bu 2
+2\-minor
+.IP \(bu 2
+3\-review
+.IP \(bu 2
+actionable
+.RE
+.TP
+\fB\-\-quiet\fR
+Suppress the console summary (CSV only)
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help

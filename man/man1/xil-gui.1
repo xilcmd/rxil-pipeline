@@ -1,0 +1,29 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-gui 1  "xil-gui " 
+.SH NAME
+xil\-gui \- Launch the xil\-pipeline web dashboard. Opens a browser UI with ten tabs: Setup (initialize a workspace / select the active show), Project (edit project.json), Episodes (workspace overview with parse/stems/DAW/master status), Run Stage (launch pipeline stages with live log streaming; dry\-run on by default), Speakers, Cast Config and SFX Config (edit the respective JSON configs), Audio Preview (browse and play stems in the browser), Audio Grading (mark SFX library files accurate or rejected), and Timeline (interactive HTML timeline).
+.SH SYNOPSIS
+\fBxil\-gui\fR [\fB\-\-port\fR] [\fB\-\-host\fR] [\fB\-o\fR|\fB\-\-output\fR] [\fB\-v\fR|\fB\-\-verbose\fR] [\fB\-h\fR|\fB\-\-help\fR] 
+.SH DESCRIPTION
+Launch the xil\-pipeline web dashboard. Opens a browser UI with ten tabs: Setup (initialize a workspace / select the active show), Project (edit project.json), Episodes (workspace overview with parse/stems/DAW/master status), Run Stage (launch pipeline stages with live log streaming; dry\-run on by default), Speakers, Cast Config and SFX Config (edit the respective JSON configs), Audio Preview (browse and play stems in the browser), Audio Grading (mark SFX library files accurate or rejected), and Timeline (interactive HTML timeline).
+.SH OPTIONS
+.TP
+\fB\-\-port\fR \fI<PORT>\fR [default: 7860]
+Port to listen on (default: 7860)
+.TP
+\fB\-\-host\fR \fI<HOST>\fR [default: 127.0.0.1]
+Host address to bind (default: 127.0.0.1)
+.TP
+\fB\-o\fR, \fB\-\-output\fR \fI<FILE>\fR
+Append a timestamped session activity log to FILE
+.TP
+\fB\-v\fR, \fB\-\-verbose\fR
+Log detailed activity for the Timeline audio\-properties dialog (SFX open/save requests) to stdout and logs/xil_YYYY\-MM\-DD.log
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help
+.SH EXTRA
+Remote access: the server binds 127.0.0.1 by default. To reach it from
+another machine, forward the port, e.g.:
+  ssh \-L 7860:127.0.0.1:7860 <this\-host>

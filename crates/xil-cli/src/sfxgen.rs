@@ -290,7 +290,7 @@ pub fn make_sfx_backend(
             if !mm.accept_noncommercial {
                 bail!("ValueError: {MMAUDIO_LICENCE_ERROR}");
             }
-            let package_dir = crate::delegate::python_package_dir();
+            let package_dir = crate::workers::python_package_dir();
             let Some(python) = xil_core::workspace::resolve_venv_python(
                 "venv-mmaudio",
                 mm.python,

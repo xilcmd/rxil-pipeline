@@ -1,0 +1,19 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-migrate-workspace 1  "xil-migrate-workspace " 
+.SH NAME
+xil\-migrate\-workspace \- Migrate a pre\-0.1.8 workspace to the normalized directory layout
+.SH SYNOPSIS
+\fBxil\-migrate\-workspace\fR [\fB\-\-workspace\fR] [\fB\-\-dry\-run\fR] [\fB\-h\fR|\fB\-\-help\fR] 
+.SH DESCRIPTION
+Migrate a pre\-0.1.8 workspace to the normalized directory layout
+.SH OPTIONS
+.TP
+\fB\-\-workspace\fR \fI<WORKSPACE>\fR [default: .]
+Workspace root directory (default: current directory)
+.TP
+\fB\-\-dry\-run\fR
+Preview moves without touching files (default: enabled for safety)
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help

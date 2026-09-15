@@ -318,7 +318,7 @@ fn execute(a: &Args) -> anyhow::Result<i32> {
         Some(a.language.as_str())
     };
     let records = if transcribe {
-        let package_dir = crate::delegate::python_package_dir();
+        let package_dir = crate::workers::python_package_dir();
         let Some(python) = resolve_venv_python(
             "venv-whisper",
             a.whisper_python.as_deref(),
@@ -388,6 +388,11 @@ fn execute(a: &Args) -> anyhow::Result<i32> {
         files.len()
     ));
     Ok(0)
+}
+
+/// The clap definition behind `--help`, for man pages.
+pub fn command() -> clap::Command {
+    <Args as clap::CommandFactory>::command()
 }
 
 #[cfg(test)]

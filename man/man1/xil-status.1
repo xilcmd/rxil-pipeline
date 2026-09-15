@@ -1,0 +1,40 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-status 1  "xil-status " 
+.SH NAME
+xil\-status \- Make\-style staleness checker for episode pipeline artifacts. Reports, per stage, whether outputs are up to date with their inputs, and prints the xil commands needed to refresh anything stale. Nothing is rebuilt.
+.SH SYNOPSIS
+\fBxil\-status\fR [\fB\-e\fR|\fB\-\-episode\fR] [\fB\-s\fR|\fB\-\-show\fR] [\fB\-a\fR|\fB\-\-all\fR] [\fB\-\-gdoc\-dir\fR] [\fB\-\-json\fR] [\fB\-v\fR|\fB\-\-verbose\fR] [\fB\-h\fR|\fB\-\-help\fR] [\fITAG\fR] 
+.SH DESCRIPTION
+Make\-style staleness checker for episode pipeline artifacts. Reports, per stage, whether outputs are up to date with their inputs, and prints the xil commands needed to refresh anything stale. Nothing is rebuilt.
+.SH OPTIONS
+.TP
+\fB\-e\fR, \fB\-\-episode\fR \fI<TAG>\fR
+Episode tag (alternative to the positional argument)
+.TP
+\fB\-s\fR, \fB\-\-show\fR \fI<SHOW>\fR
+Show name or slug (default: resolved from project.json / XIL_PROJECTROOT)
+.TP
+\fB\-a\fR, \fB\-\-all\fR
+Check every episode of the show (summary row per episode)
+.TP
+\fB\-\-gdoc\-dir\fR \fI<DIR>\fR
+Google Drive dir holding the source .gdoc (default: $XIL_GDOC_DIR or /mnt/i/My Drive)
+.TP
+\fB\-\-json\fR
+Emit results as JSON (single\-episode mode only)
+.TP
+\fB\-v\fR, \fB\-\-verbose\fR
+List each output file with its mtime below the stage row
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help
+.TP
+[\fITAG\fR]
+Episode tag to check (e.g. S01E01). Omit with \-\-all
+.SH EXTRA
+Examples:
+  xil status \-\-episode S01E01
+  xil status S01E01 \-\-show "Night Owls"
+  xil status \-\-all
+  xil status \-\-episode S01E01 \-\-json

@@ -1,0 +1,67 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-sample 1  "xil-sample " 
+.SH NAME
+xil\-sample \- Generate a voice sample MP3 for each cast member via the chosen TTS backend.
+.SH SYNOPSIS
+\fBxil\-sample\fR [\fB\-\-episode\fR] [\fB\-\-cast\fR] [\fB\-\-show\fR] [\fB\-\-backend\fR] [\fB\-\-chatterbox\-python\fR] [\fB\-\-voice\-refs\fR] [\fB\-\-device\fR] [\fB\-\-sample\-text\fR] [\fB\-\-dry\-run\fR] [\fB\-\-force\fR] [\fB\-h\fR|\fB\-\-help\fR] 
+.SH DESCRIPTION
+Generate a voice sample MP3 for each cast member via the chosen TTS backend.
+.SH OPTIONS
+.TP
+\fB\-\-episode\fR \fI<TAG>\fR
+Episode tag (e.g. S02E03); derives cast config path
+.TP
+\fB\-\-cast\fR \fI<PATH>\fR
+Explicit path to cast JSON file
+.TP
+\fB\-\-show\fR \fI<SHOW>\fR
+Show name override (default: from project.json)
+.TP
+\fB\-\-backend\fR \fI<BACKEND>\fR [default: elevenlabs]
+TTS backend for sample generation. \*(Aqelevenlabs\*(Aq (default) calls the ElevenLabs API and uses the voice_id from the cast config. \*(Aqgtts\*(Aq generates a flat\-voice draft via Google Translate TTS at no cost (ignores voice_id). \*(Aqchatterbox\*(Aq uses local GPU TTS with zero\-shot voice cloning from voice_refs/<key>.wav clips (\*(Aqchatterbox\*(Aq is a deprecated alias that warns and uses Turbo). \*(Aqchatterbox\-turbo\*(Aq uses the Chatterbox Turbo model in the same venv\-chatterbox — it renders 19 native paralinguistic tags ([angry] [fear] [surprised] [happy] [crying] [sarcastic] [whispering] [dramatic] [narration] [advertisement] [laugh] [chuckle] [sigh] [gasp] [groan] [cough] [sniff] [shush] [clear throat]; exact spelling, no plurals), strips all other tags and needs reference clips >5s. Put a tag in \-\-sample\-text to audition a cue. Output lands in voice_samples/<TAG>/<backend>/ for side\-by\-side comparison
+.br
+
+.br
+\fIPossible values:\fR
+.RS 14
+.IP \(bu 2
+elevenlabs
+.IP \(bu 2
+gtts
+.IP \(bu 2
+chatterbox
+.IP \(bu 2
+chatterbox\-turbo
+.RE
+.TP
+\fB\-\-chatterbox\-python\fR \fI<PATH>\fR
+Path to the chatterbox venv Python (default: auto\-detect ./venv\-chatterbox/bin/python3). Used with \-\-backend chatterbox or chatterbox\-turbo
+.TP
+\fB\-\-voice\-refs\fR \fI<DIR>\fR [default: voice_refs]
+Directory containing <speaker_key>.wav reference clips for Chatterbox zero\-shot voice cloning (default: voice_refs/). Used with \-\-backend chatterbox or chatterbox\-turbo
+.TP
+\fB\-\-device\fR \fI<DEVICE>\fR [default: cuda]
+Device for \-\-backend chatterbox\-turbo (default: cuda). The worker auto\-falls back to cpu when cuda is requested but unavailable, so this rarely needs setting explicitly — pass \*(Aqcpu\*(Aq to force it even when cuda would work. Slower on cpu, but functional
+.br
+
+.br
+\fIPossible values:\fR
+.RS 14
+.IP \(bu 2
+cuda
+.IP \(bu 2
+cpu
+.RE
+.TP
+\fB\-\-sample\-text\fR \fI<TEXT>\fR
+Override the sample text spoken by each voice. Use {name} as a placeholder for the speaker\*(Aqs full name. Default: "I am {name} not yo momma"
+.TP
+\fB\-\-dry\-run\fR
+Print what would be generated without calling any TTS API
+.TP
+\fB\-\-force\fR
+Regenerate samples even if files already exist on disk
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help

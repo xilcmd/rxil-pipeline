@@ -1,0 +1,134 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-produce 1  "xil-produce " 
+.SH NAME
+xil\-produce \- Voice Generation — generate voice stems via ElevenLabs
+.SH SYNOPSIS
+\fBxil\-produce\fR [\fB\-\-episode\fR] [\fB\-\-tag\fR] [\fB\-\-show\fR] [\fB\-\-script\fR] [\fB\-\-dry\-run\fR] [\fB\-\-reconcile\fR] [\fB\-\-apply\fR] [\fB\-\-force\fR] [\fB\-\-start\-from\fR] [\fB\-\-stop\-at\fR] [\fB\-\-seq\-list\fR] [\fB\-\-terse\fR] [\fB\-\-gen\-sfx\fR] [\fB\-\-gen\-music\fR] [\fB\-\-gen\-ambience\fR] [\fB\-\-sfx\-music\fR] [\fB\-\-local\-only\fR] [\fB\-\-backend\fR] [\fB\-\-chatterbox\-python\fR] [\fB\-\-voice\-refs\fR] [\fB\-\-device\fR] [\fB\-\-sfx\-backend\fR] [\fB\-\-mmaudio\-python\fR] [\fB\-\-mmaudio\-duration\fR] [\fB\-\-mmaudio\-cfg\fR] [\fB\-\-mmaudio\-steps\fR] [\fB\-\-mmaudio\-negative\-prompt\fR] [\fB\-\-mmaudio\-seed\fR] [\fB\-\-mmaudio\-accept\-noncommercial\fR] [\fB\-h\fR|\fB\-\-help\fR] 
+.SH DESCRIPTION
+Voice Generation — generate voice stems via ElevenLabs
+.SH OPTIONS
+.TP
+\fB\-\-episode\fR \fI<EPISODE>\fR
+Episode tag (e.g. S01E01) — derives cast and SFX config paths
+.TP
+\fB\-\-tag\fR \fI<TAG>\fR
+Raw tag for non\-episodic content (e.g. V01C03, D01)
+.TP
+\fB\-\-show\fR \fI<SHOW>\fR
+Show name override (default: from project.json)
+.TP
+\fB\-\-script\fR \fI<SCRIPT>\fR
+Path to parsed script JSON (default: derived from cast config)
+.TP
+\fB\-\-dry\-run\fR
+Preview all lines and TTS cost without API calls
+.TP
+\fB\-\-reconcile\fR
+Re\-link existing stems to new seq filenames after a re\-parse (reads stem manifest, proposes renames, no TTS calls). Add \-\-apply to execute
+.TP
+\fB\-\-apply\fR
+With \-\-reconcile: execute the renames instead of dry\-run preview
+.TP
+\fB\-\-force\fR
+Overwrite existing stem files instead of skipping them. Use with \-\-start\-from/\-\-stop\-at or \-\-seq\-list to regenerate specific lines. WARNING: incurs ElevenLabs API cost for every stem in range
+.TP
+\fB\-\-start\-from\fR \fI<START_FROM>\fR [default: 1]
+Start generation from sequence number N (for resuming)
+.TP
+\fB\-\-stop\-at\fR \fI<STOP_AT>\fR
+Stop generation at sequence number N, inclusive (for previewing a section)
+.TP
+\fB\-\-seq\-list\fR \fI<N,N,...>\fR
+Comma\-separated list of exact sequence numbers to process (e.g. "12,45,88,203"), for regenerating a specific non\-contiguous set of dialogue lines in one run — the TTS worker/subprocess is started once and reused across all listed seqs, instead of once per \-\-start\-from/\-\-stop\-at invocation. Takes precedence over \-\-start\-from/\-\-stop\-at when given. Dialogue only — does not affect \-\-gen\-sfx/\-\-gen\-music/\-\-gen\-ambience filtering. Combine with \-\-force to actually overwrite stems that already exist on disk
+.TP
+\fB\-\-terse\fR
+Truncate each line to 3 words to minimize TTS character cost
+.TP
+\fB\-\-gen\-sfx\fR
+Generate SFX and BEAT stems
+.TP
+\fB\-\-gen\-music\fR
+Generate music stems
+.TP
+\fB\-\-gen\-ambience\fR
+Generate ambience stems
+.TP
+\fB\-\-sfx\-music\fR
+(deprecated) shorthand for \-\-gen\-sfx \-\-gen\-music \-\-gen\-ambience
+.TP
+\fB\-\-local\-only\fR
+Only place stems for effects already present in SFX/; skip API generation
+.TP
+\fB\-\-backend\fR \fI<BACKEND>\fR [default: elevenlabs]
+TTS backend for dialogue voice stems
+.br
+
+.br
+\fIPossible values:\fR
+.RS 14
+.IP \(bu 2
+elevenlabs
+.IP \(bu 2
+gtts
+.IP \(bu 2
+chatterbox
+.IP \(bu 2
+chatterbox\-turbo
+.RE
+.TP
+\fB\-\-chatterbox\-python\fR \fI<PATH>\fR
+Path to the Python executable in the chatterbox venv (default: auto\-detect ./venv\-chatterbox/bin/python3). Used with \-\-backend chatterbox or chatterbox\-turbo
+.TP
+\fB\-\-voice\-refs\fR \fI<DIR>\fR
+Directory of <speaker_key>.wav reference clips for Chatterbox zero\-shot voice cloning (default: <workspace>/voice_refs/). Missing refs fall back to Chatterbox\*(Aqs default voice
+.TP
+\fB\-\-device\fR \fI<DEVICE>\fR [default: cuda]
+Device for \-\-backend chatterbox\-turbo (default: cuda)
+.br
+
+.br
+\fIPossible values:\fR
+.RS 14
+.IP \(bu 2
+cuda
+.IP \(bu 2
+cpu
+.RE
+.TP
+\fB\-\-sfx\-backend\fR \fI<BACKEND>\fR [default: elevenlabs]
+Backend for SFX/music/ambience generation, independent of the dialogue \-\-backend
+.br
+
+.br
+\fIPossible values:\fR
+.RS 14
+.IP \(bu 2
+elevenlabs
+.IP \(bu 2
+mmaudio
+.RE
+.TP
+\fB\-\-mmaudio\-python\fR \fI<PATH>\fR
+Path to the Python executable in the MMAudio venv (default: auto\-detect ./venv\-mmaudio/bin/python3). Used only with \-\-sfx\-backend mmaudio
+.TP
+\fB\-\-mmaudio\-duration\fR \fI<FLOAT>\fR [default: 8]
+Generation length in seconds before trimming (default: 8.0, MMAudio\*(Aqs training duration)
+.TP
+\fB\-\-mmaudio\-cfg\fR \fI<FLOAT>\fR [default: 4.5]
+MMAudio classifier\-free guidance strength (default: 4.5)
+.TP
+\fB\-\-mmaudio\-steps\fR \fI<INT>\fR [default: 25]
+MMAudio flow\-matching sampling steps (default: 25)
+.TP
+\fB\-\-mmaudio\-negative\-prompt\fR \fI<STR>\fR [default: ]
+Optional MMAudio negative prompt (default: none)
+.TP
+\fB\-\-mmaudio\-seed\fR \fI<INT>\fR
+MMAudio reproducibility seed (default: nondeterministic)
+.TP
+\fB\-\-mmaudio\-accept\-noncommercial\fR
+Acknowledge that MMAudio\*(Aqs weights are CC BY\-NC 4.0 (NON\-COMMERCIAL USE ONLY) and that generated audio must not appear in a monetised production. Required for \-\-sfx\-backend mmaudio
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help

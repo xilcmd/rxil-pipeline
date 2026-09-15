@@ -1,0 +1,53 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-stem-verify 1  "xil-stem-verify " 
+.SH NAME
+xil\-stem\-verify \- Scan a stems folder and produce a JSON report with file attributes and Whisper transcriptions.
+.SH SYNOPSIS
+\fBxil\-stem\-verify\fR [\fB\-s\fR|\fB\-\-show\fR] [\fB\-e\fR|\fB\-\-episode\fR] [\fB\-\-stems\-dir\fR] [\fB\-o\fR|\fB\-\-output\fR] [\fB\-\-whisper\-python\fR] [\fB\-\-model\fR] [\fB\-\-language\fR] [\fB\-\-beam\-size\fR] [\fB\-\-device\fR] [\fB\-\-no\-transcribe\fR] [\fB\-h\fR|\fB\-\-help\fR] 
+.SH DESCRIPTION
+Scan a stems folder and produce a JSON report with file attributes and Whisper transcriptions.
+.SH OPTIONS
+.TP
+\fB\-s\fR, \fB\-\-show\fR \fI<SLUG>\fR
+Show slug (default: resolved from project.json or XIL_PROJECTROOT)
+.TP
+\fB\-e\fR, \fB\-\-episode\fR \fI<TAG>\fR
+Episode tag, e.g. S01E01 (required unless \-\-stems\-dir is set)
+.TP
+\fB\-\-stems\-dir\fR \fI<DIR>\fR
+Override stems directory (default: <workspace>/stems/<slug>/<episode>/)
+.TP
+\fB\-o\fR, \fB\-\-output\fR \fI<FILE>\fR
+Output JSON path (default: <workspace>/parsed/<slug>/stem_verify_<episode>.json)
+.TP
+\fB\-\-whisper\-python\fR \fI<PATH>\fR
+Path to venv\-whisper Python executable (auto\-detected if omitted)
+.TP
+\fB\-\-model\fR \fI<SIZE>\fR [default: large\-v3\-turbo]
+Whisper model size: tiny|base|small|medium|large\-v3|large\-v3\-turbo (default: large\-v3\-turbo)
+.TP
+\fB\-\-language\fR \fI<LANG>\fR [default: en]
+Language hint for Whisper. Use \*(Aqauto\*(Aq for automatic detection (default: en)
+.TP
+\fB\-\-beam\-size\fR \fI<N>\fR [default: 5]
+Whisper beam size (default: 5)
+.TP
+\fB\-\-device\fR \fI<DEVICE>\fR [default: cuda]
+Compute device for Whisper (default: cuda)
+.br
+
+.br
+\fIPossible values:\fR
+.RS 14
+.IP \(bu 2
+cuda
+.IP \(bu 2
+cpu
+.RE
+.TP
+\fB\-\-no\-transcribe\fR
+Skip Whisper transcription; output file attributes only
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help

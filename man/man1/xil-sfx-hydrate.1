@@ -1,0 +1,34 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-sfx-hydrate 1  "xil-sfx-hydrate " 
+.SH NAME
+xil\-sfx\-hydrate \- Write pipe\-hint source and attribute fields (play_volume_pct, play_duration_pct) from parsed JSON into the SFX config without re\-parsing the script.
+.SH SYNOPSIS
+\fBxil\-sfx\-hydrate\fR [\fB\-\-episode\fR] [\fB\-\-tag\fR] [\fB\-\-show\fR] [\fB\-\-parsed\fR] [\fB\-\-sfx\fR] [\fB\-\-force\fR] [\fB\-\-dry\-run\fR] [\fB\-h\fR|\fB\-\-help\fR] 
+.SH DESCRIPTION
+Write pipe\-hint source and attribute fields (play_volume_pct, play_duration_pct) from parsed JSON into the SFX config without re\-parsing the script.
+.SH OPTIONS
+.TP
+\fB\-\-episode\fR \fI<EPISODE>\fR
+Episode tag (e.g. S04E04)
+.TP
+\fB\-\-tag\fR \fI<TAG>\fR
+Raw non\-episodic tag (e.g. V01C03)
+.TP
+\fB\-\-show\fR \fI<SHOW>\fR
+Show name override (default: from project.json)
+.TP
+\fB\-\-parsed\fR \fI<PARSED>\fR
+Override parsed JSON path
+.TP
+\fB\-\-sfx\fR \fI<SFX>\fR
+Override SFX config path
+.TP
+\fB\-\-force\fR
+Replace a cue\*(Aqs existing \*(Aqsource\*(Aq when the script hint differs, instead of only filling in missing ones — the only way to correct a \*(AqNEW STEM NEEDED\*(Aq placeholder or a stale path. A replacement is skipped (with a warning) if the hinted file is not on disk. Replacements are written to the edit journal, so they survive a later rebuild from a fresh script. Preview with \-\-dry\-run first
+.TP
+\fB\-\-dry\-run\fR
+Report changes without writing
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help

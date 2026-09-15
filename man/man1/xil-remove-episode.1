@@ -1,0 +1,30 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-remove-episode 1  "xil-remove-episode " 
+.SH NAME
+xil\-remove\-episode \- Remove all workspace files for a single episode. The source production script, masters/, and the sfx edit journal are never touched. Shared assets (SFX/, logs/) are never touched.
+.SH SYNOPSIS
+\fBxil\-remove\-episode\fR [\fB\-s\fR|\fB\-\-show\fR] [\fB\-n\fR|\fB\-\-dry\-run\fR] [\fB\-y\fR|\fB\-\-yes\fR] [\fB\-h\fR|\fB\-\-help\fR] <\fITAG\fR> 
+.SH DESCRIPTION
+Remove all workspace files for a single episode. The source production script, masters/, and the sfx edit journal are never touched. Shared assets (SFX/, logs/) are never touched.
+.SH OPTIONS
+.TP
+\fB\-s\fR, \fB\-\-show\fR \fI<SHOW>\fR
+Show name or slug (default: resolved from project.json / XIL_PROJECTROOT)
+.TP
+\fB\-n\fR, \fB\-\-dry\-run\fR
+Show what would be removed without deleting anything
+.TP
+\fB\-y\fR, \fB\-\-yes\fR
+Skip the confirmation prompt
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help
+.TP
+<\fITAG\fR>
+Episode tag to remove (e.g. S01E01)
+.SH EXTRA
+Examples:
+  xil remove\-episode S01E01 \-\-dry\-run
+  xil remove\-episode S01E01 \-\-yes
+  xil remove\-episode S01E01 \-\-show "Night Owls" \-\-dry\-run
