@@ -11,9 +11,6 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
-  # .cargo/config.toml pins the target dir to an ext4 path on the dev box
-  # (drvfs is slow). Runners have no such path; the env var overrides it.
-  CARGO_TARGET_DIR: target
 
 jobs:
   # The one job that blocks a merge. Lint, unit tests, and the Python-vs-Rust
