@@ -84,7 +84,7 @@ pub const COMMANDS: &[CommandSpec] = &[
     cmd!(native crate::cmd::splice::run, "splice", "xil_pipeline.XILU006_splice_parsed", "parsed JSON splice utility", Utility, "(advanced)"),
     cmd!(native crate::cmd::mp3_hash::run, "mp3-hash", "xil_pipeline.XILU007_mp3_hash", "recursive MP3 SHA-256 hash log", Utility, "(integrity / audit)"),
     cmd!(native crate::cmd::stem_log::run, "stem-log", "xil_pipeline.XILU008_stem_log_report", "parse daily logs → chronological stem generation CSV", Utility, "(integrity / audit)"),
-    cmd!("gui", "xil_pipeline.xil_gui", "web dashboard (requires [gui] extra)", Utility, "(pip install xil-pipeline[gui])"),
+    cmd!(native crate::cmd::gui::run, "gui", "xil_pipeline.xil_gui", "web dashboard (requires [gui] extra)", Utility, "(pip install xil-pipeline[gui])"),
     cmd!(native crate::cmd::migrate_workspace::run, "migrate-workspace", "xil_pipeline.XILU009_migrate_workspace", "migrate pre-0.1.8 workspace to normalized layout", Utility, "(run once per workspace)"),
     cmd!(native crate::cmd::db_profile::run, "db-profile", "xil_pipeline.XILU010_db_profile", "profile MP3 loudness: peak, average, and minimum dBFS", Utility, "(audio level analysis)"),
     cmd!(native crate::cmd::sfx_csv::run, "sfx-csv", "xil_pipeline.XILU011_sfx_csv", "flatten sfx_<tag>.json configs to CSV — one row per effect", Utility, "(debug / audit)"),

@@ -221,6 +221,19 @@
     </ul>
   </div>
 
+  <h2>Docs</h2>
+  <p>Two tools, split by audience, so the toolchain stays all-Rust and nothing is hand-maintained twice.</p>
+  <div class="two">
+    <ul>
+      <li><b>rustdoc, from phase 0 on.</b> Every crate's API reference, generated straight from <code>///</code> comments. CI runs it strict — <code>cargo doc --workspace --no-deps --document-private-items</code> with <code>RUSTDOCFLAGS=-D warnings</code> — the Rust-side twin of the Python repo's mkdocs <code>strict: true</code> gate. A broken doc link fails the merge, same as a broken test.</li>
+      <li><b>Placeholders in <code>--help</code> text are not doc bugs.</b> clap derive doc comments <em>are</em> the <code>--help</code> output, copied verbatim from argparse so parity can diff it byte for byte. Rustdoc reads <code>&lt;slug&gt;</code>-style placeholders as HTML; <code>xil-cli/src/cmd/mod.rs</code> silences that one lint instead of adding backticks that would change the help text.</li>
+    </ul>
+    <ul>
+      <li><b>mdBook, deferred to phase 7.</b> Replaces the Python repo's ~38 hand-written mkdocs pages (about, configuration, cues, guides, internals, samples) once the shim is gone. Starting it earlier would mean two user guides describing one command table while most of it still delegates to Python — a confusing split for no benefit yet.</li>
+      <li><b>Until then, the Python docs are the user guide.</b> The Read the Docs site (mkdocs + mkdocstrings) stays the single reference for anyone using <code>xil</code> day to day; this page tracks the Rust build, not end-user docs.</li>
+    </ul>
+  </div>
+
   <h2>Crate map</h2>
   <div class="scroll"><table>
     <thead><tr><th>Crate</th><th>Mirrors (Python)</th><th>Holds</th><th>Phase</th></tr></thead>
@@ -251,7 +264,7 @@
 
 <script>
   // ---- Edit this block as phases progress. Everything else renders from it.
-  const UPDATED = "2026-09-13";
+  const UPDATED = "2026-09-14";
   const PHASES = [
     { n: 0, title: "Toolchain, shim, harness, CI", weeks: 1, status: "done",
       scope: "rustup, Cargo workspace with the target dir on ext4, the 38-entry command table, Python hand-off with argv[0] aliases and XIL_FORCE_PY, the parity harness, GitHub repo with CI and branch protection.",
@@ -277,13 +290,13 @@
       scope: "ElevenLabs TTS/SFX streaming, quota, voices, Studio; Anthropic; gTTS; retry loop; JSON-over-stdio bridge to the worker venvs; remaining stages.",
       exit: "All --dry-run outputs byte-identical; worker protocol replayed against a mock; one real the413 episode produced end to end within limits.",
       cmds: ["produce", "sfx", "sample", "voices", "cues", "studio-onboard", "import", "stem-verify", "stem-compare", "publish"] },
-    { n: 6, title: "Web GUI", weeks: 3, status: "todo",
+    { n: 6, title: "Web GUI", weeks: 3, status: "active",
       scope: "axum + htmx dashboard: nine tabs, the three /xil/* JSON routes with the same contracts, iframe timeline, live stage runner over SSE.",
       exit: "Route tests pass; stage runner streams stdout live; SFX edits land in the _edits.jsonl journal identically.",
       cmds: ["gui"] },
     { n: 7, title: "Remove the shim", weeks: 1, status: "todo",
-      scope: "Delete delegation and XIL_FORCE_PY, generate man pages with clap_mangen, docs; the Python venv becomes optional. Only the three worker venvs remain.",
-      exit: "No reference to venv/bin/xil remains; full parity suite green against archived goldens.",
+      scope: "Delete delegation and XIL_FORCE_PY, generate man pages with clap_mangen, migrate the ~38 hand-written mkdocs pages (about, configuration, cues, guides, internals, samples) to mdBook; the Python venv becomes optional. Only the three worker venvs remain.",
+      exit: "No reference to venv/bin/xil remains; full parity suite green against archived goldens; mdBook site replaces Read the Docs as the user guide.",
       cmds: [] },
   ];
   const NATIVE = new Set(["use", "status", "init", "episode-summary", "parsed-csv", "sfx-csv", "mp3-hash",
@@ -292,14 +305,16 @@
                           "db-profile", "csv-join", "sfx-hydrate", "sfx-restore", "sfx-impact", "sfx-lib", "sfx-match",
                           "daw", "assemble", "master",
                           "produce", "sfx", "sample", "voices", "cues", "studio-onboard", "import",
-                          "stem-verify", "stem-compare", "publish"]); // flipped to native
+                          "stem-verify", "stem-compare", "publish", "gui"]); // flipped to native
   const PARITY = { passing: 242, total: 242 }; // entries in tools/parity/suite.toml
   const LOG = [
+    { date: "2026-09-14", text: "Phase 6 code complete. xil gui is native: a new xil-web crate serves the dashboard with axum and htmx (vendored, so it works offline) — Setup, Project, Episodes, Run Stage with its seven sub-tabs, the three config editors, Audio Preview, Audio Grading and Timeline — and keeps the timeline editor\u2019s three /xil/* JSON routes to their exact contracts. Run Stage starts the Rust xil and streams its output live over server-sent events. The same edits and grades sent through the Python and Rust dashboards leave byte-identical sfx configs, identical edit journals (timestamps aside) and identical graded MP3s. 49 new tests translate the Python GUI suite. On the NAS workspace the status engine now makes one stat per file instead of four, taking xil status on one episode from 3 min 54 s to 46 s (Python: 2 min 18 s); the dashboard also builds its dropdown lists once and scans episode status only when that tab is opened. --share still uses the Python dashboard, since Gradio\u2019s tunnel has no Rust counterpart. All 38 commands are now native." },
+    { date: "2026-09-13", text: "Docs decision: rustdoc now, mdBook deferred to phase 7. CI's check job runs cargo doc --workspace --no-deps --document-private-items with RUSTDOCFLAGS=-D warnings — the strict twin of the Python repo's mkdocs strict: true gate. Fixed one real broken doc link; silenced rustdoc's HTML-tag lint on xil-cli/src/cmd/mod.rs, where clap's <slug>-style placeholders are verbatim argparse help text, not documentation prose, and must not be backticked. The Python repo's ~38 hand-written mkdocs pages stay the single user guide until the shim is deleted." },
     { date: "2026-09-13", text: "Phase 5 complete. A full the413 S01E01 episode was produced end to end with the Rust xil on the Chatterbox Turbo backend and approved on listening. That run surfaced a bug shared by Python 0.3.2 and the port: Turbo stops at 1000 speech tokens (40 s) per call, so long lines came out fast and garbled. The worker now splits long text into sentence chunks (xil-pipeline #79), and CI tests against that fix." },
-    { date: "2026-09-13", text: "Phase 5 code complete. produce, sfx, sample, voices, cues, studio-onboard, import, stem-verify, stem-compare and publish are native, and sfx-lib --api no longer hands off (37 of 38 commands; only gui remains). A new xil-api crate speaks the same HTTP as the ElevenLabs, Anthropic and gTTS clients, and xil-workers drives the Whisper, MMAudio and Chatterbox workers over JSON lines. Every network check runs both implementations against a local mock server that records each request, so the suite proves the same calls with the same payloads, not only the same files. ID3 tags are now written by a port of mutagen\u2019s frame order and padding, so tagged MP3s are byte-identical. 242 suite checks, all green. Still open for the exit criterion: one real the413 episode produced end to end." },
-    { date: "2026-09-12", text: "Phase 4 complete. daw, assemble and master are native (27 of 38 commands). xil-audio gained a line-by-line port of pydub\u2019s AudioSegment on top of CPython\u2019s audioop arithmetic (floored products, ratecv interpolation), checked against pydub on 33 operations with identical hashes \u2014 including its quirks, such as a fade longer than its clip growing the clip. Two last-bit traps surfaced: pydub\u2019s decibels use log(x)/log(10), not log10, and the math has to go through the C library at run time as Python\u2019s does. The ffmpeg treatment bridge reproduces phone (with the GSM round trip) and speakerphone byte for byte; film draws random grain in both languages. On the fixture episode all five DAW layers are PCM-identical across four sample rates, assemble\u2019s MP3 is byte-identical, and master\u2019s decoded audio is identical. On a synthetic 22-minute, 300-stem episode the layers again matched exactly and daw ran 2.4\u00d7 faster (1:32 vs 3:45). 146 suite checks, all green." },
-    { date: "2026-09-12", text: "Phase 3 complete. All seven SFX utility commands are native: db-profile, csv-join, sfx-hydrate, sfx-restore, sfx-impact, sfx-lib and sfx-match (24 of 38 commands now). xil-audio gained a PCM layer with pydub\u2019s exact level math, an ffmpeg bridge that runs pydub\u2019s own decode command, ID3 read and retag, and a line-by-line port of mutagen\u2019s MP3 header reader \u2014 checked against mutagen on all 1,880 files of the real SFX library with zero differences (ffprobe disagrees on about one file in six). xil-core gained a reader with CPython\u2019s csv state machine and Python number formatting. 130 suite checks, all green. sfx-lib --api still hands off to Python until the network phase." },
-    { date: "2026-09-12", text: "Phase 2 complete. The parser and scanner are native, along with the migrator, cleanup, regenerator and splice. Verified two ways: 83 suite checks, and a new sweep mode that runs both implementations over every production script in the workspace — 96 of 96 byte-identical for parse, and again for scan. xil-core gained a transcription of CPython\u2019s difflib (the scanner\u2019s 0.72 near-miss cutoff is a behaviour boundary, so the ratio has to agree to the last bit), the SFX edit journal, and the stem naming rules. The timeline renderer moved to phase 4: it is only ever called by daw, whose dry-run path needs mix_common, so there is no way to prove it correct before then." },
+    { date: "2026-09-13", text: "Phase 5 code complete. produce, sfx, sample, voices, cues, studio-onboard, import, stem-verify, stem-compare and publish are native, and sfx-lib --api no longer hands off (37 of 38 commands; only gui remains). A new xil-api crate speaks the same HTTP as the ElevenLabs, Anthropic and gTTS clients, and xil-workers drives the Whisper, MMAudio and Chatterbox workers over JSON lines. Every network check runs both implementations against a local mock server that records each request, so the suite proves the same calls with the same payloads, not only the same files. ID3 tags are now written by a port of mutagen’s frame order and padding, so tagged MP3s are byte-identical. 242 suite checks, all green. Still open for the exit criterion: one real the413 episode produced end to end." },
+    { date: "2026-09-12", text: "Phase 4 complete. daw, assemble and master are native (27 of 38 commands). xil-audio gained a line-by-line port of pydub’s AudioSegment on top of CPython’s audioop arithmetic (floored products, ratecv interpolation), checked against pydub on 33 operations with identical hashes — including its quirks, such as a fade longer than its clip growing the clip. Two last-bit traps surfaced: pydub’s decibels use log(x)/log(10), not log10, and the math has to go through the C library at run time as Python’s does. The ffmpeg treatment bridge reproduces phone (with the GSM round trip) and speakerphone byte for byte; film draws random grain in both languages. On the fixture episode all five DAW layers are PCM-identical across four sample rates, assemble’s MP3 is byte-identical, and master’s decoded audio is identical. On a synthetic 22-minute, 300-stem episode the layers again matched exactly and daw ran 2.4× faster (1:32 vs 3:45). 146 suite checks, all green." },
+    { date: "2026-09-12", text: "Phase 3 complete. All seven SFX utility commands are native: db-profile, csv-join, sfx-hydrate, sfx-restore, sfx-impact, sfx-lib and sfx-match (24 of 38 commands now). xil-audio gained a PCM layer with pydub’s exact level math, an ffmpeg bridge that runs pydub’s own decode command, ID3 read and retag, and a line-by-line port of mutagen’s MP3 header reader — checked against mutagen on all 1,880 files of the real SFX library with zero differences (ffprobe disagrees on about one file in six). xil-core gained a reader with CPython’s csv state machine and Python number formatting. 130 suite checks, all green. sfx-lib --api still hands off to Python until the network phase." },
+    { date: "2026-09-12", text: "Phase 2 complete. The parser and scanner are native, along with the migrator, cleanup, regenerator and splice. Verified two ways: 83 suite checks, and a new sweep mode that runs both implementations over every production script in the workspace — 96 of 96 byte-identical for parse, and again for scan. xil-core gained a transcription of CPython’s difflib (the scanner’s 0.72 near-miss cutoff is a behaviour boundary, so the ratio has to agree to the last bit), the SFX edit journal, and the stem naming rules. The timeline renderer moved to phase 4: it is only ever called by daw, whose dry-run path needs mix_common, so there is no way to prove it correct before then." },
     { date: "2026-09-11", text: "Phase 1 complete. xil-core carries the workspace/path layer (both layouts), the two-sink logger with the exact v2 record format, a Python-identical JSON writer (indent=2, ensure_ascii, float repr) and CSV writer, the run banner, glob/relpath helpers and the SFX slug rules. All 11 phase-1 commands are native and byte-identical to Python across 51 parity checks. The harness now makes each run declare whether Rust or Python served it, so a stale binary can no longer read as a pass." },
     { date: "2026-09-11", text: "Phase 0 complete. Rust 1.98.1 installed; workspace scaffolded; all 38 commands delegate to Python 0.3.2. Help text, exit codes and xil-<cmd> aliases verified byte-identical. Parity harness green on help, use, parse ×2, scan. Repo published at xilcmd/rxil-pipeline with CI (fmt, clippy, nextest, parity suite) and branch protection matching the Python repo." },
     { date: "2026-09-11", text: "Plan approved: strangler port, GUI rewritten in Rust as the last phase, Python repo feature-frozen at 0.3.2." },
@@ -368,3 +383,5 @@
   // changelog
   document.getElementById("log").innerHTML = LOG.map(l => `<div class="log-item"><time>${l.date}</time><p>${l.text}</p></div>`).join("");
 </script>
+
+</body></html>

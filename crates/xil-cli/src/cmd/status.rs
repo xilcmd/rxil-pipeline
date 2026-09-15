@@ -86,26 +86,49 @@ fn mtime(p: &Path) -> Option<f64> {
     Some(d.as_secs() as f64 + d.subsec_nanos() as f64 * 1e-9)
 }
 
-/// mtimes of every regular file in `paths` (directories walked recursively).
-fn mtimes(paths: &[PathBuf]) -> Vec<f64> {
+/// mtimes of every regular file in `paths` (directories walked recursively),
+/// plus the top-level paths that are regular files.
+///
+/// One `stat` per path: on a drvfs/NAS workspace each one is a network round
+/// trip, and the Episodes table in `xil gui` runs this for every episode.
+/// Directory walks take the entry type from `readdir` and only stat what is
+/// not a directory, which is what `is_dir()`/`is_file()`/`stat()` decide in
+/// three calls in the Python.
+fn mtimes_and_files(paths: &[PathBuf]) -> (Vec<f64>, Vec<PathBuf>) {
     let mut out = Vec::new();
+    let mut files = Vec::new();
     for p in paths {
-        if p.is_dir() {
+        let Ok(meta) = fs::metadata(p) else { continue };
+        if meta.is_dir() {
             let mut stack = vec![p.clone()];
             while let Some(d) = stack.pop() {
-                for e in list_dir_raw(&d) {
-                    if e.is_dir() {
-                        stack.push(e);
-                    } else if e.is_file() {
-                        out.extend(mtime(&e));
+                let Ok(rd) = fs::read_dir(&d) else { continue };
+                for e in rd.filter_map(Result::ok) {
+                    let path = e.path();
+                    if e.file_type().map(|t| t.is_dir()).unwrap_or(false) {
+                        stack.push(path);
+                    } else if let Ok(m) = fs::metadata(&path) {
+                        if m.is_file() {
+                            out.extend(meta_mtime(&m));
+                        }
                     }
                 }
             }
-        } else if p.is_file() {
-            out.extend(mtime(p));
+        } else if meta.is_file() {
+            out.extend(meta_mtime(&meta));
+            files.push(p.clone());
         }
     }
-    out
+    (out, files)
+}
+
+fn mtimes(paths: &[PathBuf]) -> Vec<f64> {
+    mtimes_and_files(paths).0
+}
+
+fn meta_mtime(m: &fs::Metadata) -> Option<f64> {
+    let d = m.modified().ok()?.duration_since(UNIX_EPOCH).ok()?;
+    Some(d.as_secs() as f64 + d.subsec_nanos() as f64 * 1e-9)
 }
 
 fn fmt_time(t: Option<f64>) -> String {
@@ -196,7 +219,7 @@ fn evaluate_stage(
     count: Option<usize>,
 ) -> StageStatus {
     let in_times = mtimes(inputs);
-    let out_times = mtimes(outputs);
+    let (out_times, output_files) = mtimes_and_files(outputs);
     let newest_in = fmax(&in_times);
     let newest_out = fmax(&out_times);
     let oldest_out = fmin(&out_times);
@@ -216,7 +239,7 @@ fn evaluate_stage(
         output_count: count.unwrap_or(out_times.len()),
         note: String::new(),
         refresh: suggested,
-        output_files: outputs.iter().filter(|p| p.is_file()).cloned().collect(),
+        output_files,
     }
 }
 

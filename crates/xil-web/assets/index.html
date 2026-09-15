@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>xil-pipeline</title>
+<link rel="stylesheet" href="/assets/app.css">
+<script src="/assets/htmx.min.js"></script>
+<script src="/assets/app.js" defer></script>
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>xil-pipeline</h1>
+    <p class="muted"><b>Workspace:</b> <code>@@WORKSPACE@@</code></p>
+  </div>
+  <button type="button" id="global-refresh-btn" class="small">⟳ Refresh</button>
+</header>
+
+<nav class="tabs" data-group="main">
+  <button type="button" data-tab="setup">Setup</button>
+  <button type="button" data-tab="project">Project</button>
+  <button type="button" data-tab="episodes">Episodes</button>
+  <button type="button" data-tab="run">Run Stage</button>
+  <button type="button" data-tab="speakers">Speakers</button>
+  <button type="button" data-tab="cast">Cast Config</button>
+  <button type="button" data-tab="sfx">SFX Config</button>
+  <button type="button" data-tab="audio">Audio Preview</button>
+  <button type="button" data-tab="grading">Audio Grading</button>
+  <button type="button" data-tab="timeline">Timeline</button>
+</nav>
+
+<main>
+
+<!-- ── Setup ─────────────────────────────────────────────────────────── -->
+<section class="tab" data-group="main" data-tab="setup">
+  <h3>Active show</h3>
+  <p>Select which show is active. All pipeline commands will use this show's
+  <code>configs/{slug}/project.json</code> to resolve the show slug and season defaults.</p>
+  <form class="row" hx-post="/setup/use" hx-target="#use-show-status">
+    <label class="field grow"><span>Show</span>
+      <select name="show" hx-get="/choices/shows" hx-trigger="refresh-all from:body, job-done from:body" hx-swap="innerHTML">@@SHOW_OPTIONS@@</select>
+    </label>
+    <button class="primary">▶ Use this show</button>
+  </form>
+  <div id="use-show-status"></div>
+
+  <hr>
+  <h3>Initialize a new show</h3>
+  <p>Creates <code>configs/{slug}/project.json</code>, <code>speakers.json</code>, a type-specific
+  sample script, and per-show subdirectories inside <code>@@WORKSPACE@@</code>.</p>
+  <form hx-post="/setup/init" hx-target="#init-log">
+    <div class="row">
+      <label class="field grow"><span>Show name *</span><input name="show" id="init-show-name" placeholder="e.g. &quot;Night Owls&quot;"></label>
+      <label class="field"><span>Content type</span>
+        <select name="type"><option>podcast</option><option>audiobook</option><option>drama</option><option>special</option></select>
+      </label>
+    </div>
+    <div class="row">
+      <label class="field"><span>Season number (optional)</span><input name="season" placeholder="e.g. 1"></label>
+      <label class="field grow"><span>Season title (optional)</span><input name="season_title" placeholder="e.g. &quot;The Holiday Shift&quot;"></label>
+    </div>
+    <button class="primary" id="init-create-btn">▶ Create show</button>
+  </form>
+  <div id="init-log" class="logwrap"></div>
+</section>
+
+<!-- ── Project ───────────────────────────────────────────────────────── -->
+<section class="tab" data-group="main" data-tab="project">
+  <div id="project-panel" hx-get="/project" hx-trigger="load, project-changed from:body, refresh-all from:body"></div>
+</section>
+
+<!-- ── Episodes ──────────────────────────────────────────────────────── -->
+<section class="tab" data-group="main" data-tab="episodes">
+  <div id="episodes-table" hx-get="/episodes/table" hx-trigger="tab-shown from:closest section once">
+    <p class="muted">⏳ Collecting episode status — please wait…</p>
+  </div>
+  <p class="muted">✓ up to date · ⚠ stale (re-run needed) · ○ not built</p>
+</section>
+
+<!-- ── Run Stage ─────────────────────────────────────────────────────── -->
+<section class="tab" data-group="main" data-tab="run">
+  <p>Run pipeline stages against an episode. <b>Dry-run is on by default</b> — uncheck to write output files.</p>
+  <div class="row">
+    <label class="field grow"><span>Episode</span>
+      <select name="ep" id="run-episode" hx-get="/choices/episodes" hx-trigger="refresh-all from:body, job-done from:body, scripts-changed from:body" hx-swap="innerHTML">@@EPISODE_OPTIONS@@</select>
+    </label>
+  </div>
+
+  <nav class="tabs sub" data-group="run">
+    <button type="button" data-tab="scripts">Scripts</button>
+    <button type="button" data-tab="scan">Scan</button>
+    <button type="button" data-tab="parse">Parse</button>
+    <button type="button" data-tab="produce">Produce</button>
+    <button type="button" data-tab="assemble">Assemble</button>
+    <button type="button" data-tab="daw">DAW</button>
+    <button type="button" data-tab="master">Master</button>
+  </nav>
+
+  <div class="tab" data-group="run" data-tab="scripts">
+    <form>
+      <label class="field"><span>Script Markdown</span>
+        <textarea name="text" rows="28" placeholder="Paste production script here…"></textarea>
+      </label>
+      <button type="button" hx-post="/scripts/analyze" hx-include="closest form" hx-target="#script-meta">Analyze Header</button>
+      <div id="script-meta">@@SCRIPT_META@@</div>
+      <button type="button" class="primary" hx-post="/scripts/save" hx-include="closest form" hx-target="#script-status">💾 Save to scripts/</button>
+      <div id="script-status"></div>
+    </form>
+  </div>
+
+  <div class="tab" data-group="run" data-tab="scan">
+    <form hx-post="/run/scan" hx-include="#run-episode" hx-target="#run-stage-log">
+      <div class="row">
+        <label class="field grow"><span>Script *</span>
+          <input name="script" id="scan-script" list="script-list" autocomplete="off">
+        </label>
+        @@SCAN_SPEAKERS@@
+      </div>
+      @@SCAN_JSON@@
+      <button class="primary" id="scan-run-btn">▶ Run Scan</button>
+    </form>
+  </div>
+
+  <div class="tab" data-group="run" data-tab="parse">
+    <form hx-post="/run/parse" hx-target="#run-stage-log">
+      <div class="row">
+        <label class="field grow"><span>Episode (select existing or type new tag, e.g. S04E04)</span>
+          <input name="ep" id="parse-episode" list="episode-list" autocomplete="off">
+        </label>
+      </div>
+      <div class="row">
+        <label class="field grow"><span>Script (blank = auto-detect first .md in scripts/)</span>
+          <input name="script" list="script-list" autocomplete="off">
+        </label>
+        @@PARSE_SPEAKERS@@
+      </div>
+      <div class="row">
+        @@PARSE_OPTIONS@@
+      </div>
+      <button class="primary" id="parse-run-btn">▶ Run Parse</button>
+    </form>
+  </div>
+
+  <div class="tab" data-group="run" data-tab="produce">
+    <form hx-post="/run/produce" hx-include="#run-episode" hx-target="#run-stage-log">
+      @@PRODUCE_FORM@@
+      <button class="primary" id="prod-run-btn">▶ Run Produce</button>
+    </form>
+  </div>
+
+  <div class="tab" data-group="run" data-tab="assemble">
+    <form hx-post="/run/assemble" hx-include="#run-episode" hx-target="#run-stage-log">
+      @@ASSEMBLE_FORM@@
+      <button class="primary">▶ Run Assemble</button>
+    </form>
+  </div>
+
+  <div class="tab" data-group="run" data-tab="daw">
+    <form hx-post="/run/daw" hx-include="#run-episode" hx-target="#run-stage-log">
+      @@DAW_FORM@@
+      <button class="primary" id="daw-run-btn">▶ Run DAW</button>
+    </form>
+  </div>
+
+  <div class="tab" data-group="run" data-tab="master">
+    <form hx-post="/run/master" hx-include="#run-episode" hx-target="#run-stage-log">
+      @@MASTER_FORM@@
+      <button class="primary" id="master-run-btn">▶ Run Master</button>
+    </form>
+  </div>
+
+  <datalist id="script-list" hx-get="/choices/scripts" hx-trigger="refresh-all from:body, scripts-changed from:body" hx-swap="innerHTML">@@SCRIPT_OPTIONS@@</datalist>
+  <datalist id="episode-list" hx-get="/choices/episodes" hx-trigger="refresh-all from:body, job-done from:body, scripts-changed from:body" hx-swap="innerHTML">@@EPISODE_OPTIONS@@</datalist>
+
+  <div class="loglabel">Output</div>
+  <div id="run-stage-log" class="logwrap"><pre class="log"></pre></div>
+</section>
+
+<!-- ── Config editors ────────────────────────────────────────────────── -->
+@@CONFIG_TABS@@
+
+<!-- ── Audio Preview ─────────────────────────────────────────────────── -->
+<section class="tab" data-group="main" data-tab="audio">
+  <form id="audio-form" class="row" hx-get="/audio/stems" hx-trigger="change from:#audio-ep, change from:.stem-filter" hx-target="#stem-wrap">
+    <label class="field grow"><span>Episode</span>
+      <select name="ep" id="audio-ep" hx-get="/choices/episodes" hx-trigger="refresh-all from:body" hx-swap="innerHTML">@@AUDIO_EPISODE_OPTIONS@@</select>
+    </label>
+    <fieldset class="radios"><legend>Filter</legend>
+      <label><input type="radio" class="stem-filter" name="filter" value="all" checked> all</label>
+      <label><input type="radio" class="stem-filter" name="filter" value="dialogue"> dialogue</label>
+      <label><input type="radio" class="stem-filter" name="filter" value="sfx"> sfx</label>
+      <label><input type="radio" class="stem-filter" name="filter" value="music"> music</label>
+      <label><input type="radio" class="stem-filter" name="filter" value="ambience"> ambience</label>
+    </fieldset>
+  </form>
+  <div id="stem-wrap" hx-get="/audio/stems" hx-include="#audio-form" hx-trigger="load"></div>
+  <div class="row">
+    <button type="button" class="small" hx-post="/audio/play-all" hx-include="#audio-ep" hx-vals='{"filter": "sfx"}' hx-target="#audio-player" hx-indicator="#audio-busy">▶ All SFX</button>
+    <button type="button" class="small" hx-post="/audio/play-all" hx-include="#audio-ep" hx-vals='{"filter": "music"}' hx-target="#audio-player" hx-indicator="#audio-busy">▶ All Music</button>
+    <button type="button" class="small" hx-post="/audio/play-all" hx-include="#audio-ep" hx-vals='{"filter": "ambience"}' hx-target="#audio-player" hx-indicator="#audio-busy">▶ All Ambience</button>
+    <span id="audio-busy" class="htmx-indicator muted">Decoding stems…</span>
+  </div>
+  <div class="loglabel">Playback</div>
+  <div id="audio-player"></div>
+</section>
+
+<!-- ── Audio Grading ─────────────────────────────────────────────────── -->
+<section class="tab" data-group="main" data-tab="grading">
+  <form id="grade-form">
+    <button type="button" class="small" hx-get="/grades/list?refresh=1" hx-include="#grade-form" hx-target="#grade-panel" hx-indicator="#grade-busy">⟳ Load / Refresh SFX library</button>
+    <span id="grade-busy" class="htmx-indicator muted">Scanning SFX/…</span>
+    <fieldset class="radios" hx-get="/grades/list" hx-include="#grade-form" hx-trigger="change" hx-target="#grade-panel"><legend>Show</legend>
+      <label><input type="radio" name="filter" value="all" checked> all</label>
+      <label><input type="radio" name="filter" value="ungraded"> ungraded</label>
+      <label><input type="radio" name="filter" value="accurate"> accurate</label>
+      <label><input type="radio" name="filter" value="rejected"> rejected</label>
+    </fieldset>
+  </form>
+  <div id="grade-panel"><p>Click <b>Load</b> to scan SFX/.</p></div>
+</section>
+
+<!-- ── Timeline ──────────────────────────────────────────────────────── -->
+<section class="tab" data-group="main" data-tab="timeline">
+  <label class="field"><span>Episode</span>
+    <select name="ep" id="tl-episode" hx-get="/timeline" hx-trigger="change" hx-target="#tl-html">
+      <option value=""></option>@@EPISODE_OPTIONS@@
+    </select>
+  </label>
+  <div id="tl-html"><p>Select an episode above.</p></div>
+</section>
+
+</main>
+</body>
+</html>

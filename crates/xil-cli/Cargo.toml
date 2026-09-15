@@ -17,6 +17,7 @@ xil-core = { path = "../xil-core" }
 xil-audio = { path = "../xil-audio" }
 xil-workers = { path = "../xil-workers" }
 xil-api = { path = "../xil-api" }
+xil-web = { path = "../xil-web" }
 anyhow.workspace = true
 clap.workspace = true
 serde_json.workspace = true
@@ -27,7 +28,8 @@ indexmap.workspace = true
 id3.workspace = true
 unicode-normalization.workspace = true
 zip.workspace = true
-filetime = "0.2"
+filetime.workspace = true
 tempfile.workspace = true
+tokio.workspace = true
 
 [dev-dependencies]
