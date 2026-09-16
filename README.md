@@ -25,6 +25,12 @@ the same name. CI pins the exact reference commit.
 | `docs/book` | the user guide (mdBook) |
 | `tools/parity` | Python-vs-Rust output comparison harness |
 
+## Install
+
+Prebuilt binaries for Linux, macOS and Windows are attached to each
+[release](https://github.com/xilcmd/rxil-pipeline/releases). Unpack, put `xil`
+on your `PATH`, and install `ffmpeg` — it is not bundled. To build instead:
+
 ## Build
 
 ```bash
