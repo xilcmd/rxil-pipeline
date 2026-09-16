@@ -5,6 +5,8 @@ language = "en"
 src = "src"
 
 [output.html]
+# Pages serves the book under /rxil-pipeline/.
+site-url = "/rxil-pipeline/"
 git-repository-url = "https://github.com/xilcmd/rxil-pipeline"
 edit-url-template = "https://github.com/xilcmd/rxil-pipeline/edit/main/docs/book/{path}"
 additional-js = ["mermaid-init.js"]
