@@ -77,6 +77,7 @@ jobs:
           cp -r man "$dir"/
           tar czf "$dir.tar.gz" "$dir"
           shasum -a 256 "$dir.tar.gz" > "$dir.tar.gz.sha256"
+          echo "ASSET=$dir.tar.gz" >> "$GITHUB_ENV"
       - name: Package (windows)
         if: runner.os == 'Windows'
         run: |
@@ -87,11 +88,15 @@ jobs:
           Compress-Archive -Path $dir -DestinationPath "$dir.zip"
           (Get-FileHash "$dir.zip" -Algorithm SHA256).Hash.ToLower() + "  $dir.zip" |
             Out-File -Encoding ascii "$dir.zip.sha256"
+          "ASSET=$dir.zip" | Out-File -Append -Encoding ascii $env:GITHUB_ENV
 
+      # Each job uploads only its own archive: a glob covering every platform
+      # fails on the ones this runner never built.
       - name: Upload to the release
+        shell: bash          # $ASSET, not PowerShell's $env:ASSET
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ needs.create.outputs.tag }}" xil-*.tar.gz xil-*.zip xil-*.sha256 --clobber
+        run: gh release upload "${{ needs.create.outputs.tag }}" "$ASSET" "$ASSET.sha256" --clobber
 
   publish:
     needs: [create, build]
