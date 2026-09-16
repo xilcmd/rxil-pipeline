@@ -55,9 +55,11 @@ MMAudio).
 xil --generate-man man/man1      # regenerate after changing any command's options
 man -l man/man1/xil-parse.1
 mdbook build docs/book           # writes docs/book/book/
+mdbook serve docs/book           # read it at http://localhost:3000
 ```
 
-CI fails when the committed man pages are out of date.
+CI fails when the committed man pages are out of date. Every push to `main`
+publishes the guide to <https://xilcmd.github.io/rxil-pipeline/>.
 
 ## Parity
 
