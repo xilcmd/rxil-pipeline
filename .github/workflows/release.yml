@@ -1,0 +1,104 @@
+# Build downloadable `xil` binaries and attach them to a GitHub Release.
+#
+# Triggered by a version tag: `git tag -s v0.2.0 -m 'v0.2.0' && git push --tags`.
+# Each archive holds the binary, the man pages, the README and the licence.
+# ffmpeg is NOT bundled — it stays a system dependency, as it is for the
+# Python pipeline.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to build (e.g. v0.2.0)"
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # One draft release for every platform job to upload into, so three jobs
+  # cannot race to create it.
+  create:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: tag
+        run: echo "tag=${{ inputs.tag || github.ref_name }}" >> "$GITHUB_OUTPUT"
+      # The tag and Cargo.toml must agree, or the --version a user runs will
+      # not match the release they downloaded.
+      - name: Tag matches the crate version
+        run: |
+          crate=$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)
+          tag="${{ steps.tag.outputs.tag }}"
+          test "v$crate" = "$tag" || { echo "tag $tag != crate version v$crate"; exit 1; }
+      - name: Draft the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "${{ steps.tag.outputs.tag }}" >/dev/null 2>&1 && exit 0
+          gh release create "${{ steps.tag.outputs.tag }}" --draft --verify-tag \
+            --title "${{ steps.tag.outputs.tag }}" --generate-notes
+
+  build:
+    needs: create
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            name: x86_64-linux
+          - os: macos-latest
+            name: aarch64-macos
+          - os: windows-latest
+            name: x86_64-windows
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.create.outputs.tag }}
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --release -p xil-cli
+
+      - name: Package (unix)
+        if: runner.os != 'Windows'
+        run: |
+          dir="xil-${{ needs.create.outputs.tag }}-${{ matrix.name }}"
+          mkdir -p "$dir"
+          cp target/release/xil README.md LICENSE "$dir"/
+          cp -r man "$dir"/
+          tar czf "$dir.tar.gz" "$dir"
+          shasum -a 256 "$dir.tar.gz" > "$dir.tar.gz.sha256"
+      - name: Package (windows)
+        if: runner.os == 'Windows'
+        run: |
+          $dir = "xil-${{ needs.create.outputs.tag }}-${{ matrix.name }}"
+          New-Item -ItemType Directory -Path $dir | Out-Null
+          Copy-Item target/release/xil.exe, README.md, LICENSE $dir
+          Copy-Item -Recurse man $dir
+          Compress-Archive -Path $dir -DestinationPath "$dir.zip"
+          (Get-FileHash "$dir.zip" -Algorithm SHA256).Hash.ToLower() + "  $dir.zip" |
+            Out-File -Encoding ascii "$dir.zip.sha256"
+
+      - name: Upload to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ needs.create.outputs.tag }}" xil-*.tar.gz xil-*.zip xil-*.sha256 --clobber
+
+  publish:
+    needs: [create, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Undraft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release edit "${{ needs.create.outputs.tag }}" --draft=false --latest
