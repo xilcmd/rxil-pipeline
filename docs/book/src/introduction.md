@@ -50,12 +50,14 @@ delivery style, and vocal gestures — see
 [the pipeline reference](internals/pipeline.md#chatterbox-turbo-paralinguistic-tags)).
 
 ```bash
+# Needs uv (https://docs.astral.sh/uv/): curl -LsSf https://astral.sh/uv/install.sh | sh
+
 # First-time setup (CUDA 12.4 wheels shown; adjust for your GPU/driver)
-python -m venv venv-chatterbox
-venv-chatterbox/bin/pip install --upgrade pip
-venv-chatterbox/bin/pip install 'torch==2.6.0' 'torchaudio==2.6.0' \
+uv venv venv-chatterbox
+uv pip install --python venv-chatterbox/bin/python \
+    'torch==2.6.0' 'torchaudio==2.6.0' \
     --index-url https://download.pytorch.org/whl/cu124
-venv-chatterbox/bin/pip install chatterbox-tts      # provides Chatterbox Turbo
+uv pip install --python venv-chatterbox/bin/python chatterbox-tts   # provides Chatterbox Turbo
 
 # Model weights auto-download from Hugging Face on first run. If the Turbo repo
 # (ResembleAI/chatterbox-turbo) is gated for your account, authenticate first:
@@ -89,15 +91,16 @@ ElevenLabs API. It runs in a dedicated `venv-mmaudio/`, needs ~6 GB of VRAM,
 and installs from a git clone rather than PyPI:
 
 ```bash
-python -m venv venv-mmaudio
+uv venv venv-mmaudio
 git clone https://github.com/hkchengrex/MMAudio
-venv-mmaudio/bin/pip install -e MMAudio
+uv pip install --python venv-mmaudio/bin/python -e MMAudio
 
 # MMAudio declares `torch >= 2.5.1` with no upper bound, so the line above pulls
 # the newest torch — currently a CUDA 13 build. On a CUDA 12.x driver that
 # silently falls back to CPU ("NVIDIA driver on your system is too old") and
 # breaks torchaudio. Re-pin a driver-matched stack AFTERWARDS, not before:
-venv-mmaudio/bin/pip install 'torch==2.6.0' 'torchaudio==2.6.0' 'torchvision==0.21.0' \
+uv pip install --python venv-mmaudio/bin/python \
+    'torch==2.6.0' 'torchaudio==2.6.0' 'torchvision==0.21.0' \
     --index-url https://download.pytorch.org/whl/cu124
 
 # Confirm the GPU is actually visible before generating anything:

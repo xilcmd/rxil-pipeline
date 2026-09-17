@@ -5,7 +5,8 @@ show-agnostic audio production pipeline (markdown script → podcast MP3).
 
 All 38 `xil` commands are implemented in Rust. The only Python left at run
 time is the three ML workers (Chatterbox Turbo, Whisper, MMAudio), each in
-its own venv; `xil` talks to them over JSON lines.
+its own venv; `xil` talks to them over JSON lines. Building and running `xil`
+with the default ElevenLabs backend needs no Python at all.
 
 The port was checked against that repository's **main branch**, not its PyPI
 release: its version string has read `0.3.2` for many commits past the tag of
@@ -29,7 +30,8 @@ the same name. CI pins the exact reference commit.
 
 Prebuilt binaries for Linux, macOS and Windows are attached to each
 [release](https://github.com/xilcmd/rxil-pipeline/releases). Unpack, put `xil`
-on your `PATH`, and install `ffmpeg` — it is not bundled. To build instead:
+on your `PATH`, and install `ffmpeg` — it is not bundled. To build instead,
+see the next section.
 
 ## Build
 
@@ -44,16 +46,41 @@ parity suite touch on drvfs is a round trip to Windows.
 
 ## Run
 
+`XIL_PROJECTROOT` (your workspace — scripts, configs, stems, SFX) defaults to
+the current directory, so the fastest start is: `mkdir myshow && cd myshow &&
+xil init`. No `export` needed unless you want to run `xil` from somewhere
+else.
+
 ```bash
-export XIL_PROJECTROOT=/path/to/workspace    # scripts, configs, stems, SFX
-export XIL_CODEROOT=/path/to/xil-pipeline    # worker scripts and their venvs
 target/release/xil --help
 target/release/xil status --toolchain   # worker scripts and venvs found
 ```
 
-`XIL_CODEROOT` is only needed by the stages that start an ML worker
-(`produce`/`sample` with Chatterbox, `stem-verify`, `sfx`/`produce` with
-MMAudio).
+Environment variables a first-time Linux user might need:
+
+| Variable | Needed for | Default / suggestion |
+| --- | --- | --- |
+| `XIL_PROJECTROOT` | every command | defaults to the current directory — just `cd` into your workspace |
+| `XIL_CODEROOT` | optional local ML workers only | unset by default; only set this if you install Chatterbox/MMAudio (see the guide) |
+| `ELEVENLABS_API_KEY` | default dialogue/SFX backend | no default — get your own key; use `--dry-run` to preview without one |
+| `ANTHROPIC_API_KEY` | `xil publish` only | no default — get your own key; use `--dry-run` to preview without one |
+| `ffmpeg` on `PATH` | everything (not an env var) | `sudo apt install ffmpeg` (or your distro's equivalent) |
+
+For the full walkthrough and less-common variables (`XIL_GDOC_DIR`,
+`XIL_STRICT_FX`), see the guide's
+[Quick Start](https://xilcmd.github.io/rxil-pipeline/#quick-start) and
+[Environment](https://xilcmd.github.io/rxil-pipeline/#environment) sections.
+
+## Optional: local ML workers
+
+Chatterbox Turbo (local GPU TTS) and MMAudio (local SFX) are opt-in
+alternatives to the default ElevenLabs API. Each runs in its own
+[uv](https://docs.astral.sh/uv/)-managed venv under `XIL_CODEROOT`; see the
+guide's
+["Optional: local GPU TTS"](https://xilcmd.github.io/rxil-pipeline/#optional-local-gpu-tts-chatterbox-turbo)
+and
+["Optional: local SFX generation"](https://xilcmd.github.io/rxil-pipeline/#optional-local-sfx-generation-mmaudio--non-commercial-only)
+sections for setup.
 
 ## Man pages and guide
 
