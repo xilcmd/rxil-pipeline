@@ -73,14 +73,14 @@ For the full walkthrough and less-common variables (`XIL_GDOC_DIR`,
 
 ## Optional: local ML workers
 
-Chatterbox Turbo (local GPU TTS) and MMAudio (local SFX) are opt-in
-alternatives to the default ElevenLabs API. Each runs in its own
-[uv](https://docs.astral.sh/uv/)-managed venv under `XIL_CODEROOT`; see the
-guide's
-["Optional: local GPU TTS"](https://xilcmd.github.io/rxil-pipeline/#optional-local-gpu-tts-chatterbox-turbo)
-and
-["Optional: local SFX generation"](https://xilcmd.github.io/rxil-pipeline/#optional-local-sfx-generation-mmaudio--non-commercial-only)
-sections for setup.
+The default backend, [ElevenLabs](https://elevenlabs.io), is a paid
+commercial API. Two free, local substitutes are available instead:
+
+- **Dialogue** — [Chatterbox Turbo](https://xilcmd.github.io/rxil-pipeline/#optional-local-gpu-tts-chatterbox-turbo), local GPU text-to-speech with per-character voice cloning.
+- **SFX** — [MMAudio](https://xilcmd.github.io/rxil-pipeline/#optional-local-sfx-generation-mmaudio--non-commercial-only), local sound-effect generation (non-commercial use only).
+
+Each runs in its own [uv](https://docs.astral.sh/uv/)-managed venv under
+`XIL_CODEROOT`; see the linked guide sections for setup.
 
 ## Man pages and guide
 
