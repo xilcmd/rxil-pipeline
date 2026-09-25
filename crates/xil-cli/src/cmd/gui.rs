@@ -17,7 +17,7 @@ use super::status::evaluate_episode;
 #[derive(Parser)]
 #[command(
     name = "xil-gui",
-    about = "Launch the xil-pipeline web dashboard. Opens a browser UI with ten tabs: Setup (initialize a workspace / select the active show), Project (edit project.json), Episodes (workspace overview with parse/stems/DAW/master status), Run Stage (launch pipeline stages with live log streaming; dry-run on by default), Speakers, Cast Config and SFX Config (edit the respective JSON configs), Audio Preview (browse and play stems in the browser), Audio Grading (mark SFX library files accurate or rejected), and Timeline (interactive HTML timeline).",
+    about = "Launch the xil-pipeline web dashboard. Opens a browser UI with eleven tabs: Setup (initialize a workspace / select the active show), Project (edit project.json), Episodes (workspace overview with parse/stems/DAW/master status), Run Stage (launch pipeline stages with live log streaming; dry-run on by default), Speakers, Cast Config and SFX Config (edit the respective JSON configs), Edit Parsed JSON (edit an episode's generated parsed script JSON), Audio Preview (browse and play stems in the browser), Audio Grading (mark SFX library files accurate or rejected), and Timeline (interactive HTML timeline).",
     after_help = "Remote access: the server binds 127.0.0.1 by default. To reach it from\nanother machine, forward the port, e.g.:\n  ssh -L 7860:127.0.0.1:7860 <this-host>"
 )]
 struct Args {

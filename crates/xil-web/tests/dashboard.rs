@@ -478,6 +478,7 @@ async fn index_page_has_every_tab_and_escapes_labels() {
         "Speakers",
         "Cast Config",
         "SFX Config",
+        "Edit Parsed JSON",
         "Audio Preview",
         "Audio Grading",
         "Timeline",
@@ -486,9 +487,94 @@ async fn index_page_has_every_tab_and_escapes_labels() {
     }
     assert!(!body.contains("<script>alert(1)</script>"));
     assert!(body.contains("&lt;script&gt;alert(1)&lt;/script&gt;"));
+    // Choosing an episode loads it — the select itself carries the request,
+    // the same way the config tabs' file dropdown does.
+    assert!(
+        body.contains(
+            "<select name=\"ep\" id=\"parsed-ep\" hx-get=\"/parsed/load\" \
+             hx-trigger=\"change\" hx-target=\"#parsed-editor\" hx-swap=\"outerHTML\">"
+        ),
+        "the episode select must load on change"
+    );
+    // Every Reload sends its selector only, never the whole form — the form
+    // holds the editor, and on a GET a large file pushes the URI past what the
+    // server accepts (414), leaving Reload silently doing nothing.
+    assert!(
+        body.contains("hx-get=\"/parsed/load\" hx-include=\"#parsed-ep\""),
+        "parsed Reload must not include the whole form"
+    );
+    for kind in ["speakers", "cast", "sfx"] {
+        assert!(
+            body.contains(&format!(
+                "hx-get=\"/config/{kind}/load\" hx-include=\"#{kind}-path\""
+            )),
+            "{kind} Reload must not include the whole form"
+        );
+    }
+    // Save is a POST, so it still carries the edited text.
+    assert!(body.contains("hx-post=\"/parsed/save\" hx-include=\"#parsed-form\""));
     let (code, js) = get(state(), "/assets/htmx.min.js").await;
     assert_eq!(code, StatusCode::OK);
     assert!(js.starts_with("var htmx="));
+}
+
+#[tokio::test]
+async fn parsed_editor_round_trips_an_episode() {
+    let ws = Workspace::new();
+    write_cast(&ws, "the413", "S01E01", "", "");
+    // Raw non-ASCII, and no trailing newline — as `xil parse` writes it.
+    let original = "{\n  \"show\": \"the413\",\n  \"text\": \"Well — yes\"\n}";
+    ws.write("parsed/the413/parsed_S01E01.json", original);
+
+    let ep = "the413  S01E01";
+    let (code, body) = get(state(), &format!("/parsed/load?ep={}", enc(ep))).await;
+    assert_eq!(code, StatusCode::OK);
+    assert!(body.contains("Well — yes"), "{body}");
+    // The replacement keeps the id the select and Reload both target, and
+    // carries no triggers of its own.
+    assert!(body.contains("id=\"parsed-editor\""), "{body}");
+    assert!(
+        !body.contains("hx-"),
+        "the editor must stay a plain textarea: {body}"
+    );
+
+    let edited = "{\n  \"show\": \"the413\",\n  \"text\": \"Well — no “really”\"\n}";
+    let (_, body) = post_form(state(), "/parsed/save", &[("ep", ep), ("text", edited)]).await;
+    assert!(body.contains("Saved "), "{body}");
+
+    let on_disk = ws.read("parsed/the413/parsed_S01E01.json");
+    assert!(on_disk.contains("Well — no “really”"), "{on_disk}");
+    assert!(!on_disk.contains("\\u2014"), "{on_disk}");
+    assert!(on_disk.ends_with('}'), "{on_disk:?}");
+    assert_eq!(ws.read("parsed/the413/parsed_S01E01.json.bak"), original);
+
+    // Invalid JSON is refused and leaves the file alone.
+    let (_, body) = post_form(state(), "/parsed/save", &[("ep", ep), ("text", "not json")]).await;
+    assert!(body.contains("Invalid JSON"), "{body}");
+    assert_eq!(ws.read("parsed/the413/parsed_S01E01.json"), on_disk);
+}
+
+#[tokio::test]
+async fn parsed_editor_refuses_unsafe_and_unparsed_episodes() {
+    let ws = Workspace::new();
+    write_cast(&ws, "the413", "S01E01", "", "");
+
+    // An episode with no parsed file yet.
+    let (_, body) = get(
+        state(),
+        &format!("/parsed/load?ep={}", enc("the413  S01E01")),
+    )
+    .await;
+    assert!(body.contains("// File not found:"), "{body}");
+
+    // A traversal attempt and a show stub both resolve to no path at all.
+    for ep in ["../etc  S01E01", "the413  [show]  —  The 413", ""] {
+        let (_, body) = get(state(), &format!("/parsed/load?ep={}", enc(ep))).await;
+        assert!(body.contains("// Select an episode"), "{ep}: {body}");
+        let (_, body) = post_form(state(), "/parsed/save", &[("ep", ep), ("text", "{}")]).await;
+        assert!(body.contains("Select an episode"), "{ep}: {body}");
+    }
+    assert!(!ws.root().join("parsed").exists());
 }
 
 #[tokio::test]
