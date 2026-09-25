@@ -15,7 +15,7 @@ use xil_core::workspace::{active_show, resolve_slug, resolve_venv_python, worksp
 
 use crate::html::{checkbox, esc, labelled_options, number_input, options, status, text_input};
 use crate::runner::{self, DawOpts, ParseOpts, ProduceOpts};
-use crate::{activity, audio, configs, episodes, grades, scripts, AppState, JobEvent};
+use crate::{activity, audio, configs, episodes, grades, parsed, scripts, AppState, JobEvent};
 
 type Params = HashMap<String, String>;
 type Shared = State<Arc<AppState>>;
@@ -59,6 +59,13 @@ fn default_python(venv: &str) -> String {
     resolve_venv_python(venv, None, None).unwrap_or_default()
 }
 
+/// One config-editor tab: a file dropdown, the editor, and Reload / Save.
+///
+/// Reload includes `#{kind}-path` alone rather than the whole form. The form
+/// holds the editor too, and on a GET that would ride up the query string —
+/// a megabyte-class config (some in `configs/` are over 1 MB) then pushes the
+/// URI past what the server accepts and Reload silently does nothing. Save is
+/// a POST, so it can and must include the whole form.
 fn config_tab(kind: &str, title: &str, choices: &[String]) -> String {
     let first = choices.first().cloned();
     let content = first
@@ -69,11 +76,11 @@ fn config_tab(kind: &str, title: &str, choices: &[String]) -> String {
         r##"<section class="tab" data-group="main" data-tab="{kind}">
   <form id="{kind}-form">
     <label class="field"><span>{title}</span>
-      <select name="path" hx-get="/config/{kind}/load" hx-trigger="change" hx-target="#{kind}-editor" hx-swap="outerHTML">{opts}</select>
+      <select name="path" id="{kind}-path" hx-get="/config/{kind}/load" hx-trigger="change" hx-target="#{kind}-editor" hx-swap="outerHTML">{opts}</select>
     </label>
     <textarea id="{kind}-editor" name="text" rows="30">{content}</textarea>
     <div class="row">
-      <button type="button" class="small" hx-get="/config/{kind}/load" hx-include="#{kind}-form" hx-target="#{kind}-editor" hx-swap="outerHTML">↺ Reload</button>
+      <button type="button" class="small" hx-get="/config/{kind}/load" hx-include="#{kind}-path" hx-target="#{kind}-editor" hx-swap="outerHTML">↺ Reload</button>
       <button type="button" class="small primary" hx-post="/config/{kind}/save" hx-include="#{kind}-form" hx-target="#{kind}-status">💾 Save</button>
     </div>
     <div id="{kind}-status"></div>
@@ -276,6 +283,19 @@ pub async fn index(State(state): Shared) -> Html<String> {
                     .concat(),
                 )
                 .replace("@@CONFIG_TABS@@", &configs_html)
+                .replace(
+                    "@@PARSED_EPISODE_OPTIONS@@",
+                    &options(episodes, episodes.first().map(String::as_str)),
+                )
+                .replace(
+                    "@@PARSED_EDITOR@@",
+                    &parsed_editor(
+                        &episodes
+                            .first()
+                            .map(|e| parsed::load(e))
+                            .unwrap_or_default(),
+                    ),
+                )
         })
         .await,
     )
@@ -658,6 +678,32 @@ pub async fn config_save(UrlPath(kind): UrlPath<String>, Form(p): Form<Params>) 
         &blocking(move || configs::save_config_file(&path, &text, what)).await,
     ))
     .into_response()
+}
+
+// ── Edit Parsed JSON ─────────────────────────────────────────────────────
+
+/// The editor textarea, used both for the page's first render and for the
+/// fragment that replaces it — one definition, so the two cannot drift.
+///
+/// It is a plain textarea: the episode `<select>` and the Reload button both
+/// target it by id and swap it whole, so it needs no triggers of its own.
+fn parsed_editor(content: &str) -> String {
+    format!(
+        "<textarea id=\"parsed-editor\" name=\"text\" rows=\"30\">{}</textarea>",
+        esc(content)
+    )
+}
+
+/// `GET /parsed/load?ep=`: a fresh editor textarea.
+pub async fn parsed_load(Query(p): Query<Params>) -> Html<String> {
+    let ep = param(&p, "ep").to_string();
+    Html(blocking(move || parsed_editor(&parsed::load(&ep))).await)
+}
+
+/// `POST /parsed/save`.
+pub async fn parsed_save(Form(p): Form<Params>) -> Html<String> {
+    let (ep, text) = (param(&p, "ep").to_string(), param(&p, "text").to_string());
+    Html(status(&blocking(move || parsed::save(&ep, &text)).await))
 }
 
 // ── Audio Preview ────────────────────────────────────────────────────────

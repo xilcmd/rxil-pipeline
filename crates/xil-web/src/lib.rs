@@ -21,6 +21,7 @@ pub mod episodes;
 pub mod grades;
 mod html;
 mod pages;
+pub mod parsed;
 pub mod runner;
 pub mod scripts;
 pub mod sfx_routes;
@@ -157,6 +158,8 @@ pub fn router(state: Arc<AppState>) -> Router {
         .route("/config/{kind}/choices", get(pages::config_choices))
         .route("/config/{kind}/load", get(pages::config_load))
         .route("/config/{kind}/save", post(pages::config_save))
+        .route("/parsed/load", get(pages::parsed_load))
+        .route("/parsed/save", post(pages::parsed_save))
         .route("/audio/stems", get(pages::audio_stems))
         .route("/audio/play", get(pages::audio_play))
         .route("/audio/play-all", post(pages::audio_play_all))
