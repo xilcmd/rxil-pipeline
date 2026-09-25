@@ -186,20 +186,41 @@
   <p>Edit the generated <code>parsed/&lt;show&gt;/parsed_&lt;tag&gt;.json</code> for an
   episode. Saving writes a <code>.bak</code> beside it first — and re-running
   <b>Parse</b> overwrites this file.</p>
-  <form id="parsed-form">
-    <!-- The select loads the chosen episode, as the config tabs do. The label
-         around it is what repopulates the option list, so the select is free
-         to carry the load. -->
-    <label class="field" hx-get="/choices/episodes" hx-trigger="refresh-all from:body, job-done from:body" hx-target="#parsed-ep" hx-swap="innerHTML" hx-include="#parsed-ep"><span>Episode</span>
-      <select name="ep" id="parsed-ep" hx-get="/parsed/load" hx-trigger="change" hx-target="#parsed-editor" hx-swap="outerHTML">@@PARSED_EPISODE_OPTIONS@@</select>
+  <!-- The select loads the chosen episode, as the config tabs do. The label
+       around it is what repopulates the option list, so the select is free
+       to carry the load. -->
+  <label class="field" hx-get="/choices/episodes" hx-trigger="refresh-all from:body, job-done from:body" hx-target="#parsed-ep" hx-swap="innerHTML" hx-include="#parsed-ep"><span>Episode</span>
+    <select name="ep" id="parsed-ep" hx-get="/parsed/load" hx-trigger="change" hx-target="#parsed-editor" hx-swap="outerHTML">@@PARSED_EPISODE_OPTIONS@@</select>
+  </label>
+
+  <nav class="tabs sub" data-group="parsed-view">
+    <button type="button" data-tab="dialogue">Dialogue</button>
+    <button type="button" data-tab="raw">Raw JSON</button>
+  </nav>
+
+  <div class="tab" data-group="parsed-view" data-tab="dialogue">
+    <label class="field grow"><span>Search</span>
+      <input type="text" name="q" id="dlg-q" placeholder="Search speaker or text…"
+             hx-get="/parsed/dialogue" hx-include="#parsed-ep,#dlg-q" hx-vals='{"page": 0}'
+             hx-trigger="keyup changed delay:300ms" hx-target="#dlg-panel">
     </label>
-    @@PARSED_EDITOR@@
-    <div class="row">
-      <button type="button" class="small" hx-get="/parsed/load" hx-include="#parsed-ep" hx-target="#parsed-editor" hx-swap="outerHTML">↺ Reload</button>
-      <button type="button" class="small primary" hx-post="/parsed/save" hx-include="#parsed-form" hx-target="#parsed-status">💾 Save</button>
+    <div id="dlg-panel" hx-get="/parsed/dialogue" hx-include="#parsed-ep,#dlg-q"
+         hx-trigger="tab-shown, change from:#parsed-ep, dialogue-saved from:body">
+      <p class="muted">Select an episode above.</p>
     </div>
-    <div id="parsed-status"></div>
-  </form>
+    <div id="parsed-entry-edit"></div>
+  </div>
+
+  <div class="tab" data-group="parsed-view" data-tab="raw">
+    <form id="parsed-form">
+      @@PARSED_EDITOR@@
+      <div class="row">
+        <button type="button" class="small" hx-get="/parsed/load" hx-include="#parsed-ep" hx-target="#parsed-editor" hx-swap="outerHTML">↺ Reload</button>
+        <button type="button" class="small primary" hx-post="/parsed/save" hx-include="#parsed-ep,#parsed-form" hx-target="#parsed-status">💾 Save</button>
+      </div>
+      <div id="parsed-status"></div>
+    </form>
+  </div>
 </section>
 
 <!-- ── Audio Preview ─────────────────────────────────────────────────── -->

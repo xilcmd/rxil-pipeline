@@ -40,6 +40,20 @@
   });
   });
 
+  // ── Dialogue "changed since last produce" banner ─────────────────────
+  // Jumps to Run Stage → Produce with the episode, --seq-list and --force
+  // pre-filled. The user still presses Run themselves.
+  window.xilSendToProduce = function (btn) {
+    var epSel = document.getElementById("run-episode");
+    if (epSel) epSel.value = btn.dataset.ep;
+    var seqInput = document.querySelector('input[name="seq_list"]');
+    if (seqInput) seqInput.value = btn.dataset.seqs;
+    var forceInput = document.querySelector('input[name="force"]');
+    if (forceInput) forceInput.checked = true;
+    show("main", "run");
+    show("run", "produce");
+  };
+
   // ── Global refresh ───────────────────────────────────────────────────
   document.getElementById("global-refresh-btn").addEventListener("click", function () {
     fetch("/choices/invalidate", { method: "POST" }).then(function () {

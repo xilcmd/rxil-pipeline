@@ -15,7 +15,7 @@ use xil_core::workspace::{active_show, resolve_slug, resolve_venv_python, worksp
 
 use crate::html::{checkbox, esc, labelled_options, number_input, options, status, text_input};
 use crate::runner::{self, DawOpts, ParseOpts, ProduceOpts};
-use crate::{activity, audio, configs, episodes, grades, parsed, scripts, AppState, JobEvent};
+use crate::{activity, audio, configs, entries, episodes, grades, parsed, scripts, AppState, JobEvent};
 
 type Params = HashMap<String, String>;
 type Shared = State<Arc<AppState>>;
@@ -128,6 +128,7 @@ fn produce_form() -> String {
 {mm_python}
 {mm_nc}
 <div class="row">{start}{stop}</div>
+{seq_list}
 {cb_python}
 <div class="row">{force}</div>"##,
         dry = checkbox("dry_run", "--dry-run", true),
@@ -144,6 +145,11 @@ fn produce_form() -> String {
         ),
         start = number_input("start_from", "--start-from  (seq, 0 = beginning)", 0),
         stop = number_input("stop_at", "--stop-at  (seq, 0 = all)", 0),
+        seq_list = text_input(
+            "seq_list",
+            "--seq-list  (comma-separated seqs, e.g. 12,47,48 — overrides start/stop, dialogue only)",
+            "",
+        ),
         cb_python = text_input("chatterbox_python", "--chatterbox-python  (blank = auto-detect venv-chatterbox/)", &cb_default),
         force = checkbox("force", "--force  ⚠️ overwrite existing stems (API cost!)", false),
     )
@@ -552,6 +558,7 @@ pub async fn run_stage(
                         terse: on(&p, "terse"),
                         start_from: int(&p, "start_from", 0),
                         stop_at: int(&p, "stop_at", 0),
+                        seq_list: param(&p, "seq_list"),
                         chatterbox_python: param(&p, "chatterbox_python"),
                         force: on(&p, "force"),
                         sfx_backend: match param(&p, "sfx_backend") {
@@ -704,6 +711,175 @@ pub async fn parsed_load(Query(p): Query<Params>) -> Html<String> {
 pub async fn parsed_save(Form(p): Form<Params>) -> Html<String> {
     let (ep, text) = (param(&p, "ep").to_string(), param(&p, "text").to_string());
     Html(status(&blocking(move || parsed::save(&ep, &text)).await))
+}
+
+// ── Dialogue sub-tab ──────────────────────────────────────────────────────
+
+const DIALOGUE_PAGE_SIZE: i64 = 25;
+
+fn dialogue_row(r: &entries::DialogueRow) -> String {
+    format!(
+        "<tr><td>{seq}</td><td>{speaker}</td><td>{text}</td><td>\
+         <button type=\"button\" class=\"small\" hx-get=\"/parsed/entry\" \
+         hx-vals='{{\"seq\": {seq}}}' hx-include=\"#parsed-ep\" hx-target=\"#parsed-entry-edit\">✎ Edit</button>\
+         </td></tr>",
+        seq = r.seq,
+        speaker = esc(&r.speaker),
+        text = esc(&xil_core::pyfmt::head(&r.text, 80)),
+    )
+}
+
+/// The `#dlg-panel` fragment: search results, paginated.
+fn dialogue_panel(ep: &str, q: &str, page: i64) -> String {
+    if ep.is_empty() {
+        return "<p class=\"muted\">Select an episode above.</p>".to_string();
+    }
+    let (slug, tag) = episodes::parse_choice(ep);
+    if tag.is_empty() {
+        return "<p class=\"muted\">Select an episode, not a show.</p>".to_string();
+    }
+    let (rows, total) = match entries::list_dialogue(&slug, &tag, q, page, DIALOGUE_PAGE_SIZE) {
+        Ok(r) => r,
+        Err(e) => return status(&e),
+    };
+    let banner = reprocess_banner(ep, &slug, &tag);
+    if total == 0 {
+        return format!("{banner}<p class=\"muted\">No dialogue lines match.</p>");
+    }
+    let body: String = rows.iter().map(dialogue_row).collect();
+    let last_page = (total as i64 - 1) / DIALOGUE_PAGE_SIZE;
+    let page = page.clamp(0, last_page.max(0));
+    let nav = |label: &str, target: i64, enabled: bool| -> String {
+        if !enabled {
+            return format!("<button type=\"button\" class=\"small\" disabled>{label}</button>");
+        }
+        format!(
+            "<button type=\"button\" class=\"small\" hx-get=\"/parsed/dialogue\" \
+             hx-vals='{{\"page\": {target}}}' hx-include=\"#parsed-ep,#dlg-q\" hx-target=\"#dlg-panel\">{label}</button>"
+        )
+    };
+    format!(
+        "{banner}<p class=\"muted\">{shown_from}–{shown_to} of {total} dialogue line(s)</p>\
+         <table><thead><tr><th>Seq</th><th>Speaker</th><th>Text</th><th></th></tr></thead>\
+         <tbody>{body}</tbody></table>\
+         <div class=\"row\">{prev}<span class=\"muted\">Page {page1} of {pages}</span>{next}</div>",
+        shown_from = page * DIALOGUE_PAGE_SIZE + 1,
+        shown_to = (page * DIALOGUE_PAGE_SIZE + rows.len() as i64).max(0),
+        prev = nav("← Prev", page - 1, page > 0),
+        next = nav("Next →", page + 1, page < last_page),
+        page1 = page + 1,
+        pages = last_page + 1,
+    )
+}
+
+/// A banner naming the dialogue lines edited since their audio was last
+/// produced, with a button that jumps to Run Stage → Produce, pre-filled
+/// with this episode, `--seq-list` and `--force`. Empty when nothing is
+/// pending. The user still presses Run themselves — this dashboard never
+/// starts a pipeline stage on its own behalf.
+fn reprocess_banner(ep: &str, slug: &str, tag: &str) -> String {
+    let pending = match entries::pending_reprocess(slug, tag) {
+        Ok(p) if !p.is_empty() => p,
+        _ => return String::new(),
+    };
+    let list = pending
+        .iter()
+        .map(i64::to_string)
+        .collect::<Vec<_>>()
+        .join(",");
+    format!(
+        "<div class=\"status\">⚠ {n} dialogue line(s) changed since last produce: {list_esc} \
+         <button type=\"button\" class=\"small\" data-ep=\"{ep}\" data-seqs=\"{list}\" \
+         onclick=\"xilSendToProduce(this)\">▶ Send to Produce</button></div>",
+        n = pending.len(),
+        list_esc = esc(&list),
+        ep = esc(ep),
+        list = esc(&list),
+    )
+}
+
+/// `GET /parsed/dialogue?ep=&q=&page=`.
+pub async fn parsed_dialogue(Query(p): Query<Params>) -> Html<String> {
+    let (ep, q, page) = (
+        param(&p, "ep").to_string(),
+        param(&p, "q").to_string(),
+        int(&p, "page", 0),
+    );
+    Html(blocking(move || dialogue_panel(&ep, &q, page)).await)
+}
+
+/// The inline speaker+text editor for one dialogue line.
+fn entry_edit_form(ep: &str, slug: &str, row: &entries::DialogueRow) -> String {
+    let choices = entries::speaker_choices(slug);
+    let speaker_field = if choices.is_empty() {
+        // No speakers.json for this show yet: free-text, but still carrying
+        // the current value — `text_input` only sets a placeholder, which
+        // would silently drop the speaker on save if left untouched.
+        format!(
+            "<label class=\"field\"><span>Speaker key</span><input name=\"speaker\" value=\"{}\"></label>",
+            esc(&row.speaker)
+        )
+    } else {
+        format!(
+            "<label class=\"field\"><span>Speaker</span><select name=\"speaker\">{}</select></label>",
+            labelled_options(&choices, Some(&row.speaker))
+        )
+    };
+    format!(
+        "<form id=\"parsed-entry-form\">\
+         <input type=\"hidden\" name=\"ep\" value=\"{ep}\">\
+         <input type=\"hidden\" name=\"seq\" value=\"{seq}\">\
+         <p><b>Editing seq {seq}</b></p>\
+         {speaker_field}\
+         <label class=\"field\"><span>Text</span><textarea name=\"text\" rows=\"4\">{text}</textarea></label>\
+         <div class=\"row\">\
+         <button type=\"button\" class=\"small primary\" hx-post=\"/parsed/entry\" hx-include=\"#parsed-entry-form\" hx-target=\"#parsed-entry-edit\">💾 Save</button>\
+         </div></form>",
+        ep = esc(ep),
+        seq = row.seq,
+        text = esc(&row.text),
+    )
+}
+
+/// `GET /parsed/entry?ep=&seq=`: the inline edit panel for one dialogue line.
+pub async fn parsed_entry_load(Query(p): Query<Params>) -> Html<String> {
+    let (ep, seq) = (param(&p, "ep").to_string(), int(&p, "seq", -1));
+    Html(
+        blocking(move || {
+            let (slug, tag) = episodes::parse_choice(&ep);
+            if tag.is_empty() {
+                return status("Select an episode first.");
+            }
+            match entries::get_entry(&slug, &tag, seq) {
+                Ok(row) => entry_edit_form(&ep, &slug, &row),
+                Err(e) => status(&e),
+            }
+        })
+        .await,
+    )
+}
+
+/// `POST /parsed/entry`: save one dialogue line, then tell `#dlg-panel` to
+/// reload so the table reflects the edit.
+pub async fn parsed_entry_save(Form(p): Form<Params>) -> Response {
+    let (ep, seq, speaker, text) = (
+        param(&p, "ep").to_string(),
+        int(&p, "seq", -1),
+        param(&p, "speaker").to_string(),
+        param(&p, "text").to_string(),
+    );
+    let msg = blocking(move || {
+        let (slug, tag) = episodes::parse_choice(&ep);
+        if tag.is_empty() {
+            return "Select an episode first.".to_string();
+        }
+        match entries::save_entry(&slug, &tag, seq, &speaker, &text) {
+            Ok(row) => format!("Saved seq {}.", row.seq),
+            Err(e) => e,
+        }
+    })
+    .await;
+    with_trigger(status(&msg), "dialogue-saved")
 }
 
 // ── Audio Preview ────────────────────────────────────────────────────────

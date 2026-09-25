@@ -126,6 +126,10 @@ pub struct ProduceOpts<'a> {
     pub terse: bool,
     pub start_from: i64,
     pub stop_at: i64,
+    /// `--seq-list`: a comma-separated set of specific sequence numbers,
+    /// e.g. `12,47,48`. Takes precedence over `start_from`/`stop_at` in
+    /// `xil produce` itself; blank emits nothing.
+    pub seq_list: &'a str,
     pub chatterbox_python: &'a str,
     pub force: bool,
     pub sfx_backend: &'a str,
@@ -152,6 +156,7 @@ pub fn cmd_produce(exe: &Path, tag: &str, o: &ProduceOpts) -> Vec<String> {
     if o.stop_at > 0 {
         cmd.extend(["--stop-at".into(), o.stop_at.to_string()]);
     }
+    opt(&mut cmd, "--seq-list", o.seq_list);
     if o.backend == "chatterbox-turbo" {
         opt(&mut cmd, "--chatterbox-python", o.chatterbox_python);
     }
@@ -392,6 +397,24 @@ mod tests {
                 "mmaudio",
                 "--mmaudio-accept-noncommercial",
                 "--force",
+            ]
+        );
+    }
+
+    #[test]
+    fn produce_seq_list_overrides_display_but_start_stop_still_pass() {
+        let exe = Path::new("xil");
+        let o = ProduceOpts {
+            seq_list: "12,47,48",
+            force: true,
+            backend: "elevenlabs",
+            sfx_backend: "elevenlabs",
+            ..Default::default()
+        };
+        assert_eq!(
+            cmd_produce(exe, "S01E01", &o),
+            [
+                "xil", "produce", "--episode", "S01E01", "--seq-list", "12,47,48", "--force",
             ]
         );
     }

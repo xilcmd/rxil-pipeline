@@ -1,12 +1,17 @@
 //! The timeline editor's JSON routes, with the contracts of
-//! `_register_sfx_routes` in `xil_gui.py`:
+//! `_register_sfx_routes` in `xil_gui.py`, plus two routes of our own for
+//! the Timeline's dialogue-edit modal:
 //!
 //! - `GET /xil/get-sfx?slug=&tag=&key=` → `{effect, defaults, natural_s}`
 //! - `POST /xil/update-sfx` → sets or clears one cue's four sound fields
 //! - `POST /xil/update-sfx-defaults` → sets or clears one layer's defaults
+//! - `GET /xil/get-parsed-entry?slug=&tag=&seq=` → `{speaker, text, speakers}`
+//! - `POST /xil/update-parsed-entry` → `{slug, tag, seq, speaker, text}`
 //!
 //! Every save rewrites `sfx_{tag}.json` and appends to its `_edits.jsonl`
-//! journal; a journal failure never fails the save.
+//! journal; a journal failure never fails the save. The two parsed-entry
+//! routes are a thin JSON front end over [`crate::entries`], which the
+//! dashboard's Dialogue sub-tab also calls — one shared save, two callers.
 
 // Helpers return the finished HTTP reply as their `Err`, which the handler
 // sends straight back; boxing it would only add an allocation per request.
@@ -29,6 +34,7 @@ use xil_core::workspace::{derive_paths, workspace_root};
 
 use crate::activity;
 use crate::configs::check_workspace_path;
+use crate::entries;
 use crate::episodes::is_safe_slug_or_tag;
 
 const CUE_FIELDS: [&str; 4] = [
@@ -370,4 +376,83 @@ pub async fn update_sfx_defaults(Json(body): Json<Value>) -> Response {
         StatusCode::OK,
         json!({"ok": true, "message": format!("Saved {} defaults — re-run xil daw to apply.", py_repr(&layer))}),
     )
+}
+
+fn speakers_json(slug: &str) -> Value {
+    Value::Array(
+        entries::speaker_choices(slug)
+            .into_iter()
+            .map(|(label, key)| json!({"key": key, "label": label}))
+            .collect(),
+    )
+}
+
+/// `GET /xil/get-parsed-entry?slug=&tag=&seq=`: the Timeline modal's one
+/// fetch to open — the entry's current fields plus the speaker dropdown
+/// options, so no second round trip is needed.
+pub async fn get_parsed_entry(Query(q): Query<HashMap<String, String>>) -> Response {
+    let get = |k: &str| q.get(k).cloned();
+    let (Some(slug), Some(tag), Some(seq)) = (get("slug"), get("tag"), get("seq")) else {
+        return reply(
+            StatusCode::UNPROCESSABLE_ENTITY,
+            json!({"error": "slug, tag and seq are required"}),
+        );
+    };
+    let Ok(seq) = seq.parse::<i64>() else {
+        return reply(StatusCode::BAD_REQUEST, json!({"error": "seq must be an integer"}));
+    };
+    log::debug(&format!(
+        "get-parsed-entry request: slug={} tag={} seq={seq}",
+        py_repr(&slug),
+        py_repr(&tag),
+    ));
+    match entries::get_entry(&slug, &tag, seq) {
+        Ok(row) => reply(
+            StatusCode::OK,
+            json!({"speaker": row.speaker, "text": row.text, "speakers": speakers_json(&slug)}),
+        ),
+        Err(e) => {
+            log::debug(&format!("get-parsed-entry: {e}"));
+            reply(StatusCode::NOT_FOUND, json!({"error": e}))
+        }
+    }
+}
+
+/// `POST /xil/update-parsed-entry`: `{slug, tag, seq, speaker, text}` → the
+/// same validate/save/journal path [`entries::save_entry`] runs for the
+/// dashboard's Dialogue sub-tab.
+pub async fn update_parsed_entry(Json(body): Json<Value>) -> Response {
+    log::debug(&format!("update-parsed-entry request body: {}", body_repr(&body)));
+    let fields = (|| {
+        Ok::<_, Response>((
+            body_str(&body, "slug")?,
+            body_str(&body, "tag")?,
+            body_str(&body, "speaker")?,
+            body_str(&body, "text")?,
+        ))
+    })();
+    let (slug, tag, speaker, text) = match fields {
+        Ok(f) => f,
+        Err(r) => return r,
+    };
+    let seq = match body.get("seq") {
+        Some(Value::Number(n)) => n.as_i64(),
+        Some(Value::String(s)) => s.parse::<i64>().ok(),
+        _ => None,
+    };
+    let Some(seq) = seq else {
+        return reply(StatusCode::BAD_REQUEST, json!({"ok": false, "error": "seq must be an integer"}));
+    };
+    match entries::save_entry(&slug, &tag, seq, &speaker, &text) {
+        Ok(row) => {
+            activity::log(&format!(
+                "Dialogue edit via timeline: {slug}/{tag} → seq={seq}"
+            ));
+            reply(
+                StatusCode::OK,
+                json!({"ok": true, "message": format!("Saved seq {} — re-run xil produce --seq-list {} --force to regenerate.", row.seq, row.seq)}),
+            )
+        }
+        Err(e) => reply(StatusCode::BAD_REQUEST, json!({"ok": false, "error": e})),
+    }
 }

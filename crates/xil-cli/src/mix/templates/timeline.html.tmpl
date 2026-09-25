@@ -74,6 +74,20 @@
   #sfx-defaults-section summary { cursor:pointer; font-size:11px; color:#b0b0ff;
     text-transform:uppercase; letter-spacing:0.04em; }
   #sfx-defaults-warning { margin:6px 0 8px; }
+  #dlg-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:2000; }
+  #dlg-modal { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    background:#2a2a3e; border:1px solid #555; border-radius:8px; padding:20px;
+    min-width:320px; max-width:480px; color:#eee; font-size:13px; }
+  #dlg-modal h3 { margin-bottom:12px; font-size:0.9em; color:#b0b0ff; font-weight:600; }
+  .dlg-field-wrap { margin-bottom:10px; }
+  .dlg-field-wrap label { display:block; font-size:11px; color:#aaa; margin-bottom:3px; text-transform:uppercase; letter-spacing:0.04em; }
+  .dlg-field-wrap select, .dlg-field-wrap input[type=text], .dlg-field-wrap textarea {
+    width:100%; background:#111; color:#eee; border:1px solid #444; border-radius:4px; padding:4px 8px; font-size:13px; font-family:inherit; }
+  .dlg-field-wrap textarea { resize:vertical; min-height:70px; }
+  .dlg-field-wrap select:focus, .dlg-field-wrap input:focus, .dlg-field-wrap textarea:focus { outline:none; border-color:#6688cc; }
+  #dlg-modal-status { min-height:1.2em; font-size:12px; margin-top:8px; color:#aaa; }
+  #dlg-modal-save { background:#1a3a1a; border-color:#4caf50; color:#8fca8f; }
+  #dlg-modal-save:hover:not([disabled]) { background:#1e481e; }
   #transport { display:flex; gap:14px; align-items:center; margin-bottom:10px;
     background:#222238; padding:6px 12px; border-radius:4px; }
   #transport-play, #transport-restart { background:#333; color:#eee; border:1px solid #666; width:34px; height:26px;
@@ -164,6 +178,17 @@
     </div>
   </div>
 </div>
+<div id="dlg-modal-overlay">
+  <div id="dlg-modal">
+    <h3 id="dlg-modal-title"></h3>
+    <div id="dlg-modal-fields"></div>
+    <div id="dlg-modal-status"></div>
+    <div class="sfx-modal-btns">
+      <button id="dlg-modal-save">Save</button>
+      <button id="dlg-modal-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const DATA = @@XIL_DATA_JSON@@;
@@ -240,8 +265,11 @@ function render() {
       tiToSpan[ti] = sp;
       const seqAttr = (sp.seq != null) ? ' data-seq="'+sp.seq+'"' : '';
       const editable = EDITABLE_LAYERS[key];
-      const eAttr = editable ? ' data-effect-key="'+escAttr(sp.label)+'" data-layer="'+key+'"' : '';
+      const isDialogue = key === 'dialogue';
+      const eAttr = editable ? ' data-effect-key="'+escAttr(sp.label)+'" data-layer="'+key+'"'
+                  : (isDialogue ? ' data-layer="dialogue"' : '');
       if (editable) { tips[ti] += '<br><span style="opacity:0.4;font-size:0.85em">✎ double-click to edit sound profile</span>'; }
+      else if (isDialogue) { tips[ti] += '<br><span style="opacity:0.4;font-size:0.85em">✎ double-click to edit dialogue</span>'; }
       lhtml += '<div class="span '+COLORS[key]+'" style="left:'+left+'%;width:'+w+'%" data-ti="'+ti+'"'+seqAttr+eAttr+'>'+rampBadges+'</div>';
       ti++;
     }
@@ -539,6 +567,112 @@ document.getElementById('sfx-modal-save').addEventListener('click', function() {
   });
 });
 
+// === Dialogue-line editor ===
+// A second, independent double-click editor for the Dialogue layer only —
+// separate from the sound-profile editor above because it identifies its
+// target by seq (one specific script line) rather than by effect key (one
+// sound cue, possibly backing several spans).
+let _dlgModalSeq = null;
+
+function _showDlgModal(seq, speaker, text, speakers) {
+  _dlgModalSeq = seq;
+  document.getElementById('dlg-modal-title').textContent = 'Dialogue — seq ' + seq;
+  const speakerField = speakers.length
+    ? '<div class="dlg-field-wrap"><label>Speaker</label><select id="dlgf-speaker">' +
+      speakers.map(function(s) {
+        return '<option value="' + escAttr(s.key) + '"' + (s.key === speaker ? ' selected' : '') +
+               '>' + escAttr(s.label) + '</option>';
+      }).join('') + '</select></div>'
+    : '<div class="dlg-field-wrap"><label>Speaker key</label>' +
+      '<input type="text" id="dlgf-speaker" value="' + escAttr(speaker) + '"></div>';
+  document.getElementById('dlg-modal-fields').innerHTML = speakerField +
+    '<div class="dlg-field-wrap"><label>Text</label><textarea id="dlgf-text">' + escAttr(text) + '</textarea></div>';
+  const st = document.getElementById('dlg-modal-status');
+  st.textContent = '';
+  st.style.color = '#aaa';
+  document.getElementById('dlg-modal-save').disabled = false;
+  document.getElementById('dlg-modal-overlay').style.display = 'block';
+}
+
+document.addEventListener('dblclick', function(e) {
+  const span = e.target.closest('.span[data-layer="dialogue"]');
+  if (!span) return;
+  e.stopPropagation();
+  clearTimeout(clickTimer);  // cancel the deferred single-click preview
+  const seq = parseInt(span.dataset.seq, 10);
+  fetch('/xil/get-parsed-entry?slug=' + encodeURIComponent(XIL_SLUG) +
+        '&tag=' + encodeURIComponent(XIL_TAG) +
+        '&seq=' + encodeURIComponent(seq))
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.error) { console.error('dialogue-modal:', d.error); return; }
+      _showDlgModal(seq, d.speaker || '', d.text || '', d.speakers || []);
+    })
+    .catch(function(err) { console.error('dialogue-modal:', err); });
+});
+
+document.getElementById('dlg-modal-cancel').addEventListener('click', function() {
+  document.getElementById('dlg-modal-overlay').style.display = 'none';
+});
+document.getElementById('dlg-modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) this.style.display = 'none';
+});
+
+// A saved edit patches DATA and re-renders, so the tooltip's snippet reflects
+// it immediately — the full timeline (durations, TTS model line, etc.) still
+// needs the next `xil daw --timeline-html` regen, same pre-existing limit
+// every other edit made outside this page already has.
+function _applyDialogueEditToSpans(seq, speaker, text) {
+  const snippet = text.length > 60 ? text.slice(0, 60) : text;
+  (DATA.layers.dialogue || []).forEach(function(sp) {
+    if (sp.seq === seq) {
+      sp.snippet = snippet;
+      sp.label = speaker;
+    }
+  });
+  render();
+}
+
+document.getElementById('dlg-modal-save').addEventListener('click', function() {
+  const speakerEl = document.getElementById('dlgf-speaker');
+  const textEl = document.getElementById('dlgf-text');
+  const payload = {
+    slug: XIL_SLUG, tag: XIL_TAG, seq: _dlgModalSeq,
+    speaker: speakerEl.value.trim(), text: textEl.value.trim(),
+  };
+  const st = document.getElementById('dlg-modal-status');
+  const btn = this;
+  st.style.color = '#aaa';
+  st.textContent = 'Saving…';
+  btn.disabled = true;
+  fetch('/xil/update-parsed-entry', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload),
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.ok) {
+      _applyDialogueEditToSpans(payload.seq, payload.speaker, payload.text);
+      st.style.color = '#4caf50';
+      st.textContent = d.message || 'Saved.';
+      setTimeout(function() {
+        document.getElementById('dlg-modal-overlay').style.display = 'none';
+        btn.disabled = false;
+      }, 1800);
+    } else {
+      st.style.color = '#ef5350';
+      st.textContent = 'Error: ' + (d.error || 'Save failed.');
+      btn.disabled = false;
+    }
+  })
+  .catch(function(err) {
+    st.style.color = '#ef5350';
+    st.textContent = 'Network error: ' + err.message;
+    btn.disabled = false;
+  });
+});
+
 
 // === Preview playback with sound profile ===
 // Web Audio gain graph: audio.volume caps at 1.0, so volumes >100% and
@@ -796,11 +930,14 @@ document.getElementById('transport-restart').addEventListener('click', function(
 });
 
 document.addEventListener('keydown', function(e) {
-  // Home = return to start. Ignore while typing or when the SFX dialog is open.
+  // Home = return to start. Ignore while typing or when a modal is open.
   const tag = (e.target && e.target.tagName) || '';
   if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-  const modal = document.getElementById('sfx-modal-overlay');
-  if (modal && modal.style.display !== 'none' && modal.style.display !== '') return;
+  const open = function(id) {
+    const m = document.getElementById(id);
+    return m && m.style.display !== 'none' && m.style.display !== '';
+  };
+  if (open('sfx-modal-overlay') || open('dlg-modal-overlay')) return;
   if (e.key === 'Home') { e.preventDefault(); seekTo(0); }
 });
 

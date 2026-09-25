@@ -82,6 +82,64 @@ fn opt_str(v: &Option<String>) -> Value {
     v.clone().map(Value::String).unwrap_or(Value::Null)
 }
 
+/// NFC-normalize free text the same way `parse_script` normalizes the raw
+/// script (below), so a hand-edited dialogue line and a re-parsed one can't
+/// diverge by decomposition form.
+pub fn nfc_normalize(text: &str) -> String {
+    text.nfc().collect()
+}
+
+/// Recompute the `stats` block from already-serialized entries (JSON key
+/// `"type"`, not the Rust field name `kind`). Shared by `Parsed::to_json`
+/// and by anything that mutates a single entry in an already-written
+/// `parsed_<tag>.json` (e.g. the GUI's dialogue-line editor) and needs to
+/// keep `stats` consistent with the edited `entries` array.
+pub fn stats_from_entries_json(entries: &[Value]) -> Map<String, Value> {
+    let is_kind = |e: &&Value, kind: &str| e.get("type").and_then(Value::as_str) == Some(kind);
+
+    let dialogue: Vec<&Value> = entries.iter().filter(|e| is_kind(e, "dialogue")).collect();
+    let tts_chars: usize = dialogue
+        .iter()
+        .filter_map(|e| e.get("text").and_then(Value::as_str))
+        .map(|t| t.chars().count())
+        .sum();
+
+    let mut speakers: Vec<String> = dialogue
+        .iter()
+        .filter_map(|e| e.get("speaker").and_then(Value::as_str))
+        .map(str::to_string)
+        .collect();
+    speakers.sort();
+    speakers.dedup();
+
+    let mut sections: Vec<String> = entries
+        .iter()
+        .filter_map(|e| e.get("section").and_then(Value::as_str))
+        .filter(|s| !s.is_empty())
+        .map(str::to_string)
+        .collect();
+    sections.sort();
+    sections.dedup();
+
+    let mut stats = Map::new();
+    stats.insert("total_entries".into(), Value::from(entries.len()));
+    stats.insert("dialogue_lines".into(), Value::from(dialogue.len()));
+    stats.insert(
+        "direction_lines".into(),
+        Value::from(entries.iter().filter(|e| is_kind(e, "direction")).count()),
+    );
+    stats.insert("characters_for_tts".into(), Value::from(tts_chars));
+    stats.insert(
+        "speakers".into(),
+        Value::Array(speakers.into_iter().map(Value::String).collect()),
+    );
+    stats.insert(
+        "sections".into(),
+        Value::Array(sections.into_iter().map(Value::String).collect()),
+    );
+    stats
+}
+
 /// A float that serializes the way Python writes it (`20.0`, not `20`).
 fn json_f64(v: f64) -> Value {
     serde_json::Number::from_f64(v)
@@ -149,46 +207,8 @@ impl Parsed {
 
     /// The full `model_dump()` shape, ready for the JSON writer.
     pub fn to_json(&self) -> Value {
-        let dialogue: Vec<&Entry> = self
-            .entries
-            .iter()
-            .filter(|e| e.kind == "dialogue")
-            .collect();
-        let tts_chars: usize = dialogue.iter().map(|e| e.text.chars().count()).sum();
-
-        let mut speakers: Vec<String> = dialogue.iter().filter_map(|e| e.speaker.clone()).collect();
-        speakers.sort();
-        speakers.dedup();
-        let mut sections: Vec<String> = self
-            .entries
-            .iter()
-            .filter_map(|e| e.section.clone())
-            .filter(|s| !s.is_empty())
-            .collect();
-        sections.sort();
-        sections.dedup();
-
-        let mut stats = Map::new();
-        stats.insert("total_entries".into(), Value::from(self.entries.len()));
-        stats.insert("dialogue_lines".into(), Value::from(dialogue.len()));
-        stats.insert(
-            "direction_lines".into(),
-            Value::from(
-                self.entries
-                    .iter()
-                    .filter(|e| e.kind == "direction")
-                    .count(),
-            ),
-        );
-        stats.insert("characters_for_tts".into(), Value::from(tts_chars));
-        stats.insert(
-            "speakers".into(),
-            Value::Array(speakers.into_iter().map(Value::String).collect()),
-        );
-        stats.insert(
-            "sections".into(),
-            Value::Array(sections.into_iter().map(Value::String).collect()),
-        );
+        let entries_json: Vec<Value> = self.entries.iter().map(Entry::to_json).collect();
+        let stats = stats_from_entries_json(&entries_json);
 
         let mut m = Map::new();
         m.insert("show".into(), Value::String(self.show.clone()));
@@ -203,10 +223,7 @@ impl Parsed {
             "source_file".into(),
             Value::String(self.source_file.clone()),
         );
-        m.insert(
-            "entries".into(),
-            Value::Array(self.entries.iter().map(Entry::to_json).collect()),
-        );
+        m.insert("entries".into(), Value::Array(entries_json));
         m.insert("stats".into(), Value::Object(stats));
         Value::Object(m)
     }

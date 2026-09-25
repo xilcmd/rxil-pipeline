@@ -511,8 +511,10 @@ async fn index_page_has_every_tab_and_escapes_labels() {
             "{kind} Reload must not include the whole form"
         );
     }
-    // Save is a POST, so it still carries the edited text.
-    assert!(body.contains("hx-post=\"/parsed/save\" hx-include=\"#parsed-form\""));
+    // Save is a POST, so it still carries the edited text. The episode select
+    // now sits outside #parsed-form (shared with the Dialogue sub-tab), so
+    // Save must pull it in separately.
+    assert!(body.contains("hx-post=\"/parsed/save\" hx-include=\"#parsed-ep,#parsed-form\""));
     let (code, js) = get(state(), "/assets/htmx.min.js").await;
     assert_eq!(code, StatusCode::OK);
     assert!(js.starts_with("var htmx="));
