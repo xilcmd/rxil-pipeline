@@ -17,6 +17,7 @@
 pub mod activity;
 pub mod audio;
 pub mod configs;
+pub mod entries;
 pub mod episodes;
 pub mod grades;
 mod html;
@@ -172,6 +173,16 @@ pub fn router(state: Arc<AppState>) -> Router {
         .route(
             "/xil/update-sfx-defaults",
             post(sfx_routes::update_sfx_defaults),
+        )
+        .route("/xil/get-parsed-entry", get(sfx_routes::get_parsed_entry))
+        .route(
+            "/xil/update-parsed-entry",
+            post(sfx_routes::update_parsed_entry),
+        )
+        .route("/parsed/dialogue", get(pages::parsed_dialogue))
+        .route(
+            "/parsed/entry",
+            get(pages::parsed_entry_load).post(pages::parsed_entry_save),
         )
         .nest_service("/ws", ServeDir::new(workspace_root()))
         .nest_service("/cache", ServeDir::new(audio::audio_cache_dir()))

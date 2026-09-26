@@ -1479,6 +1479,13 @@ def _compare_file(rel: str, a: Path, b: Path, mask_keys: set[str]) -> str | None
     # ffmpeg/numpy needs) for them.
     if a.stat().st_size == b.stat().st_size and a.read_bytes() == b.read_bytes():
         return None
+    # The Rust dashboard's Timeline gained its own dialogue-line editor (a
+    # double-click modal) that the frozen Python implementation will never
+    # get. `*_timeline.html` is therefore now a deliberate, PERMANENT Rust
+    # superset of Python's — not a parity target any more — so only its
+    # presence and non-triviality is worth checking here, not byte parity.
+    if rel.endswith("_timeline.html"):
+        return "rust timeline.html is empty" if b.stat().st_size == 0 else None
     suffix = a.suffix.lower()
     if rel.startswith("logs/") and suffix == ".log":
         return _compare_log(a, b)

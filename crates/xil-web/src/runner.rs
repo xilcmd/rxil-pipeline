@@ -126,7 +126,17 @@ pub struct ProduceOpts<'a> {
     pub terse: bool,
     pub start_from: i64,
     pub stop_at: i64,
+    /// `--seq-list`: a comma-separated set of specific sequence numbers,
+    /// e.g. `12,47,48`. Takes precedence over `start_from`/`stop_at` in
+    /// `xil produce` itself; blank emits nothing.
+    pub seq_list: &'a str,
     pub chatterbox_python: &'a str,
+    /// `--device`: "cuda" (default) or "cpu", Chatterbox Turbo only. The
+    /// worker already auto-falls-back to cpu on its own when cuda is
+    /// requested but unavailable — this exists to let someone deliberately
+    /// force cpu on a machine that *does* have a GPU (e.g. it's busy with
+    /// another job), or just make the choice visible instead of a log line.
+    pub device: &'a str,
     pub force: bool,
     pub sfx_backend: &'a str,
     pub mmaudio_python: &'a str,
@@ -152,8 +162,12 @@ pub fn cmd_produce(exe: &Path, tag: &str, o: &ProduceOpts) -> Vec<String> {
     if o.stop_at > 0 {
         cmd.extend(["--stop-at".into(), o.stop_at.to_string()]);
     }
+    opt(&mut cmd, "--seq-list", o.seq_list);
     if o.backend == "chatterbox-turbo" {
         opt(&mut cmd, "--chatterbox-python", o.chatterbox_python);
+        if o.device == "cpu" {
+            cmd.extend(["--device".into(), "cpu".into()]);
+        }
     }
     if !o.sfx_backend.is_empty() && o.sfx_backend != "elevenlabs" {
         cmd.extend(["--sfx-backend".into(), o.sfx_backend.into()]);
@@ -394,6 +408,74 @@ mod tests {
                 "--force",
             ]
         );
+    }
+
+    #[test]
+    fn produce_seq_list_overrides_display_but_start_stop_still_pass() {
+        let exe = Path::new("xil");
+        let o = ProduceOpts {
+            seq_list: "12,47,48",
+            force: true,
+            backend: "elevenlabs",
+            sfx_backend: "elevenlabs",
+            ..Default::default()
+        };
+        assert_eq!(
+            cmd_produce(exe, "S01E01", &o),
+            [
+                "xil",
+                "produce",
+                "--episode",
+                "S01E01",
+                "--seq-list",
+                "12,47,48",
+                "--force",
+            ]
+        );
+    }
+
+    #[test]
+    fn device_only_emitted_as_cpu_and_only_for_chatterbox() {
+        let exe = Path::new("xil");
+        // Default "cuda" (or blank) never needs a flag — the worker already
+        // falls back to cpu on its own when cuda is unavailable.
+        let o = ProduceOpts {
+            backend: "chatterbox-turbo",
+            sfx_backend: "elevenlabs",
+            device: "cuda",
+            ..Default::default()
+        };
+        assert!(!cmd_produce(exe, "S01E01", &o).contains(&"--device".to_string()));
+
+        // Explicit cpu passes through, but only when the backend is
+        // Chatterbox Turbo — another backend never even looks at --device.
+        let o = ProduceOpts {
+            backend: "chatterbox-turbo",
+            sfx_backend: "elevenlabs",
+            device: "cpu",
+            ..Default::default()
+        };
+        assert_eq!(
+            cmd_produce(exe, "S01E01", &o),
+            [
+                "xil",
+                "produce",
+                "--episode",
+                "S01E01",
+                "--backend",
+                "chatterbox-turbo",
+                "--device",
+                "cpu"
+            ]
+        );
+
+        let o = ProduceOpts {
+            backend: "elevenlabs",
+            sfx_backend: "elevenlabs",
+            device: "cpu",
+            ..Default::default()
+        };
+        assert!(!cmd_produce(exe, "S01E01", &o).contains(&"--device".to_string()));
     }
 
     #[test]

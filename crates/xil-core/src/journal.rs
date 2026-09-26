@@ -1,8 +1,14 @@
-//! The SFX edit journal — `sfx_<tag>_edits.jsonl` beside each SFX config.
+//! Edit journals: `sfx_<tag>_edits.jsonl` beside each SFX config, and
+//! `parsed_<tag>_edits.jsonl` beside each parsed script.
 //!
-//! The timeline editor appends one record per save. A fresh skeleton from
-//! `xil parse` wipes hand-tuned overrides, so the journal is replayed on top
-//! to bring them back. Port of the journal half of `sfx_common.py`.
+//! The timeline editor appends one SFX record per save. A fresh skeleton
+//! from `xil parse` wipes hand-tuned overrides, so the journal is replayed
+//! on top to bring them back. Port of the journal half of `sfx_common.py`.
+//!
+//! The dialogue journal (GUI dialogue-line editor) follows the same
+//! append-only shape but is not replayed automatically on re-parse: SFX cue
+//! keys are stable names, while a dialogue line's `seq` can shift if the
+//! script is restructured, which makes blind seq-based replay riskier.
 
 use std::fs::{self, OpenOptions};
 use std::io::Write;
@@ -58,6 +64,31 @@ pub fn append_sfx_defaults_edit(
     record.insert("scope".into(), Value::String("defaults".into()));
     record.insert("fields".into(), Value::Object(fields.clone()));
     append_record(sfx_path, &Value::Object(record))
+}
+
+/// `parsed_X.json` → `parsed_X_edits.jsonl` — the dialogue-editor sibling of
+/// [`sfx_edits_path`], same stem-swap logic.
+pub fn dialogue_edits_path(parsed_path: &Path) -> PathBuf {
+    sfx_edits_path(parsed_path)
+}
+
+/// Append one dialogue-line edit record: `{ts, seq, fields: {speaker, text}}`.
+/// Unlike the SFX journal, both fields are always set — a dialogue line has
+/// no "clear this override" state.
+pub fn append_dialogue_edit(
+    parsed_path: &Path,
+    seq: i64,
+    speaker: &str,
+    text: &str,
+) -> std::io::Result<()> {
+    let mut fields = Map::new();
+    fields.insert("speaker".into(), Value::String(speaker.to_string()));
+    fields.insert("text".into(), Value::String(text.to_string()));
+    let mut record = Map::new();
+    record.insert("ts".into(), Value::String(utc_now()));
+    record.insert("seq".into(), Value::from(seq));
+    record.insert("fields".into(), Value::Object(fields));
+    append_record(parsed_path, &Value::Object(record))
 }
 
 fn append_record(sfx_path: &Path, record: &Value) -> std::io::Result<()> {
@@ -327,6 +358,24 @@ mod tests {
         write(&cfg, "{}");
         let r = replay_sfx_edits(&cfg, false, &mut |_| panic!("no warnings expected")).unwrap();
         assert_eq!((r.applied, r.orphans.len()), (0, 0));
+    }
+
+    #[test]
+    fn dialogue_edit_appends_seq_and_fields() {
+        let tmp = tempfile::tempdir().unwrap();
+        let parsed = tmp.path().join("parsed_S01E01.json");
+        append_dialogue_edit(&parsed, 47, "adam", "Well — hi").unwrap();
+        let text = fs::read_to_string(dialogue_edits_path(&parsed)).unwrap();
+        let lines: Vec<&str> = text.lines().collect();
+        assert_eq!(lines.len(), 1);
+        let record: Value = serde_json::from_str(lines[0]).unwrap();
+        assert_eq!(record["seq"], 47);
+        assert_eq!(record["fields"]["speaker"], "adam");
+        assert_eq!(record["fields"]["text"], "Well — hi");
+        assert_eq!(
+            dialogue_edits_path(&parsed),
+            tmp.path().join("parsed_S01E01_edits.jsonl")
+        );
     }
 
     #[test]
