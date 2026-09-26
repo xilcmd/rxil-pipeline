@@ -15,7 +15,9 @@ use xil_core::workspace::{active_show, resolve_slug, resolve_venv_python, worksp
 
 use crate::html::{checkbox, esc, labelled_options, number_input, options, status, text_input};
 use crate::runner::{self, DawOpts, ParseOpts, ProduceOpts};
-use crate::{activity, audio, configs, entries, episodes, grades, parsed, scripts, AppState, JobEvent};
+use crate::{
+    activity, audio, configs, entries, episodes, grades, parsed, scripts, AppState, JobEvent,
+};
 
 type Params = HashMap<String, String>;
 type Shared = State<Arc<AppState>>;

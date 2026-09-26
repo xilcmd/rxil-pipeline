@@ -423,7 +423,13 @@ mod tests {
         assert_eq!(
             cmd_produce(exe, "S01E01", &o),
             [
-                "xil", "produce", "--episode", "S01E01", "--seq-list", "12,47,48", "--force",
+                "xil",
+                "produce",
+                "--episode",
+                "S01E01",
+                "--seq-list",
+                "12,47,48",
+                "--force",
             ]
         );
     }
@@ -451,7 +457,16 @@ mod tests {
         };
         assert_eq!(
             cmd_produce(exe, "S01E01", &o),
-            ["xil", "produce", "--episode", "S01E01", "--backend", "chatterbox-turbo", "--device", "cpu"]
+            [
+                "xil",
+                "produce",
+                "--episode",
+                "S01E01",
+                "--backend",
+                "chatterbox-turbo",
+                "--device",
+                "cpu"
+            ]
         );
 
         let o = ProduceOpts {

@@ -56,11 +56,7 @@ async fn dialogue_list_shows_only_dialogue_rows() {
     write_cast(&ws, "the413", "S01E01");
     write_parsed(&ws, small_fixture());
 
-    let (code, body) = get(
-        state(),
-        &format!("/parsed/dialogue?ep={}", enc(EP)),
-    )
-    .await;
+    let (code, body) = get(state(), &format!("/parsed/dialogue?ep={}", enc(EP))).await;
     assert_eq!(code, StatusCode::OK);
     assert!(body.contains("Hello there."), "{body}");
     assert!(body.contains("Hi Adam."), "{body}");
@@ -108,13 +104,12 @@ async fn dialogue_list_paginates_at_twenty_five() {
     assert!(body.contains("Line 0"), "{body}");
     assert!(!body.contains(">Line 25<"), "{body}");
     assert!(body.contains("Page 1 of 2"), "{body}");
-    assert!(!body.contains("← Prev\">"), "prev must be disabled on page 1: {body}");
+    assert!(
+        !body.contains("← Prev\">"),
+        "prev must be disabled on page 1: {body}"
+    );
 
-    let (_, body) = get(
-        state(),
-        &format!("/parsed/dialogue?ep={}&page=1", enc(EP)),
-    )
-    .await;
+    let (_, body) = get(state(), &format!("/parsed/dialogue?ep={}&page=1", enc(EP))).await;
     assert!(body.contains("26–30 of 30"), "{body}");
     assert!(body.contains("Line 25"), "{body}");
     assert!(!body.contains("Line 0<"), "{body}");
@@ -130,11 +125,7 @@ async fn entry_edit_panel_offers_a_speaker_dropdown_when_a_registry_exists() {
         r#"[{"display": "ADAM", "key": "adam"}, {"display": "AVA", "key": "ava"}]"#,
     );
 
-    let (code, body) = get(
-        state(),
-        &format!("/parsed/entry?ep={}&seq=2", enc(EP)),
-    )
-    .await;
+    let (code, body) = get(state(), &format!("/parsed/entry?ep={}&seq=2", enc(EP))).await;
     assert_eq!(code, StatusCode::OK);
     assert!(body.contains("<select name=\"speaker\">"), "{body}");
     assert!(body.contains("value=\"adam\" selected"), "{body}");
@@ -148,11 +139,7 @@ async fn entry_edit_panel_falls_back_to_free_text_with_no_registry() {
     write_cast(&ws, "the413", "S01E01");
     write_parsed(&ws, small_fixture());
 
-    let (_, body) = get(
-        state(),
-        &format!("/parsed/entry?ep={}&seq=2", enc(EP)),
-    )
-    .await;
+    let (_, body) = get(state(), &format!("/parsed/entry?ep={}&seq=2", enc(EP))).await;
     assert!(!body.contains("<select name=\"speaker\">"), "{body}");
     assert!(
         body.contains("<input name=\"speaker\" value=\"adam\">"),
@@ -182,7 +169,10 @@ async fn entry_save_round_trips_and_journals_the_edit() {
     assert!(body.contains("Saved seq 2"), "{body}");
 
     let on_disk = ws.read("parsed/the413/parsed_S01E01.json");
-    assert!(on_disk.contains("Well — hi \u{201c}really\u{201d}"), "{on_disk}");
+    assert!(
+        on_disk.contains("Well — hi \u{201c}really\u{201d}"),
+        "{on_disk}"
+    );
     assert!(!on_disk.contains("\\u2014"), "{on_disk}");
     assert!(on_disk.ends_with('}'), "{on_disk:?}");
     assert_eq!(ws.read("parsed/the413/parsed_S01E01.json.bak"), original);
@@ -206,7 +196,12 @@ async fn entry_save_rejects_unknown_seq_non_dialogue_and_bad_input() {
     let (_, body) = post_form(
         state(),
         "/parsed/entry",
-        &[("ep", EP), ("seq", "99"), ("speaker", "adam"), ("text", "hi")],
+        &[
+            ("ep", EP),
+            ("seq", "99"),
+            ("speaker", "adam"),
+            ("text", "hi"),
+        ],
     )
     .await;
     assert!(body.contains("No entry with seq 99"), "{body}");
@@ -214,7 +209,12 @@ async fn entry_save_rejects_unknown_seq_non_dialogue_and_bad_input() {
     let (_, body) = post_form(
         state(),
         "/parsed/entry",
-        &[("ep", EP), ("seq", "3"), ("speaker", "adam"), ("text", "hi")],
+        &[
+            ("ep", EP),
+            ("seq", "3"),
+            ("speaker", "adam"),
+            ("text", "hi"),
+        ],
     )
     .await;
     assert!(body.contains("not dialogue"), "{body}");
@@ -222,7 +222,12 @@ async fn entry_save_rejects_unknown_seq_non_dialogue_and_bad_input() {
     let (_, body) = post_form(
         state(),
         "/parsed/entry",
-        &[("ep", EP), ("seq", "2"), ("speaker", "adam"), ("text", "   ")],
+        &[
+            ("ep", EP),
+            ("seq", "2"),
+            ("speaker", "adam"),
+            ("text", "   "),
+        ],
     )
     .await;
     assert!(body.contains("cannot be empty"), "{body}");
@@ -234,7 +239,12 @@ async fn entry_save_rejects_unknown_seq_non_dialogue_and_bad_input() {
     let (_, body) = post_form(
         state(),
         "/parsed/entry",
-        &[("ep", EP), ("seq", "2"), ("speaker", "nobody"), ("text", "hi")],
+        &[
+            ("ep", EP),
+            ("seq", "2"),
+            ("speaker", "nobody"),
+            ("text", "hi"),
+        ],
     )
     .await;
     assert!(body.contains("Unknown speaker"), "{body}");

@@ -75,7 +75,12 @@ pub fn dialogue_edits_path(parsed_path: &Path) -> PathBuf {
 /// Append one dialogue-line edit record: `{ts, seq, fields: {speaker, text}}`.
 /// Unlike the SFX journal, both fields are always set — a dialogue line has
 /// no "clear this override" state.
-pub fn append_dialogue_edit(parsed_path: &Path, seq: i64, speaker: &str, text: &str) -> std::io::Result<()> {
+pub fn append_dialogue_edit(
+    parsed_path: &Path,
+    seq: i64,
+    speaker: &str,
+    text: &str,
+) -> std::io::Result<()> {
     let mut fields = Map::new();
     fields.insert("speaker".into(), Value::String(speaker.to_string()));
     fields.insert("text".into(), Value::String(text.to_string()));

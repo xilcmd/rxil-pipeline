@@ -399,7 +399,10 @@ pub async fn get_parsed_entry(Query(q): Query<HashMap<String, String>>) -> Respo
         );
     };
     let Ok(seq) = seq.parse::<i64>() else {
-        return reply(StatusCode::BAD_REQUEST, json!({"error": "seq must be an integer"}));
+        return reply(
+            StatusCode::BAD_REQUEST,
+            json!({"error": "seq must be an integer"}),
+        );
     };
     log::debug(&format!(
         "get-parsed-entry request: slug={} tag={} seq={seq}",
@@ -422,7 +425,10 @@ pub async fn get_parsed_entry(Query(q): Query<HashMap<String, String>>) -> Respo
 /// same validate/save/journal path [`entries::save_entry`] runs for the
 /// dashboard's Dialogue sub-tab.
 pub async fn update_parsed_entry(Json(body): Json<Value>) -> Response {
-    log::debug(&format!("update-parsed-entry request body: {}", body_repr(&body)));
+    log::debug(&format!(
+        "update-parsed-entry request body: {}",
+        body_repr(&body)
+    ));
     let fields = (|| {
         Ok::<_, Response>((
             body_str(&body, "slug")?,
@@ -441,7 +447,10 @@ pub async fn update_parsed_entry(Json(body): Json<Value>) -> Response {
         _ => None,
     };
     let Some(seq) = seq else {
-        return reply(StatusCode::BAD_REQUEST, json!({"ok": false, "error": "seq must be an integer"}));
+        return reply(
+            StatusCode::BAD_REQUEST,
+            json!({"ok": false, "error": "seq must be an integer"}),
+        );
     };
     match entries::save_entry(&slug, &tag, seq, &speaker, &text) {
         Ok(row) => {

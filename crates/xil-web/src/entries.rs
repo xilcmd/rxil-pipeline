@@ -16,12 +16,12 @@ use serde_json::{Map, Value};
 use xil_core::fsutil::basename;
 use xil_core::journal::{append_dialogue_edit, dialogue_edits_path};
 use xil_core::pyjson::{dumps, Style};
-use xil_core::script::{nfc_normalize, stats_from_entries_json, speakers::load_speakers_registry};
+use xil_core::script::{nfc_normalize, speakers::load_speakers_registry, stats_from_entries_json};
 use xil_core::workspace::{derive_paths, workspace_root};
 
+use crate::activity;
 use crate::configs::check_workspace_path;
 use crate::episodes::is_safe_slug_or_tag;
-use crate::activity;
 
 /// One dialogue row, as surfaced to either editor.
 #[derive(Clone, Debug, PartialEq)]
@@ -46,8 +46,8 @@ pub fn path_for(slug: &str, tag: &str) -> Result<PathBuf, String> {
 
 fn load_entries(path: &Path) -> Result<(Map<String, Value>, Vec<Value>), String> {
     let text = fs::read_to_string(path).map_err(|e| e.to_string())?;
-    let data: Value =
-        serde_json::from_str(&text).map_err(|e| format!("{} is not valid JSON: {e}", path.display()))?;
+    let data: Value = serde_json::from_str(&text)
+        .map_err(|e| format!("{} is not valid JSON: {e}", path.display()))?;
     let Value::Object(top) = data else {
         return Err(format!("{} is not a JSON object", path.display()));
     };
@@ -221,14 +221,18 @@ pub fn save_entry(
 
     // A failed backup aborts the save: never overwrite what we could not copy.
     if path.exists() {
-        fs::copy(&path, backup_path(&path)).map_err(|e| format!("Backup failed — not saved: {e}"))?;
+        fs::copy(&path, backup_path(&path))
+            .map_err(|e| format!("Backup failed — not saved: {e}"))?;
     }
     fs::write(&path, dumps(&Value::Object(top), Style::INDENT2_UTF8)).map_err(|e| e.to_string())?;
 
     if let Err(e) = append_dialogue_edit(&path, seq, speaker, &text) {
         activity::log(&format!("[WARN] dialogue edit journal write failed: {e}"));
     }
-    activity::log(&format!("SAVE parsed dialogue → {} seq={seq}", path.display()));
+    activity::log(&format!(
+        "SAVE parsed dialogue → {} seq={seq}",
+        path.display()
+    ));
 
     Ok(DialogueRow {
         seq,
@@ -311,7 +315,11 @@ pub fn pending_reprocess(slug: &str, tag: &str) -> Result<Vec<i64>, String> {
 
     let mut pending: Vec<i64> = edited_at
         .into_iter()
-        .filter(|(seq, edited)| produced_at.get(seq).is_some_and(|produced| edited.as_str() > produced.as_str()))
+        .filter(|(seq, edited)| {
+            produced_at
+                .get(seq)
+                .is_some_and(|produced| edited.as_str() > produced.as_str())
+        })
         .map(|(seq, _)| seq)
         .collect();
     pending.sort_unstable();
