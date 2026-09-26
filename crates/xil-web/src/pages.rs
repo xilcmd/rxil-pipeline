@@ -130,6 +130,7 @@ fn produce_form() -> String {
 <div class="row">{start}{stop}</div>
 {seq_list}
 {cb_python}
+{device}
 <div class="row">{force}</div>"##,
         dry = checkbox("dry_run", "--dry-run", true),
         sfx = checkbox("gen_sfx", "--gen-sfx", false),
@@ -151,6 +152,7 @@ fn produce_form() -> String {
             "",
         ),
         cb_python = text_input("chatterbox_python", "--chatterbox-python  (blank = auto-detect venv-chatterbox/)", &cb_default),
+        device = "<label class=\"field\"><span>--device  (Chatterbox Turbo only — falls back to cpu on its own if cuda isn't available; force cpu here to skip the GPU on purpose, e.g. it's busy)</span><select name=\"device\"><option selected>cuda</option><option>cpu</option></select></label>",
         force = checkbox("force", "--force  ⚠️ overwrite existing stems (API cost!)", false),
     )
 }
@@ -560,6 +562,7 @@ pub async fn run_stage(
                         stop_at: int(&p, "stop_at", 0),
                         seq_list: param(&p, "seq_list"),
                         chatterbox_python: param(&p, "chatterbox_python"),
+                        device: param(&p, "device"),
                         force: on(&p, "force"),
                         sfx_backend: match param(&p, "sfx_backend") {
                             "" => "elevenlabs",
