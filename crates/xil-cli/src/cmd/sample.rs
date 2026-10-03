@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 use anyhow::bail;
 use clap::Parser;
 use xil_core::pyfmt::{commas, pad_right};
-use xil_core::workspace::{derive_paths, resolve_slug, workspace_root};
+use xil_core::workspace::{derive_paths, resolve_slug, resolve_venv_python, workspace_root};
 use xil_core::{banner, log};
 
 use crate::mix::config::CastConfig;
@@ -188,17 +188,20 @@ fn execute(args: &[OsString]) -> anyhow::Result<i32> {
     }
     let mut chatterbox = None;
     if backend == "chatterbox-turbo" && !a.dry_run {
-        let python = a
-            .chatterbox_python
-            .clone()
-            .filter(|p| !p.is_empty())
-            .unwrap_or_else(|| {
-                Path::new("venv-chatterbox")
-                    .join("bin")
-                    .join("python3")
-                    .to_string_lossy()
-                    .into_owned()
-            });
+        // Same search as `produce`; the error keeps Python's wording.
+        let package_dir = crate::workers::python_package_dir();
+        let python = resolve_venv_python(
+            "venv-chatterbox",
+            a.chatterbox_python.as_deref(),
+            package_dir.as_deref(),
+        )
+        .unwrap_or_else(|| {
+            Path::new("venv-chatterbox")
+                .join("bin")
+                .join("python3")
+                .to_string_lossy()
+                .into_owned()
+        });
         if !Path::new(&python).exists() {
             return Err(super::SysExit(format!(
                 "Error: Chatterbox Python not found at {python}. Use --chatterbox-python to specify the path."

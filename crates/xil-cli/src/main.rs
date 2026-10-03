@@ -85,6 +85,11 @@ fn real_main() -> anyhow::Result<i32> {
         None => cmd::set_prog(&format!("xil {first}")),
     }
 
+    // Rust-only, so not in COMMANDS (which mirrors the Python CLI).
+    if first == "setup" {
+        return cmd::setup::run(&argv[1..]);
+    }
+
     let Some(spec) = commands::find(&first) else {
         xil_core::log::init("xil");
         xil_core::log::error(&format!("Unknown command: {first}"));

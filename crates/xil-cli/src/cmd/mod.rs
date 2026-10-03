@@ -38,6 +38,7 @@ pub mod remove_episode;
 pub mod remove_show;
 pub mod sample;
 pub mod scan;
+pub mod setup;
 pub mod sfx;
 pub mod sfx_csv;
 pub mod sfx_hydrate;
