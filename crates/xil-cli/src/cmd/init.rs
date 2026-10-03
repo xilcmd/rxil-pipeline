@@ -608,6 +608,9 @@ mod tests {
 
     #[test]
     fn flat_scaffold_writes_project_speakers_script() {
+        let _env = crate::cmd::ENV_LOCK
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         let tmp = tempfile::tempdir().unwrap();
         let ws = tmp.path().join("ws");
         std::env::set_var("XIL_PROJECTROOT", &ws);

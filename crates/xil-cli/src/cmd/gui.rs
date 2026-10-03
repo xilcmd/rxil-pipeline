@@ -147,6 +147,9 @@ mod tests {
     // One test, so the workspace variable is set once per process.
     #[test]
     fn stage_cells_track_freshness() {
+        let _env = crate::cmd::ENV_LOCK
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         let tmp = tempfile::tempdir().unwrap();
         let root = tmp.path();
         std::env::set_var("XIL_PROJECTROOT", root);

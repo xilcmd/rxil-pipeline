@@ -690,6 +690,9 @@ mod tests {
 
     #[test]
     fn tag_discovery_across_layouts() {
+        let _env = crate::cmd::ENV_LOCK
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         let tmp = tempfile::tempdir().unwrap();
         let r = tmp.path();
         std::env::set_var("XIL_PROJECTROOT", r);

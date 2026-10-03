@@ -914,6 +914,8 @@ def _record_sample(ws: Path) -> None:
     fake = ws / "bin" / "fake-chatterbox-python"
     fake.write_text(FAKE_CHATTERBOX)
     fake.chmod(fake.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    # `xil setup` only looks uv up on PATH; dry runs never execute it.
+    (ws / "bin" / "uv").write_text("#!/bin/sh\nexit 0\n")
     refs = ws / "voice_refs"
     refs.mkdir(exist_ok=True)
     _run(["ffmpeg", "-v", "quiet", "-y", "-f", "lavfi", "-i", "sine=frequency=210:duration=0.5:sample_rate=16000",
