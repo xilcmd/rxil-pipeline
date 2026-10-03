@@ -980,6 +980,8 @@ args = ["sample", "--show", "mixshow", "--episode", "S01E10", "--backend", "chat
 [[check]]
 name = "sample-chatterbox-no-python"
 args = ["sample", "--show", "mixshow", "--episode", "S01E10", "--backend", "chatterbox-turbo"]
+# Rust also searches $XIL_CODEROOT, which may hold a real venv-chatterbox.
+env = { XIL_CODEROOT = "/nonexistent-xil-coderoot" }
 
 [[check]]
 name = "sample-bad-voice"

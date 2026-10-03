@@ -59,9 +59,14 @@ pub fn describe() -> String {
     let package = python_package_dir();
     for venv in ["venv-chatterbox", "venv-whisper", "venv-mmaudio"] {
         let python = xil_core::workspace::resolve_venv_python(venv, None, package.as_deref());
+        let missing = if venv == "venv-chatterbox" {
+            "not found (run: xil setup chatterbox)"
+        } else {
+            "not found"
+        };
         out.push_str(&format!(
             "{venv}: {}\n",
-            python.as_deref().unwrap_or("not found")
+            python.as_deref().unwrap_or(missing)
         ));
     }
     out
