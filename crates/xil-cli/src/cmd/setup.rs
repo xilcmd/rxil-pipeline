@@ -1,8 +1,5 @@
 //! `xil setup chatterbox` — build the local-model venv the Chatterbox Turbo
-//! worker runs under.
-//!
-//! Rust-only for now, so it is dispatched from `main.rs` rather than listed
-//! in `COMMANDS`, which must match the Python CLI command for command.
+//! worker runs under. Port of `XILU023_setup.py`.
 
 use std::env;
 use std::ffi::OsString;
@@ -374,10 +371,23 @@ pub fn run(args: &[OsString]) -> anyhow::Result<i32> {
     execute(&opts, installer, &mut std::io::stdout().lock())
 }
 
+/// The clap definition behind `--help`, for man pages.
+pub fn command() -> clap::Command {
+    <Args as clap::CommandFactory>::command()
+}
+
 #[cfg(all(test, unix))]
 mod tests {
     use super::*;
     use std::os::unix::fs::PermissionsExt;
+
+    /// Writing a script while another test forks can leave it "Text file
+    /// busy" at exec; these tests write and run scripts, so they take turns.
+    static SCRIPTS: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+    fn serial() -> std::sync::MutexGuard<'static, ()> {
+        SCRIPTS.lock().unwrap_or_else(|e| e.into_inner())
+    }
 
     fn script(path: &Path, body: &str) {
         fs::create_dir_all(path.parent().unwrap()).unwrap();
@@ -463,6 +473,7 @@ mod tests {
 
     #[test]
     fn dry_run_runs_nothing() {
+        let _serial = serial();
         let tmp = tempfile::tempdir().unwrap();
         let log = tmp.path().join("calls");
         let uv = tmp.path().join("uv");
@@ -480,6 +491,7 @@ mod tests {
 
     #[test]
     fn working_venv_is_left_alone() {
+        let _serial = serial();
         let tmp = tempfile::tempdir().unwrap();
         let venv = tmp.path().join(VENV);
         script(&venv_python(&venv), "echo True");
@@ -493,6 +505,7 @@ mod tests {
 
     #[test]
     fn builds_with_fake_uv_then_verifies() {
+        let _serial = serial();
         let tmp = tempfile::tempdir().unwrap();
         let venv = tmp.path().join(VENV);
         let log = tmp.path().join("calls");
@@ -517,6 +530,7 @@ mod tests {
 
     #[test]
     fn broken_venv_needs_force() {
+        let _serial = serial();
         let tmp = tempfile::tempdir().unwrap();
         let venv = tmp.path().join(VENV);
         script(&venv_python(&venv), "exit 1");

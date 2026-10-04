@@ -178,3 +178,7 @@ pub fn truthy(v: &serde_json::Value) -> bool {
         Value::Object(o) => !o.is_empty(),
     }
 }
+
+/// Held by tests that set `XIL_PROJECTROOT`, which is process-wide.
+#[cfg(test)]
+pub static ENV_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());

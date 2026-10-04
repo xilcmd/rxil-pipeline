@@ -47,7 +47,7 @@ mod tests {
     #[test]
     fn one_page_per_command_plus_the_dispatcher() {
         let tmp = tempfile::tempdir().unwrap();
-        assert_eq!(generate(tmp.path()).unwrap(), 39);
+        assert_eq!(generate(tmp.path()).unwrap(), 40);
         let parse = fs::read_to_string(tmp.path().join("xil-parse.1")).unwrap();
         assert!(parse.starts_with(".ie \\n(.g .ds Aq"), "{}", &parse[..80]);
         assert!(parse.contains("xil\\-parse"));

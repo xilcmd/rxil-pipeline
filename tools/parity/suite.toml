@@ -1073,3 +1073,20 @@ args = ["produce", "--show", "mixshow", "--episode", "S09E09", "--dry-run"]
 [[check]]
 name = "produce-bad-seq-list"
 args = ["produce", "--show", "mixshow", "--episode", "S01E12", "--seq-list", "1,x", "--dry-run"]
+
+# ── setup (dry runs; PATH limited to the fixture's fake uv) ──
+
+[[check]]
+name = "setup-dry-run-uv-cpu"
+args = ["setup", "chatterbox", "--dry-run", "--device", "cpu", "--dir", "."]
+env = { PATH = "bin" }
+
+[[check]]
+name = "setup-dry-run-uv-cuda"
+args = ["setup", "chatterbox", "--dry-run", "--device", "cuda", "--cuda-index", "cu121", "--python", "3.12", "--dir", "."]
+env = { PATH = "bin" }
+
+[[check]]
+name = "setup-no-installer"
+args = ["setup", "chatterbox", "--device", "cpu", "--dir", "."]
+env = { PATH = "no-such-dir" }

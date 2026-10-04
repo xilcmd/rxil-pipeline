@@ -54,12 +54,10 @@ jobs:
         run: mdbook build docs/book
 
       # Parity compares against the Python the port reproduces (a test-only
-      # dependency; running xil never needs it). The reference is NOT the
-      # PyPI release: xil-pipeline's main is many commits past the
-      # 0.3.2 tag while still reporting "0.3.2", and those commits include
-      # behaviour the port implements (the play_duration_pct pipe-hint, the
-      # PHONE FILTER span). Pin the commit, not the version string, and
-      # move it forward deliberately when the reference moves.
+      # dependency; running xil never needs it). Pin a commit, not a version
+      # string: main can move past a tag while still reporting it. Currently
+      # the v0.4.0 release commit. Move it forward deliberately when the
+      # reference moves.
       - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
@@ -67,7 +65,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - name: Install the reference Python pipeline
         env:
-          XIL_PY_REF: e228100
+          XIL_PY_REF: beb776e
         run: |
           python -m venv /tmp/xil-py
           /tmp/xil-py/bin/pip install --quiet \

@@ -1,0 +1,56 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH xil-setup 1  "xil-setup " 
+.SH NAME
+xil\-setup \- Create and verify the virtual environment a local ML worker runs under. \*(Aqchatterbox\*(Aq builds venv\-chatterbox with PyTorch (CUDA wheels when an NVIDIA GPU is found, CPU wheels otherwise) and chatterbox\-tts, then checks that it imports.
+.SH SYNOPSIS
+\fBxil\-setup\fR [\fB\-\-device\fR] [\fB\-\-cuda\-index\fR] [\fB\-\-dir\fR] [\fB\-\-python\fR] [\fB\-\-force\fR] [\fB\-\-dry\-run\fR] [\fB\-h\fR|\fB\-\-help\fR] <\fITARGET\fR> 
+.SH DESCRIPTION
+Create and verify the virtual environment a local ML worker runs under. \*(Aqchatterbox\*(Aq builds venv\-chatterbox with PyTorch (CUDA wheels when an NVIDIA GPU is found, CPU wheels otherwise) and chatterbox\-tts, then checks that it imports.
+.SH OPTIONS
+.TP
+\fB\-\-device\fR \fI<DEVICE>\fR [default: auto]
+PyTorch build to install (auto: CUDA if nvidia\-smi works, else CPU)
+.br
+
+.br
+\fIPossible values:\fR
+.RS 14
+.IP \(bu 2
+auto
+.IP \(bu 2
+cuda
+.IP \(bu 2
+cpu
+.RE
+.TP
+\fB\-\-cuda\-index\fR \fI<TAG>\fR [default: cu124]
+PyTorch CUDA wheel index tag
+.TP
+\fB\-\-dir\fR \fI<PATH>\fR
+directory to create venv\-chatterbox in
+.TP
+\fB\-\-python\fR \fI<VER>\fR [default: 3.13]
+Python version for the venv (chatterbox\-tts needs 3.10\-3.13 for torch 2.6)
+.TP
+\fB\-\-force\fR
+delete and rebuild an existing venv
+.TP
+\fB\-\-dry\-run\fR
+print the commands without running them
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help (see a summary with \*(Aq\-h\*(Aq)
+.TP
+<\fITARGET\fR>
+what to set up
+.br
+
+.br
+\fIPossible values:\fR
+.RS 14
+.IP \(bu 2
+chatterbox: Chatterbox Turbo local TTS (venv\-chatterbox)
+.RE
+.SH EXTRA
+The venv is created in \-\-dir, else $XIL_CODEROOT, else the workspace root: the places \*(Aqxil produce\*(Aq looks for it. Uses uv when it is on PATH, otherwise python \-m venv and pip. Running it again on a working venv does nothing.
