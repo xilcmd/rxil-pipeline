@@ -18,6 +18,7 @@
 
 - [Pipeline Reference](internals/pipeline.md)
 - [NAS Impact Assessment](internals/nas-impact-assessment.md)
+- [Programmer Reference](api-reference.md)
 
 # Samples
 

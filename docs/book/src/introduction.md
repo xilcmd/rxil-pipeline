@@ -205,7 +205,7 @@ machine, forward the port (`ssh -L 7860:127.0.0.1:7860 <host>`).
 `xil --help` lists every command in pipeline order with its `XILP`/`XILU`
 reference number; `xil <command> --help` (or `man xil-<command>`) shows its
 options. The [pipeline reference](internals/pipeline.md) documents each stage
-in depth.
+in depth, and the [programmer reference](api-reference.md) documents the code.
 
 ## Configuration
 
