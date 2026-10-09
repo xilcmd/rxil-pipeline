@@ -63,6 +63,18 @@ with `--device cuda|cpu`, pick another CUDA wheel set with `--cuda-index`
 (default `cu124`), and rebuild with `--force`. Running it on a working venv
 does nothing.
 
+`xil setup` builds the other local-model venvs the same way:
+
+| Target | Venv | Used by | Default Python |
+|---|---|---|---|
+| `chatterbox` | `venv-chatterbox/` | `xil produce --backend chatterbox-turbo` | 3.13 |
+| `whisper` | `venv-whisper/` | `xil stem-verify` (transcripts) | 3.13 |
+| `mmaudio` | `venv-mmaudio/` | `--sfx-backend mmaudio` ([below](#optional-local-sfx-generation-mmaudio--non-commercial-only)) | 3.12 |
+
+Override the Python version with `--python`. If that version is not on `PATH`,
+setup warns and falls back to `python3`; install uv to have it fetch the right
+one.
+
 To do the same by hand:
 
 ```bash
@@ -102,10 +114,25 @@ sentence-sized chunks, because Turbo caps each generation at 40 seconds.
 
 `--sfx-backend mmaudio` generates sound effects locally instead of calling the
 ElevenLabs API. It runs in a dedicated `venv-mmaudio/`, needs ~6 GB of VRAM,
-and installs from a git clone rather than PyPI:
+and installs from a git clone rather than PyPI. One command does every step
+below:
 
 ```bash
-uv venv venv-mmaudio
+xil setup mmaudio --dry-run   # show the commands first
+xil setup mmaudio
+```
+
+It clones MMAudio (pinned to commit `974010a`) next to the venv unless a clone
+is already there, so it needs `git`. MMAudio pins `numpy<2.1`, which has no
+Python 3.13 wheels, so this venv uses Python 3.12. The weights (~6 GB) download
+on the first run into `weights/` and `ext_weights/` next to `venv-mmaudio`,
+whatever folder you run from. Set `$XIL_MMAUDIO_WEIGHTS` to keep them somewhere
+else.
+
+By hand:
+
+```bash
+uv venv venv-mmaudio --python 3.12
 git clone https://github.com/hkchengrex/MMAudio
 uv pip install --python venv-mmaudio/bin/python -e MMAudio
 

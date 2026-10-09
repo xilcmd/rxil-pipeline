@@ -1,5 +1,13 @@
-//! `xil setup chatterbox` — build the local-model venv the Chatterbox Turbo
-//! worker runs under. Port of `XILU023_setup.py`.
+//! `xil setup` — build the venv a local ML worker runs under. Port of
+//! `XILU023_setup.py`.
+//!
+//! * `chatterbox` — `venv-chatterbox` for the Chatterbox Turbo TTS worker:
+//!   PyTorch, `chatterbox-tts` and `pydub`.
+//! * `whisper` — `venv-whisper` for `xil stem-verify`: `faster-whisper`
+//!   (CTranslate2, no PyTorch).
+//! * `mmaudio` — `venv-mmaudio` for `--sfx-backend mmaudio`: a pinned clone
+//!   of hkchengrex/MMAudio installed editable, then PyTorch re-pinned
+//!   afterwards (MMAudio's unbounded `torch` pulls a CUDA 13 build).
 
 use std::env;
 use std::ffi::OsString;
@@ -12,17 +20,80 @@ use clap::{Parser, ValueEnum};
 use xil_core::log;
 use xil_core::workspace::{code_root, workspace_root};
 
-const VENV: &str = "venv-chatterbox";
-const TORCH: [&str; 2] = ["torch==2.6.0", "torchaudio==2.6.0"];
-const PACKAGES: [&str; 2] = ["chatterbox-tts", "pydub"];
-const VERIFY: &str = "import torch, torchaudio, pydub; \
-                      from chatterbox.tts_turbo import ChatterboxTurboTTS; \
-                      print(torch.cuda.is_available())";
+/// One `xil setup` target. `repo` (URL, ref) is cloned next to the venv as
+/// `MMAudio` and installed editable before `packages`; `torch` is installed
+/// last so it wins over whatever `packages` pulled in.
+struct Spec {
+    venv: &'static str,
+    python: &'static str,
+    torch: &'static [&'static str],
+    packages: &'static [&'static str],
+    label: &'static str,
+    import_name: &'static str,
+    verify: &'static str,
+    repo: Option<(&'static str, &'static str)>,
+}
 
-#[derive(Clone, Copy, ValueEnum)]
+const CHATTERBOX: Spec = Spec {
+    venv: "venv-chatterbox",
+    python: "3.13",
+    torch: &["torch==2.6.0", "torchaudio==2.6.0"],
+    packages: &["chatterbox-tts", "pydub"],
+    label: "install chatterbox-tts",
+    import_name: "chatterbox",
+    verify: "import torch, torchaudio, pydub; \
+             from chatterbox.tts_turbo import ChatterboxTurboTTS; \
+             print(torch.cuda.is_available())",
+    repo: None,
+};
+
+const WHISPER: Spec = Spec {
+    venv: "venv-whisper",
+    python: "3.13",
+    torch: &[],
+    packages: &["faster-whisper"],
+    label: "install faster-whisper",
+    import_name: "faster_whisper",
+    verify: "import ctranslate2; from faster_whisper import WhisperModel; \
+             print(ctranslate2.get_cuda_device_count() > 0)",
+    repo: None,
+};
+
+/// MMAudio pins numpy<2.1, which has no Python 3.13 wheels: default to 3.12.
+const MMAUDIO: Spec = Spec {
+    venv: "venv-mmaudio",
+    python: "3.12",
+    torch: &["torch==2.6.0", "torchaudio==2.6.0", "torchvision==0.21.0"],
+    packages: &["pydub"],
+    label: "install MMAudio",
+    import_name: "mmaudio",
+    verify: "import torch, torchaudio, pydub; \
+             from mmaudio.eval_utils import all_model_cfg; \
+             print(torch.cuda.is_available())",
+    repo: Some(("https://github.com/hkchengrex/MMAudio", "974010a")),
+};
+
+/// The checkpoint of the worker's model (`mmaudio_worker._DEFAULT_VARIANT`).
+const MMAUDIO_WEIGHTS: [&str; 2] = ["weights", "mmaudio_large_44k_v2.pth"];
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug, ValueEnum)]
 enum Target {
     /// Chatterbox Turbo local TTS (venv-chatterbox)
     Chatterbox,
+    /// faster-whisper for xil stem-verify (venv-whisper)
+    Whisper,
+    /// MMAudio local SFX (venv-mmaudio)
+    Mmaudio,
+}
+
+impl Target {
+    fn spec(self) -> &'static Spec {
+        match self {
+            Target::Chatterbox => &CHATTERBOX,
+            Target::Whisper => &WHISPER,
+            Target::Mmaudio => &MMAUDIO,
+        }
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, ValueEnum)]
@@ -36,11 +107,13 @@ enum Device {
 #[command(
     name = "xil-setup",
     about = "Create and verify the virtual environment a local ML worker runs \
-             under. 'chatterbox' builds venv-chatterbox with PyTorch (CUDA \
-             wheels when an NVIDIA GPU is found, CPU wheels otherwise) and \
-             chatterbox-tts, then checks that it imports.",
+             under. 'chatterbox' builds venv-chatterbox (PyTorch + \
+             chatterbox-tts) for local TTS; 'whisper' builds venv-whisper \
+             (faster-whisper) for xil stem-verify; 'mmaudio' clones MMAudio \
+             and builds venv-mmaudio for local SFX. PyTorch comes as CUDA \
+             wheels when an NVIDIA GPU is found, CPU wheels otherwise.",
     after_help = "The venv is created in --dir, else $XIL_CODEROOT, else the \
-                  workspace root: the places 'xil produce' looks for it. Uses \
+                  workspace root: the places the xil commands look for it. Uses \
                   uv when it is on PATH, otherwise python -m venv and pip. \
                   Running it again on a working venv does nothing."
 )]
@@ -54,12 +127,12 @@ struct Args {
     /// PyTorch CUDA wheel index tag
     #[arg(long, default_value = "cu124", value_name = "TAG")]
     cuda_index: String,
-    /// directory to create venv-chatterbox in
+    /// directory to create the venv in
     #[arg(long, value_name = "PATH")]
     dir: Option<PathBuf>,
-    /// Python version for the venv (chatterbox-tts needs 3.10-3.13 for torch 2.6)
-    #[arg(long, default_value = "3.13", value_name = "VER")]
-    python: String,
+    /// Python version for the venv (default: 3.13; 3.12 for mmaudio)
+    #[arg(long, value_name = "VER")]
+    python: Option<String>,
     /// delete and rebuild an existing venv
     #[arg(long)]
     force: bool,
@@ -78,15 +151,15 @@ enum Installer {
 
 #[derive(Debug)]
 struct Step {
-    label: &'static str,
+    label: String,
     program: PathBuf,
     args: Vec<String>,
 }
 
 impl Step {
-    fn new(label: &'static str, program: &Path, args: &[&str]) -> Self {
+    fn new(label: impl Into<String>, program: &Path, args: &[&str]) -> Self {
         Step {
-            label,
+            label: label.into(),
             program: program.to_path_buf(),
             args: args.iter().map(|s| s.to_string()).collect(),
         }
@@ -104,6 +177,16 @@ impl Step {
 
 fn venv_python(venv: &Path) -> PathBuf {
     venv.join("bin").join("python3")
+}
+
+/// The directory that holds the venv (Python's `os.path.dirname`).
+fn venv_parent(venv: &Path) -> &Path {
+    venv.parent().unwrap_or(Path::new(""))
+}
+
+/// The MMAudio clone sits beside its venv.
+fn repo_dir(venv: &Path) -> PathBuf {
+    venv_parent(venv).join("MMAudio")
 }
 
 fn find_on_path(name: &str) -> Option<PathBuf> {
@@ -153,59 +236,91 @@ fn index_url(cuda: bool, cuda_index: &str) -> String {
     format!("https://download.pytorch.org/whl/{tag}")
 }
 
+fn needs_clone(spec: &Spec, venv: &Path) -> bool {
+    spec.repo.is_some() && !repo_dir(venv).is_dir()
+}
+
 fn plan(
     installer: &Installer,
     venv: &Path,
     python_ver: &str,
     cuda: bool,
     cuda_index: &str,
+    spec: &Spec,
+    git: &Path,
 ) -> Vec<Step> {
     let venv_s = venv.to_string_lossy().into_owned();
-    let venv_s = venv_s.as_str();
     let py = venv_python(venv);
     let py_s = py.to_string_lossy().into_owned();
-    let py_s = py_s.as_str();
     let index = index_url(cuda, cuda_index);
-    let index = index.as_str();
-    match installer {
-        Installer::Uv(uv) => {
-            let mut torch_args = vec!["pip", "install", "--python", py_s];
-            torch_args.extend(TORCH);
-            torch_args.extend(["--index-url", index]);
-            let mut pkg_args = vec!["pip", "install", "--python", py_s];
-            pkg_args.extend(PACKAGES);
+
+    let (mut steps, install_prog, install_args): (Vec<Step>, PathBuf, Vec<&str>) = match installer {
+        Installer::Uv(uv) => (
+            vec![Step::new(
+                "create venv",
+                uv,
+                &["venv", &venv_s, "--python", python_ver],
+            )],
+            uv.clone(),
+            vec!["pip", "install", "--python", &py_s],
+        ),
+        Installer::Pip(base) => (
             vec![
-                Step::new("create venv", uv, &["venv", venv_s, "--python", python_ver]),
-                Step::new("install PyTorch", uv, &torch_args),
-                Step::new("install chatterbox-tts", uv, &pkg_args),
-            ]
-        }
-        Installer::Pip(base) => {
-            let mut torch_args = vec!["-m", "pip", "install"];
-            torch_args.extend(TORCH);
-            torch_args.extend(["--index-url", index]);
-            let mut pkg_args = vec!["-m", "pip", "install"];
-            pkg_args.extend(PACKAGES);
-            vec![
-                Step::new("create venv", base, &["-m", "venv", venv_s]),
+                Step::new("create venv", base, &["-m", "venv", &venv_s]),
                 Step::new(
                     "upgrade pip",
                     &py,
                     &["-m", "pip", "install", "--upgrade", "pip"],
                 ),
-                Step::new("install PyTorch", &py, &torch_args),
-                Step::new("install chatterbox-tts", &py, &pkg_args),
-            ]
+            ],
+            py.clone(),
+            vec!["-m", "pip", "install"],
+        ),
+    };
+    let install_step = |label: &str, args: &[&str]| {
+        let mut all = install_args.clone();
+        all.extend_from_slice(args);
+        Step::new(label, &install_prog, &all)
+    };
+
+    let mut torch_args: Vec<&str> = spec.torch.to_vec();
+    torch_args.extend(["--index-url", &index]);
+    let torch = install_step("install PyTorch", &torch_args);
+
+    let Some((url, git_ref)) = spec.repo else {
+        if !spec.torch.is_empty() {
+            steps.push(torch);
         }
+        steps.push(install_step(spec.label, spec.packages));
+        return steps;
+    };
+
+    let repo = repo_dir(venv);
+    let repo_s = repo.to_string_lossy().into_owned();
+    if needs_clone(spec, venv) {
+        steps.push(Step::new("clone MMAudio", git, &["clone", url, &repo_s]));
+        steps.push(Step::new(
+            format!("check out MMAudio {git_ref}"),
+            git,
+            &["-C", &repo_s, "checkout", git_ref],
+        ));
     }
+    let mut pkg_args = vec!["-e", repo_s.as_str()];
+    pkg_args.extend_from_slice(spec.packages);
+    steps.push(install_step(spec.label, &pkg_args));
+    steps.push(torch);
+    steps
 }
 
-/// `Some(cuda_available)` when the venv imports everything the worker needs.
-fn verify(python: &Path) -> Option<bool> {
+/// `Some(gpu_available)` when the venv imports everything the worker needs.
+fn verify(python: &Path, spec: &Spec) -> Option<bool> {
     if !python.exists() {
         return None;
     }
-    let out = Command::new(python).args(["-c", VERIFY]).output().ok()?;
+    let out = Command::new(python)
+        .args(["-c", spec.verify])
+        .output()
+        .ok()?;
     if !out.status.success() {
         return None;
     }
@@ -224,13 +339,76 @@ struct Opts {
     force: bool,
     dry_run: bool,
     coderoot_set: bool,
+    target: Target,
+    git: Option<PathBuf>,
+}
+
+fn header(opts: &Opts) -> String {
+    if opts.target.spec().torch.is_empty() {
+        return format!("Setting up {}.", opts.venv.display());
+    }
+    format!(
+        "Setting up {} with {} PyTorch wheels.",
+        opts.venv.display(),
+        device_name(opts.cuda)
+    )
+}
+
+fn no_gpu_warning(target: Target) -> String {
+    let worker = match target {
+        Target::Whisper => {
+            return "nvidia-smi works but CTranslate2 sees no GPU; Whisper will run on \
+                    the CPU (int8). Check your NVIDIA driver."
+                .to_string()
+        }
+        Target::Mmaudio => "MMAudio",
+        Target::Chatterbox => "Chatterbox Turbo",
+    };
+    format!(
+        "CUDA wheels were installed but torch sees no GPU; {worker} will fall back \
+         to the CPU. Check your NVIDIA driver, or try another --cuda-index."
+    )
+}
+
+fn next_steps(opts: &Opts) -> Vec<String> {
+    match opts.target {
+        Target::Whisper => vec!["  xil stem-verify --episode S01E01".into()],
+        Target::Mmaudio => {
+            let weights = MMAUDIO_WEIGHTS
+                .iter()
+                .fold(venv_parent(&opts.venv).to_path_buf(), |p, s| p.join(s));
+            let found = if weights.is_file() {
+                format!("  Weights found: {}", weights.display())
+            } else {
+                format!(
+                    "  Weights not found: {} (about 6 GB downloads on the first run).",
+                    weights.display()
+                )
+            };
+            vec![
+                found,
+                "  MMAudio weights are CC BY-NC 4.0: non-commercial use only.".into(),
+                "  xil sfx --episode S01E01 --gen-sfx --sfx-backend mmaudio \
+                 --mmaudio-accept-noncommercial"
+                    .into(),
+            ]
+        }
+        Target::Chatterbox => vec![
+            "  Save one clip per speaker as voice_refs/<speaker_key>.wav (over 5 seconds).".into(),
+            "  If the model is gated for your account: export HF_TOKEN=hf_... \
+             (weights download on first render)."
+                .into(),
+            "  xil produce --episode S01E01 --backend chatterbox-turbo".into(),
+        ],
+    }
 }
 
 fn execute(opts: &Opts, installer: Option<Installer>, out: &mut impl Write) -> anyhow::Result<i32> {
+    let spec = opts.target.spec();
     let python = venv_python(&opts.venv);
 
     if !opts.force && !opts.dry_run {
-        if let Some(cuda) = verify(&python) {
+        if let Some(cuda) = verify(&python, spec) {
             writeln!(
                 out,
                 "{} is already set up ({}).",
@@ -251,19 +429,39 @@ fn execute(opts: &Opts, installer: Option<Installer>, out: &mut impl Write) -> a
         return Ok(1);
     };
 
+    if let Installer::Pip(base) = &installer {
+        let wanted = format!("python{}", opts.python_ver);
+        if base.file_name().and_then(|n| n.to_str()) != Some(wanted.as_str()) {
+            log::warning(&format!(
+                "python{} was not found on PATH; building with {} instead. Install uv \
+                 (it fetches the right Python) if the build fails.",
+                opts.python_ver,
+                base.display()
+            ));
+        }
+    }
+
+    if needs_clone(spec, &opts.venv) && opts.git.is_none() {
+        let (url, _) = spec.repo.unwrap_or_default();
+        log::error(&format!(
+            "git was not found on PATH; it is needed to clone {url} into {}. \
+             Install git, or clone it there yourself, then retry.",
+            repo_dir(&opts.venv).display()
+        ));
+        return Ok(1);
+    }
+
+    let git = opts.git.clone().unwrap_or_else(|| PathBuf::from("git"));
     let steps = plan(
         &installer,
         &opts.venv,
         &opts.python_ver,
         opts.cuda,
         &opts.cuda_index,
+        spec,
+        &git,
     );
-    writeln!(
-        out,
-        "Setting up {} with {} PyTorch wheels.",
-        opts.venv.display(),
-        device_name(opts.cuda)
-    )?;
+    writeln!(out, "{}", header(opts))?;
 
     if opts.dry_run {
         if opts.force && opts.venv.exists() {
@@ -281,8 +479,9 @@ fn execute(opts: &Opts, installer: Option<Installer>, out: &mut impl Write) -> a
             fs::remove_dir_all(&opts.venv)?;
         } else {
             log::error(&format!(
-                "{} exists but does not import chatterbox. Rerun with --force to rebuild it.",
-                opts.venv.display()
+                "{} exists but does not import {}. Rerun with --force to rebuild it.",
+                opts.venv.display(),
+                spec.import_name
             ));
             return Ok(1);
         }
@@ -299,44 +498,35 @@ fn execute(opts: &Opts, installer: Option<Installer>, out: &mut impl Write) -> a
         }
     }
 
-    let Some(cuda) = verify(&python) else {
+    let Some(cuda) = verify(&python, spec) else {
         log::error(&format!(
-            "{} was built but does not import chatterbox. Check the output above.",
-            opts.venv.display()
+            "{} was built but does not import {}. Check the output above.",
+            opts.venv.display(),
+            spec.import_name
         ));
         return Ok(1);
     };
     writeln!(
         out,
-        "Verified: chatterbox imports; device {}.",
+        "Verified: {} imports; device {}.",
+        spec.import_name,
         device_name(cuda)
     )?;
     if opts.cuda && !cuda {
-        log::warning(
-            "CUDA wheels were installed but torch sees no GPU; Chatterbox Turbo \
-             will fall back to the CPU. Check your NVIDIA driver, or try another \
-             --cuda-index.",
-        );
+        log::warning(&no_gpu_warning(opts.target));
     }
 
     writeln!(out, "\nNext:")?;
     if !opts.coderoot_set {
-        if let Some(dir) = opts.venv.parent() {
-            writeln!(out, "  export XIL_CODEROOT={}", dir.display())?;
-        }
+        writeln!(
+            out,
+            "  export XIL_CODEROOT={}",
+            venv_parent(&opts.venv).display()
+        )?;
     }
-    writeln!(
-        out,
-        "  Save one clip per speaker as voice_refs/<speaker_key>.wav (over 5 seconds)."
-    )?;
-    writeln!(
-        out,
-        "  If the model is gated for your account: export HF_TOKEN=hf_... (weights download on first render)."
-    )?;
-    writeln!(
-        out,
-        "  xil produce --episode S01E01 --backend chatterbox-turbo"
-    )?;
+    for line in next_steps(opts) {
+        writeln!(out, "{line}")?;
+    }
     Ok(0)
 }
 
@@ -354,20 +544,23 @@ pub fn run(args: &[OsString]) -> anyhow::Result<i32> {
         Ok(a) => a,
         Err(code) => return Ok(code),
     };
-    let Target::Chatterbox = parsed.target;
+    let spec = parsed.target.spec();
+    let python_ver = parsed.python.unwrap_or_else(|| spec.python.to_string());
 
     let detected = parsed.device == Device::Auto && detect_cuda();
     let code_root = code_root();
     let opts = Opts {
-        venv: target_dir(parsed.dir, code_root.clone(), workspace_root()).join(VENV),
-        python_ver: parsed.python.clone(),
+        venv: target_dir(parsed.dir, code_root.clone(), workspace_root()).join(spec.venv),
+        python_ver,
         cuda: use_cuda(parsed.device, detected),
         cuda_index: parsed.cuda_index,
         force: parsed.force,
         dry_run: parsed.dry_run,
         coderoot_set: code_root.is_some(),
+        target: parsed.target,
+        git: find_on_path("git"),
     };
-    let installer = find_installer(&parsed.python);
+    let installer = find_installer(&opts.python_ver);
     execute(&opts, installer, &mut std::io::stdout().lock())
 }
 
@@ -404,8 +597,16 @@ mod tests {
             force: false,
             dry_run: false,
             coderoot_set: true,
+            target: Target::Chatterbox,
+            git: Some(PathBuf::from("/usr/bin/git")),
         }
     }
+
+    fn displays(steps: &[Step]) -> Vec<String> {
+        steps.iter().map(Step::display).collect()
+    }
+
+    const GIT: &str = "/usr/bin/git";
 
     #[test]
     fn device_choice() {
@@ -426,10 +627,25 @@ mod tests {
     }
 
     #[test]
+    fn default_python_per_target() {
+        assert_eq!(Target::Chatterbox.spec().python, "3.13");
+        assert_eq!(Target::Whisper.spec().python, "3.13");
+        assert_eq!(Target::Mmaudio.spec().python, "3.12");
+    }
+
+    #[test]
     fn uv_plan_uses_cuda_or_cpu_index() {
         let uv = Installer::Uv(PathBuf::from("/bin/uv"));
         let venv = Path::new("/c/venv-chatterbox");
-        let cuda = plan(&uv, venv, "3.13", true, "cu124");
+        let cuda = plan(
+            &uv,
+            venv,
+            "3.13",
+            true,
+            "cu124",
+            &CHATTERBOX,
+            Path::new(GIT),
+        );
         assert_eq!(cuda.len(), 3);
         assert_eq!(
             cuda[0].display(),
@@ -444,7 +660,15 @@ mod tests {
             cuda[2].display(),
             "/bin/uv pip install --python /c/venv-chatterbox/bin/python3 chatterbox-tts pydub"
         );
-        let cpu = plan(&uv, venv, "3.13", false, "cu124");
+        let cpu = plan(
+            &uv,
+            venv,
+            "3.13",
+            false,
+            "cu124",
+            &CHATTERBOX,
+            Path::new(GIT),
+        );
         assert!(cpu[1].display().ends_with("/whl/cpu"));
     }
 
@@ -457,6 +681,8 @@ mod tests {
             "3.13",
             false,
             "cu124",
+            &CHATTERBOX,
+            Path::new(GIT),
         );
         assert_eq!(steps.len(), 4);
         assert_eq!(
@@ -472,13 +698,129 @@ mod tests {
     }
 
     #[test]
+    fn whisper_plan_has_no_torch() {
+        let uv = Installer::Uv(PathBuf::from("/bin/uv"));
+        let steps = plan(
+            &uv,
+            Path::new("/c/venv-whisper"),
+            "3.13",
+            true,
+            "cu124",
+            &WHISPER,
+            Path::new(GIT),
+        );
+        assert_eq!(
+            displays(&steps),
+            [
+                "/bin/uv venv /c/venv-whisper --python 3.13",
+                "/bin/uv pip install --python /c/venv-whisper/bin/python3 faster-whisper",
+            ]
+        );
+        let pip = Installer::Pip(PathBuf::from("/usr/bin/python3.13"));
+        let steps = plan(
+            &pip,
+            Path::new("/c/venv-whisper"),
+            "3.13",
+            false,
+            "cu124",
+            &WHISPER,
+            Path::new(GIT),
+        );
+        assert_eq!(steps.len(), 3);
+        assert_eq!(steps[1].label, "upgrade pip");
+        assert_eq!(
+            steps[2].display(),
+            "/c/venv-whisper/bin/python3 -m pip install faster-whisper"
+        );
+    }
+
+    #[test]
+    fn mmaudio_plan_clones_then_repins_torch_last() {
+        let tmp = tempfile::tempdir().unwrap();
+        let venv = tmp.path().join("venv-mmaudio");
+        let repo = tmp.path().join("MMAudio");
+        let uv = Installer::Uv(PathBuf::from("/bin/uv"));
+        let steps = plan(&uv, &venv, "3.12", true, "cu124", &MMAUDIO, Path::new(GIT));
+        let py = venv_python(&venv);
+        assert_eq!(
+            displays(&steps),
+            [
+                format!("/bin/uv venv {} --python 3.12", venv.display()),
+                format!(
+                    "{GIT} clone https://github.com/hkchengrex/MMAudio {}",
+                    repo.display()
+                ),
+                format!("{GIT} -C {} checkout 974010a", repo.display()),
+                format!(
+                    "/bin/uv pip install --python {} -e {} pydub",
+                    py.display(),
+                    repo.display()
+                ),
+                format!(
+                    "/bin/uv pip install --python {} torch==2.6.0 torchaudio==2.6.0 \
+                     torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cu124",
+                    py.display()
+                ),
+            ]
+        );
+        assert_eq!(steps[2].label, "check out MMAudio 974010a");
+
+        // An existing clone is reused.
+        fs::create_dir(&repo).unwrap();
+        let steps = plan(&uv, &venv, "3.12", false, "cu124", &MMAUDIO, Path::new(GIT));
+        assert_eq!(steps.len(), 3);
+        assert!(steps.iter().all(|s| s.program != Path::new(GIT)));
+        assert!(steps[2].display().ends_with("/whl/cpu"));
+    }
+
+    #[test]
+    fn mmaudio_without_git_fails_before_building() {
+        let tmp = tempfile::tempdir().unwrap();
+        let mut o = opts(tmp.path().join("venv-mmaudio"));
+        o.target = Target::Mmaudio;
+        o.git = None;
+        o.dry_run = true;
+        let mut out = Vec::new();
+        let code = execute(&o, Some(Installer::Uv(PathBuf::from("/bin/uv"))), &mut out).unwrap();
+        assert_eq!(code, 1);
+        assert!(out.is_empty());
+
+        // With a clone in place, git is not needed.
+        fs::create_dir(tmp.path().join("MMAudio")).unwrap();
+        let code = execute(&o, Some(Installer::Uv(PathBuf::from("/bin/uv"))), &mut out).unwrap();
+        assert_eq!(code, 0);
+    }
+
+    #[test]
+    fn headers_and_next_steps() {
+        let tmp = tempfile::tempdir().unwrap();
+        let mut o = opts(tmp.path().join("venv-whisper"));
+        o.target = Target::Whisper;
+        assert_eq!(header(&o), format!("Setting up {}.", o.venv.display()));
+        o.target = Target::Mmaudio;
+        o.venv = tmp.path().join("venv-mmaudio");
+        assert!(header(&o).ends_with("with CPU PyTorch wheels."));
+        assert!(next_steps(&o)[0].starts_with("  Weights not found: "));
+        let w = tmp.path().join("weights");
+        fs::create_dir(&w).unwrap();
+        fs::write(w.join("mmaudio_large_44k_v2.pth"), "").unwrap();
+        assert_eq!(
+            next_steps(&o)[0],
+            format!(
+                "  Weights found: {}",
+                w.join("mmaudio_large_44k_v2.pth").display()
+            )
+        );
+    }
+
+    #[test]
     fn dry_run_runs_nothing() {
         let _serial = serial();
         let tmp = tempfile::tempdir().unwrap();
         let log = tmp.path().join("calls");
         let uv = tmp.path().join("uv");
         script(&uv, &format!("echo \"$@\" >> {}", log.display()));
-        let mut o = opts(tmp.path().join(VENV));
+        let mut o = opts(tmp.path().join(CHATTERBOX.venv));
         o.dry_run = true;
         let mut out = Vec::new();
         let code = execute(&o, Some(Installer::Uv(uv)), &mut out).unwrap();
@@ -486,14 +828,14 @@ mod tests {
         assert!(!log.exists());
         let text = String::from_utf8(out).unwrap();
         assert!(text.contains("pip install"));
-        assert!(!tmp.path().join(VENV).exists());
+        assert!(!tmp.path().join(CHATTERBOX.venv).exists());
     }
 
     #[test]
     fn working_venv_is_left_alone() {
         let _serial = serial();
         let tmp = tempfile::tempdir().unwrap();
-        let venv = tmp.path().join(VENV);
+        let venv = tmp.path().join(CHATTERBOX.venv);
         script(&venv_python(&venv), "echo True");
         let mut out = Vec::new();
         let code = execute(&opts(venv), None, &mut out).unwrap();
@@ -507,7 +849,7 @@ mod tests {
     fn builds_with_fake_uv_then_verifies() {
         let _serial = serial();
         let tmp = tempfile::tempdir().unwrap();
-        let venv = tmp.path().join(VENV);
+        let venv = tmp.path().join(CHATTERBOX.venv);
         let log = tmp.path().join("calls");
         // `uv venv <dir>` drops a python3 that passes the import check.
         let uv = tmp.path().join("uv");
@@ -532,7 +874,7 @@ mod tests {
     fn broken_venv_needs_force() {
         let _serial = serial();
         let tmp = tempfile::tempdir().unwrap();
-        let venv = tmp.path().join(VENV);
+        let venv = tmp.path().join(CHATTERBOX.venv);
         script(&venv_python(&venv), "exit 1");
         let mut out = Vec::new();
         let code = execute(

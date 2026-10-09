@@ -2,11 +2,11 @@
 .el .ds Aq '
 .TH xil-setup 1  "xil-setup " 
 .SH NAME
-xil\-setup \- Create and verify the virtual environment a local ML worker runs under. \*(Aqchatterbox\*(Aq builds venv\-chatterbox with PyTorch (CUDA wheels when an NVIDIA GPU is found, CPU wheels otherwise) and chatterbox\-tts, then checks that it imports.
+xil\-setup \- Create and verify the virtual environment a local ML worker runs under. \*(Aqchatterbox\*(Aq builds venv\-chatterbox (PyTorch + chatterbox\-tts) for local TTS; \*(Aqwhisper\*(Aq builds venv\-whisper (faster\-whisper) for xil stem\-verify; \*(Aqmmaudio\*(Aq clones MMAudio and builds venv\-mmaudio for local SFX. PyTorch comes as CUDA wheels when an NVIDIA GPU is found, CPU wheels otherwise.
 .SH SYNOPSIS
 \fBxil\-setup\fR [\fB\-\-device\fR] [\fB\-\-cuda\-index\fR] [\fB\-\-dir\fR] [\fB\-\-python\fR] [\fB\-\-force\fR] [\fB\-\-dry\-run\fR] [\fB\-h\fR|\fB\-\-help\fR] <\fITARGET\fR> 
 .SH DESCRIPTION
-Create and verify the virtual environment a local ML worker runs under. \*(Aqchatterbox\*(Aq builds venv\-chatterbox with PyTorch (CUDA wheels when an NVIDIA GPU is found, CPU wheels otherwise) and chatterbox\-tts, then checks that it imports.
+Create and verify the virtual environment a local ML worker runs under. \*(Aqchatterbox\*(Aq builds venv\-chatterbox (PyTorch + chatterbox\-tts) for local TTS; \*(Aqwhisper\*(Aq builds venv\-whisper (faster\-whisper) for xil stem\-verify; \*(Aqmmaudio\*(Aq clones MMAudio and builds venv\-mmaudio for local SFX. PyTorch comes as CUDA wheels when an NVIDIA GPU is found, CPU wheels otherwise.
 .SH OPTIONS
 .TP
 \fB\-\-device\fR \fI<DEVICE>\fR [default: auto]
@@ -28,10 +28,10 @@ cpu
 PyTorch CUDA wheel index tag
 .TP
 \fB\-\-dir\fR \fI<PATH>\fR
-directory to create venv\-chatterbox in
+directory to create the venv in
 .TP
-\fB\-\-python\fR \fI<VER>\fR [default: 3.13]
-Python version for the venv (chatterbox\-tts needs 3.10\-3.13 for torch 2.6)
+\fB\-\-python\fR \fI<VER>\fR
+Python version for the venv (default: 3.13; 3.12 for mmaudio)
 .TP
 \fB\-\-force\fR
 delete and rebuild an existing venv
@@ -51,6 +51,10 @@ what to set up
 .RS 14
 .IP \(bu 2
 chatterbox: Chatterbox Turbo local TTS (venv\-chatterbox)
+.IP \(bu 2
+whisper: faster\-whisper for xil stem\-verify (venv\-whisper)
+.IP \(bu 2
+mmaudio: MMAudio local SFX (venv\-mmaudio)
 .RE
 .SH EXTRA
-The venv is created in \-\-dir, else $XIL_CODEROOT, else the workspace root: the places \*(Aqxil produce\*(Aq looks for it. Uses uv when it is on PATH, otherwise python \-m venv and pip. Running it again on a working venv does nothing.
+The venv is created in \-\-dir, else $XIL_CODEROOT, else the workspace root: the places the xil commands look for it. Uses uv when it is on PATH, otherwise python \-m venv and pip. Running it again on a working venv does nothing.

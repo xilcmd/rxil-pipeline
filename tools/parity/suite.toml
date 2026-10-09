@@ -1090,3 +1090,28 @@ env = { PATH = "bin" }
 name = "setup-no-installer"
 args = ["setup", "chatterbox", "--device", "cpu", "--dir", "."]
 env = { PATH = "no-such-dir" }
+
+[[check]]
+name = "setup-whisper-dry-run-uv"
+args = ["setup", "whisper", "--dry-run", "--device", "cuda", "--dir", "."]
+env = { PATH = "bin" }
+
+[[check]]
+name = "setup-whisper-dry-run-pip"
+args = ["setup", "whisper", "--dry-run", "--device", "cpu", "--dir", "."]
+env = { PATH = "pipbin" }
+
+[[check]]
+name = "setup-mmaudio-dry-run-uv-cuda"
+args = ["setup", "mmaudio", "--dry-run", "--device", "cuda", "--dir", "."]
+env = { PATH = "bin" }
+
+[[check]]
+name = "setup-mmaudio-dry-run-pip-cpu"
+args = ["setup", "mmaudio", "--dry-run", "--device", "cpu", "--dir", "."]
+env = { PATH = "pipbin" }
+
+[[check]]
+name = "setup-mmaudio-no-git"
+args = ["setup", "mmaudio", "--dry-run", "--device", "cpu", "--dir", "."]
+env = { PATH = "nogit" }

@@ -325,7 +325,7 @@ fn execute(a: &Args) -> anyhow::Result<i32> {
             package_dir.as_deref(),
         ) else {
             log::error(
-                "Cannot find venv-whisper Python. Pass --whisper-python PATH, set XIL_CODEROOT to the directory containing venv-whisper/, or create venv-whisper/ at the workspace or repo root. Use --no-transcribe to skip transcription.",
+                "Cannot find venv-whisper Python. Pass --whisper-python PATH, set XIL_CODEROOT to the directory containing venv-whisper/, or build it with: xil setup whisper. Use --no-transcribe to skip transcription.",
             );
             return Ok(1);
         };
