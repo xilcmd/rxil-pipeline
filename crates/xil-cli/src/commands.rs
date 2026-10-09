@@ -90,7 +90,7 @@ pub const COMMANDS: &[CommandSpec] = &[
     cmd!(remove_show, "remove-show", "xil_pipeline.XILU017_remove_show", "remove all workspace files for a show (--dry-run safe)", Utility, "(workspace management)"),
     cmd!(remove_episode, "remove-episode", "xil_pipeline.XILU018_remove_episode", "remove workspace files for one episode, preserving the source script (--dry-run safe)", Utility, "(workspace management)"),
     cmd!(status, "status", "xil_pipeline.XILU019_episode_status", "make-style staleness check of an episode's pipeline artifacts (report only)", Utility, "(workspace management)"),
-    cmd!(setup, "setup", "xil_pipeline.XILU023_setup", "create and verify local ML worker venvs (chatterbox)", Utility, "(local GPU TTS setup)"),
+    cmd!(setup, "setup", "xil_pipeline.XILU023_setup", "create and verify local ML worker venvs (chatterbox, whisper, mmaudio)", Utility, "(local GPU TTS setup)"),
 ];
 
 pub fn find(name: &str) -> Option<&'static CommandSpec> {

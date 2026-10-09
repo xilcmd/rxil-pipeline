@@ -297,7 +297,7 @@ pub fn make_sfx_backend(
                 package_dir.as_deref(),
             ) else {
                 log::error(
-                    "Cannot find the venv-mmaudio Python. Pass --mmaudio-python PATH, set XIL_CODEROOT to the directory containing venv-mmaudio/, or create it: python -m venv venv-mmaudio && git clone https://github.com/hkchengrex/MMAudio && venv-mmaudio/bin/pip install -e MMAudio",
+                    "Cannot find the venv-mmaudio Python. Pass --mmaudio-python PATH, set XIL_CODEROOT to the directory containing venv-mmaudio/, or build it with: xil setup mmaudio",
                 );
                 return Ok(None);
             };

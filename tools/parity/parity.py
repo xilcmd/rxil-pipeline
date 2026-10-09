@@ -916,6 +916,13 @@ def _record_sample(ws: Path) -> None:
     fake.chmod(fake.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
     # `xil setup` only looks uv up on PATH; dry runs never execute it.
     (ws / "bin" / "uv").write_text("#!/bin/sh\nexit 0\n")
+    # `setup mmaudio` also needs git on PATH to plan its clone. pipbin/ has
+    # no uv (pip fallback); nogit/ has uv but no git.
+    (ws / "bin" / "git").write_text("#!/bin/sh\nexit 0\n")
+    for d, names in (("pipbin", ("python3", "git")), ("nogit", ("uv",))):
+        (ws / d).mkdir(exist_ok=True)
+        for n in names:
+            (ws / d / n).write_text("#!/bin/sh\nexit 0\n")
     refs = ws / "voice_refs"
     refs.mkdir(exist_ok=True)
     _run(["ffmpeg", "-v", "quiet", "-y", "-f", "lavfi", "-i", "sine=frequency=210:duration=0.5:sample_rate=16000",
