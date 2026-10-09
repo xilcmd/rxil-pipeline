@@ -51,7 +51,7 @@ WORKSPACE_FIXTURE = FIXTURES / "workspace"
 SUITE = HERE / "suite.toml"
 SCRATCH = Path(os.environ.get("XIL_PARITY_SCRATCH", HERE / "scratch"))
 
-CODEROOT = Path(os.environ.get("XIL_CODEROOT", "/mnt/c/Users/shaba/src/python/xil-pipeline"))
+CODEROOT = Path(os.environ.get("XIL_CODEROOT", str(Path.home() / "src" / "python" / "xil-pipeline")))
 PY_XIL = Path(os.environ.get("XIL_PY_BIN", CODEROOT / "venv" / "bin" / "xil"))
 RUST_XIL = Path(
     os.environ.get("XIL_RS_BIN", HERE.parent.parent / "target" / "debug" / "xil")
