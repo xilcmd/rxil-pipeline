@@ -1,4 +1,6 @@
-# Publish the mdBook user guide to GitHub Pages on every push to main.
+# Publish the mdBook user guide to GitHub Pages on every push to main, with
+# the rustdoc API reference under /api/ (linked from the guide's
+# "Programmer Reference" page).
 # CI's `check` job already proves the book builds; this job builds it again
 # on its own so a docs-only change never waits for the full test matrix.
 name: Pages
@@ -27,10 +29,20 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
       - uses: taiki-e/install-action@v2
         with:
           tool: mdbook
       - run: mdbook build docs/book
+      # Private items too, as in CI's strict `Docs` step: every crate is
+      # internal to the binary. rustdoc writes no workspace index page, so
+      # /api/ redirects to the guide's crate list.
+      - name: API reference
+        run: |
+          cargo doc --workspace --no-deps --document-private-items
+          cp -r target/doc docs/book/book/api
+          printf '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=../api-reference.html"><title>xil API reference</title><a href="../api-reference.html">xil API reference</a>\n' > docs/book/book/api/index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
